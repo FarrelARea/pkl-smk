@@ -1,0 +1,465 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Internship API",
+    "description": "API for School Internship Management System - Track student internships, daily logs, attendance, and evaluations",
+    "version": "1.0"
+  },
+  "servers": [
+    { "url": "http://localhost:8000/api/v1", "description": "Local Development Server" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["school_admin", "teacher", "student", "company_supervisor"] },
+          "school_id": { "type": "integer", "nullable": true }
+        }
+      },
+      "School": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string", "format": "email" }
+        }
+      },
+      "Student": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "role": { "type": "string", "example": "student" }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "industry": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string" }
+        }
+      },
+      "Internship": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "student_id": { "type": "integer" },
+          "company_id": { "type": "integer" },
+          "supervisor_id": { "type": "integer", "nullable": true },
+          "start_date": { "type": "string", "format": "date" },
+          "end_date": { "type": "string", "format": "date" },
+          "status": { "type": "string", "enum": ["active", "completed", "cancelled"] }
+        }
+      },
+      "DailyLog": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "student_id": { "type": "integer" },
+          "internship_id": { "type": "integer" },
+          "log_date": { "type": "string", "format": "date" },
+          "activities": { "type": "string" },
+          "reflection": { "type": "string", "nullable": true }
+        }
+      },
+      "Attendance": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "student_id": { "type": "integer" },
+          "attendance_date": { "type": "string", "format": "date" },
+          "status": { "type": "string", "enum": ["present", "absent", "sick", "permission"] }
+        }
+      },
+      "Evaluation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "student_id": { "type": "integer" },
+          "internship_id": { "type": "integer" },
+          "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "comments": { "type": "string", "nullable": true },
+          "type": { "type": "string", "enum": ["teacher", "supervisor"] }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "admin@school.com" },
+                  "password": { "type": "string", "example": "password123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": { "type": "string" },
+                    "token_type": { "type": "string", "example": "bearer" },
+                    "expires_in": { "type": "integer", "example": 3600 }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string", "enum": ["school_admin", "teacher", "student", "company_supervisor"] },
+                  "school_id": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" },
+          "422": { "description": "Validation error" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get current user",
+        "responses": {
+          "200": { "description": "Success" },
+          "401": { "description": "Unauthenticated" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Logout user",
+        "responses": {
+          "200": { "description": "Successfully logged out" }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Refresh JWT token",
+        "responses": {
+          "200": { "description": "Token refreshed" }
+        }
+      }
+    },
+    "/schools": {
+      "get": {
+        "tags": ["Schools"],
+        "summary": "List all schools",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "per_page", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": {
+        "tags": ["Schools"],
+        "summary": "Create school",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "address": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "email": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/schools/{id}": {
+      "get": { "tags": ["Schools"], "summary": "Get school", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Schools"], "summary": "Update school", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Schools"], "summary": "Delete school", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/classes": {
+      "get": {
+        "tags": ["Classes"],
+        "summary": "List classes",
+        "parameters": [
+          { "name": "school_id", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": {
+        "tags": ["Classes"],
+        "summary": "Create class",
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/classes/{id}": {
+      "get": { "tags": ["Classes"], "summary": "Get class", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Classes"], "summary": "Update class", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Classes"], "summary": "Delete class", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/teachers": {
+      "get": { "tags": ["Teachers"], "summary": "List teachers", "responses": { "200": { "description": "Success" } } },
+      "post": { "tags": ["Teachers"], "summary": "Create teacher", "responses": { "201": { "description": "Created" } } }
+    },
+    "/teachers/{id}": {
+      "get": { "tags": ["Teachers"], "summary": "Get teacher", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Teachers"], "summary": "Update teacher", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Teachers"], "summary": "Delete teacher", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/teachers/{id}/assign-class": {
+      "post": { "tags": ["Teachers"], "summary": "Assign teacher to class", "responses": { "200": { "description": "Assigned" } } }
+    },
+    "/students": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "List students",
+        "parameters": [
+          { "name": "school_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "class_id", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": { "tags": ["Students"], "summary": "Create student", "responses": { "201": { "description": "Created" } } }
+    },
+    "/students/{id}": {
+      "get": { "tags": ["Students"], "summary": "Get student", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Students"], "summary": "Update student", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Students"], "summary": "Delete student", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/students/{id}/assign-class": {
+      "post": { "tags": ["Students"], "summary": "Assign student to class", "responses": { "200": { "description": "Assigned" } } }
+    },
+    "/students/{id}/internship-status": {
+      "get": { "tags": ["Students"], "summary": "Get student internship status", "responses": { "200": { "description": "Success" } } }
+    },
+    "/companies": {
+      "get": { "tags": ["Companies"], "summary": "List companies", "responses": { "200": { "description": "Success" } } },
+      "post": { "tags": ["Companies"], "summary": "Create company", "responses": { "201": { "description": "Created" } } }
+    },
+    "/companies/{id}": {
+      "get": { "tags": ["Companies"], "summary": "Get company", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Companies"], "summary": "Update company", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Companies"], "summary": "Delete company", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/supervisors": {
+      "get": { "tags": ["Supervisors"], "summary": "List supervisors", "responses": { "200": { "description": "Success" } } },
+      "post": { "tags": ["Supervisors"], "summary": "Create supervisor", "responses": { "201": { "description": "Created" } } }
+    },
+    "/supervisors/{id}": {
+      "get": { "tags": ["Supervisors"], "summary": "Get supervisor", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Supervisors"], "summary": "Update supervisor", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Supervisors"], "summary": "Delete supervisor", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/supervisors/{id}/assign-company": {
+      "post": { "tags": ["Supervisors"], "summary": "Assign supervisor to company", "responses": { "200": { "description": "Assigned" } } }
+    },
+    "/internships": {
+      "get": {
+        "tags": ["Internships"],
+        "summary": "List internships",
+        "parameters": [
+          { "name": "student_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "company_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active", "completed", "cancelled"] } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": { "tags": ["Internships"], "summary": "Create internship", "responses": { "201": { "description": "Created" } } }
+    },
+    "/internships/{id}": {
+      "get": { "tags": ["Internships"], "summary": "Get internship", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Internships"], "summary": "Update internship", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Internships"], "summary": "Delete internship", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/internships/{id}/end": {
+      "post": { "tags": ["Internships"], "summary": "End internship", "responses": { "200": { "description": "Ended" } } }
+    },
+    "/daily-logs": {
+      "get": {
+        "tags": ["Daily Logs"],
+        "summary": "List daily logs",
+        "parameters": [
+          { "name": "student_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "start_date", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "end_date", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": { "tags": ["Daily Logs"], "summary": "Create daily log", "responses": { "201": { "description": "Created" } } }
+    },
+    "/daily-logs/{id}": {
+      "get": { "tags": ["Daily Logs"], "summary": "Get daily log", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Daily Logs"], "summary": "Update daily log (24h window)", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Daily Logs"], "summary": "Delete daily log (24h window)", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/daily-logs/{id}/comment": {
+      "post": { "tags": ["Daily Logs"], "summary": "Add teacher comment", "responses": { "200": { "description": "Comment added" } } }
+    },
+    "/attendance": {
+      "get": {
+        "tags": ["Attendance"],
+        "summary": "List attendance records",
+        "parameters": [
+          { "name": "student_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "start_date", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "end_date", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": { "tags": ["Attendance"], "summary": "Record attendance", "responses": { "201": { "description": "Recorded" } } }
+    },
+    "/attendance/{id}": {
+      "get": { "tags": ["Attendance"], "summary": "Get attendance", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Attendance"], "summary": "Update attendance", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Attendance"], "summary": "Delete attendance", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/attendance/bulk": {
+      "post": { "tags": ["Attendance"], "summary": "Bulk record attendance", "responses": { "200": { "description": "Bulk recorded" } } }
+    },
+    "/evaluations": {
+      "get": {
+        "tags": ["Evaluations"],
+        "summary": "List evaluations",
+        "parameters": [
+          { "name": "student_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["teacher", "supervisor"] } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": { "tags": ["Evaluations"], "summary": "Create evaluation", "responses": { "201": { "description": "Created" } } }
+    },
+    "/evaluations/{id}": {
+      "get": { "tags": ["Evaluations"], "summary": "Get evaluation", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Evaluations"], "summary": "Update evaluation", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Evaluations"], "summary": "Delete evaluation", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/final-assessments": {
+      "get": { "tags": ["Final Assessments"], "summary": "List final assessments", "responses": { "200": { "description": "Success" } } },
+      "post": { "tags": ["Final Assessments"], "summary": "Create final assessment", "responses": { "201": { "description": "Created" } } }
+    },
+    "/final-assessments/{id}": {
+      "get": { "tags": ["Final Assessments"], "summary": "Get final assessment", "responses": { "200": { "description": "Success" } } },
+      "put": { "tags": ["Final Assessments"], "summary": "Update final assessment", "responses": { "200": { "description": "Updated" } } },
+      "delete": { "tags": ["Final Assessments"], "summary": "Delete final assessment", "responses": { "200": { "description": "Deleted" } } }
+    },
+    "/clock-in-out": {
+      "get": {
+        "tags": ["Clock In/Out"],
+        "summary": "List clock in/out records",
+        "parameters": [
+          { "name": "user_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "internship_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["clock_in", "clock_out"] } },
+          { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": {
+        "tags": ["Clock In/Out"],
+        "summary": "Clock in or out with location",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["internship_id", "type", "latitude", "longitude"],
+                "properties": {
+                  "internship_id": { "type": "integer" },
+                  "type": { "type": "string", "enum": ["clock_in", "clock_out"] },
+                  "latitude": { "type": "number" },
+                  "longitude": { "type": "number" },
+                  "notes": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Success" } }
+      }
+    },
+    "/clock-in-out/{id}": {
+      "get": { "tags": ["Clock In/Out"], "summary": "Get clock record", "responses": { "200": { "description": "Success" } } }
+    },
+    "/clock-in-out/{internship_id}/today-status": {
+      "get": { "tags": ["Clock In/Out"], "summary": "Get today's clock status for internship", "responses": { "200": { "description": "Success" } } }
+    },
+    "/students/{id}/clock-in-out-history": {
+      "get": {
+        "tags": ["Clock In/Out"],
+        "summary": "Get student's clock in/out history",
+        "parameters": [
+          { "name": "start_date", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "end_date", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "internship_id", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      }
+    }
+  }
+}
