@@ -138,15 +138,33 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(User::class);
     }
 
+    public function assignedStudents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'teacher_student_assignments', 'teacher_id', 'student_id')
+            ->withTimestamps();
+    }
+
+    public function assignedTeachers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'teacher_student_assignments', 'student_id', 'teacher_id')
+            ->withTimestamps();
+    }
+
     public function getMyStudents(): \Illuminate\Database\Eloquent\Collection
     {
         if ($this->isTeacher()) {
+            // From class_user
             $classIds = $this->classes()->pluck('classes.id');
-            return User::where('role', 'student')
+            $fromClass = User::where('role', 'student')
                 ->whereHas('classes', function ($query) use ($classIds) {
                     $query->whereIn('classes.id', $classIds);
                 })
                 ->get();
+
+            // From teacher_student_assignments
+            $fromAssignment = $this->assignedStudents()->where('role', 'student')->get();
+
+            return $fromClass->merge($fromAssignment)->unique('id')->values();
         }
 
         if ($this->isCompanySupervisor()) {

@@ -128,7 +128,7 @@ class DailyLogController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $log = DailyLog::with(['student', 'internship', 'teacher'])->findOrFail($id);
+        $log = DailyLog::with(['student', 'internship', 'teacher', 'comments.author'])->findOrFail($id);
 
         return response()->json($log);
     }

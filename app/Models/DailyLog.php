@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DailyLog extends Model
 {
@@ -21,6 +22,8 @@ class DailyLog extends Model
         'longitude',
         'location_verified',
         'location_distance',
+        'review_status',
+        'review_note',
     ];
 
     protected $casts = [
@@ -46,8 +49,25 @@ class DailyLog extends Model
         return $this->belongsTo(User::class, 'teacher_id');
     }
 
+    public function comments(): HasMany
+    {
+        return $this->hasMany(DailyLogComment::class)->orderBy('created_at');
+    }
+
     public function canEdit(): bool
     {
+        if ($this->review_status === 'approved') return false;
+        if ($this->review_status === 'needs_revision') return true;
         return $this->created_at->diffInHours(now()) <= 24;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->review_status === 'approved';
+    }
+
+    public function needsRevision(): bool
+    {
+        return $this->review_status === 'needs_revision';
     }
 }

@@ -31,3 +31,4 @@ Route::get('/admin/internships', fn() => view('admin.internships'));
 Route::get('/admin/daily-logs', fn() => view('admin.daily-logs'));
 Route::get('/admin/attendance', fn() => view('admin.attendance'));
 Route::get('/admin/evaluations', fn() => view('admin.evaluations'));
+Route::get('/admin/teacher-assignments', fn() => view('admin.teacher-assignments'));

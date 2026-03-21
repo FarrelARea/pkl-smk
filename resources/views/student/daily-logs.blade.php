@@ -50,9 +50,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-900 mb-2">Foto/File (Opsional, max 5MB)</label>
-                    <input type="file" id="edit-log-file" accept="image/*,.pdf" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, PDF</p>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Foto (Opsional, max 2MB)</label>
+                    <input type="file" id="edit-log-file" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF</p>
                 </div>
 
                 <div class="flex gap-4 justify-end pt-4 border-t border-gray-200">
@@ -102,9 +102,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-900 mb-2">Foto/File (Opsional, max 5MB)</label>
-                    <input type="file" id="log-file" accept="image/*,.pdf" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, PDF</p>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Foto (Opsional, max 2MB)</label>
+                    <input type="file" id="log-file" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF</p>
                 </div>
 
                 <div class="flex gap-4 justify-end pt-4 border-t border-gray-200">
@@ -151,8 +151,13 @@
                     <img id="detail-log-photo" src="" alt="Log photo" class="max-w-full rounded-lg border border-gray-200">
                 </div>
                 <div id="detail-log-comments-section" class="hidden">
-                    <p class="text-xs text-gray-500 uppercase mb-1">Komentar Guru</p>
-                    <p id="detail-log-comments" class="text-gray-700 p-3 bg-gray-50 rounded-lg"></p>
+                    <p class="text-xs text-gray-500 uppercase mb-1">Percakapan</p>
+                    <div id="detail-log-comments" class="space-y-2"></div>
+                    <div class="mt-3 flex gap-2">
+                        <input type="text" id="detail-log-comment-input" placeholder="Tulis balasan..."
+                            class="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                        <button type="button" onclick="submitStudentComment()" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg">Kirim</button>
+                    </div>
                 </div>
                 <div class="flex gap-4 justify-end pt-4 border-t border-gray-200">
                     <button type="button" onclick="closeViewLogModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
@@ -238,18 +243,27 @@
                 const date = new Date(log.log_date || log.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const activityText = log.activities || log.context || '';
                 const activity = activityText.substring(0, 100) + (activityText.length > 100 ? '...' : '');
-                const derivedStatus = log.teacher_comment ? 'reviewed' : 'pending';
-                const statusBadges = {
-                    pending: '<span class="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">Menunggu</span>',
-                    reviewed: '<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">Direview</span>'
-                };
+                const reviewBadge = log.review_status === 'approved'
+                    ? '<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">✓ Disetujui</span>'
+                    : log.review_status === 'needs_revision'
+                    ? '<span class="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">⚠ Perlu Revisi</span>'
+                    : '<span class="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-500">—</span>';
                 const location = log.latitude && log.longitude ? (log.location_verified ? '✓ Di lokasi' : '⚠ Luar lokasi') : '—';
-                const canEdit = !log.teacher_comment;
+                const canEdit = log.review_status === 'needs_revision'
+                    ? true
+                    : log.review_status === 'approved'
+                    ? false
+                    : !log.teacher_comment;
 
                 tbody.innerHTML += `<tr class="border-b border-gray-100">
                     <td class="px-6 py-4 text-sm">${date}</td>
                     <td class="px-6 py-4 text-sm text-gray-600">${activity}</td>
-                    <td class="px-6 py-4 text-sm">${statusBadges[derivedStatus]}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <div class="flex flex-wrap items-center gap-1">
+                            ${reviewBadge}
+                            ${log.comments?.length > 0 ? `<span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">💬 ${log.comments.length}</span>` : ''}
+                        </div>
+                    </td>
                     <td class="px-6 py-4 text-sm text-gray-600">${location}</td>
                     <td class="px-6 py-4 text-sm space-x-2">
                         <button onclick="viewLogDetail(${log.id})" class="text-blue-600 hover:text-blue-700">Lihat</button>
@@ -327,7 +341,7 @@
 
         if (!date) { alert('Tanggal harus diisi'); return; }
         if (activity.length < 20) { alert('Aktivitas harus minimal 20 karakter'); return; }
-        if (fileInput.files.length > 0 && fileInput.files[0].size > 5 * 1024 * 1024) { alert('File terlalu besar (max 5MB)'); return; }
+        if (fileInput.files.length > 0 && fileInput.files[0].size > 2 * 1024 * 1024) { alert('File terlalu besar (max 2MB)'); return; }
 
         const submitBtn = document.getElementById('submit-btn');
         submitBtn.disabled = true;
@@ -375,9 +389,15 @@
             document.getElementById('detail-log-date').textContent = new Date(log.log_date || log.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('detail-log-activity').textContent = log.activities || log.context || '—';
 
-            const derivedStatus = log.teacher_comment ? 'reviewed' : 'pending';
-            const statusBadges = { pending: '<span class="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">Menunggu</span>', reviewed: '<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">Direview</span>' };
-            document.getElementById('detail-log-status').innerHTML = statusBadges[derivedStatus];
+            const reviewBadge = log.review_status === 'approved'
+                ? '<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">✓ Disetujui</span>'
+                : log.review_status === 'needs_revision'
+                ? '<span class="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">⚠ Perlu Revisi</span>'
+                : '<span class="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-500">Belum Direview</span>';
+            document.getElementById('detail-log-status').innerHTML = reviewBadge;
+            if (log.review_note) {
+                document.getElementById('detail-log-status').innerHTML += `<p class="text-xs text-gray-500 mt-1">Catatan: ${log.review_note}</p>`;
+            }
 
             if (log.latitude && log.longitude) {
                 document.getElementById('detail-log-location').textContent = log.location_verified ? `✓ Di lokasi (${log.latitude}, ${log.longitude})` : `⚠ Luar lokasi - ${log.location_distance}m (${log.latitude}, ${log.longitude})`;
@@ -387,10 +407,30 @@
             if (log.photo) { document.getElementById('detail-log-photo').src = `/storage/${log.photo}`; document.getElementById('detail-log-photo-section').classList.remove('hidden'); }
             else { document.getElementById('detail-log-photo-section').classList.add('hidden'); }
 
-            if (log.teacher_comment) { document.getElementById('detail-log-comments').textContent = log.teacher_comment; document.getElementById('detail-log-comments-section').classList.remove('hidden'); }
-            else { document.getElementById('detail-log-comments-section').classList.add('hidden'); }
+            const comments = log.comments || [];
+            window.renderComments = (list) => {
+                document.getElementById('detail-log-comments').innerHTML = list.map(c => {
+                    const isStudent = c.author_role === 'student';
+                    const bgClass = isStudent ? 'bg-green-50' : 'bg-blue-50';
+                    const nameClass = isStudent ? 'text-green-800' : 'text-blue-800';
+                    const name = c.author?.name || (isStudent ? 'Kamu' : 'Guru');
+                    return `<div class="${bgClass} rounded-lg px-3 py-2">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-xs font-medium ${nameClass}">${name}</span>
+                            <span class="text-xs text-gray-400">${new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                        <p class="text-sm text-gray-700">${c.comment}</p>
+                    </div>`;
+                }).join('');
+                document.getElementById('detail-log-comments-section').classList.remove('hidden');
+            };
+            renderComments(comments);
 
-            const canEdit = !log.teacher_comment;
+            const canEdit = log.review_status === 'needs_revision'
+                ? true
+                : log.review_status === 'approved'
+                ? false
+                : !log.teacher_comment;
             document.getElementById('detail-log-edit-btn').classList.toggle('hidden', !canEdit);
             document.getElementById('detail-log-delete-btn').classList.toggle('hidden', !canEdit);
             window.currentLogId = logId;
@@ -399,6 +439,28 @@
     };
 
     window.closeViewLogModal = function() { document.getElementById('view-log-modal').classList.add('hidden'); };
+
+    window.submitStudentComment = async function() {
+        const input = document.getElementById('detail-log-comment-input');
+        const comment = input.value.trim();
+        if (!comment || !window.currentLogId) return;
+        try {
+            const res = await Auth.apiFetch(`/student/daily-logs/${window.currentLogId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comment }),
+            });
+            if (!res.ok) { const err = await res.json(); alert(err.error || 'Gagal mengirim komentar'); return; }
+            input.value = '';
+            // Reload comments
+            const logRes = await Auth.apiFetch(`/daily-logs/${window.currentLogId}`);
+            if (logRes.ok) {
+                const data = await logRes.json();
+                const log = data.data || data.daily_log || data;
+                window.renderComments(log.comments || []);
+            }
+        } catch (err) { alert('Gagal mengirim komentar: ' + err.message); }
+    };
     window.editLogFromDetail = function() { closeViewLogModal(); editLog(window.currentLogId); };
     window.deleteLogFromDetail = function() { closeViewLogModal(); deleteLog(window.currentLogId); };
 
@@ -437,7 +499,7 @@
         const logId = window.currentEditLogId;
 
         if (activity.length < 20) { alert('Aktivitas harus minimal 20 karakter'); return; }
-        if (fileInput.files.length > 0 && fileInput.files[0].size > 5 * 1024 * 1024) { alert('File terlalu besar (max 5MB)'); return; }
+        if (fileInput.files.length > 0 && fileInput.files[0].size > 2 * 1024 * 1024) { alert('File terlalu besar (max 2MB)'); return; }
 
         const submitBtn = document.getElementById('edit-submit-btn');
         submitBtn.disabled = true;

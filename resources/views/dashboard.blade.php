@@ -86,7 +86,6 @@
                 await loadAdminDashboard();
             } else if (user.role === 'teacher') {
                 document.getElementById('dashboard-teacher').classList.remove('hidden');
-                await loadTeacherDashboard();
             } else if (user.role === 'company_supervisor') {
                 document.getElementById('dashboard-supervisor').classList.remove('hidden');
                 await loadSupervisorDashboard();

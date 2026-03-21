@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\StudentDocument;
+use App\Models\TeacherStudentAssignment;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,13 +17,14 @@ class DocumentApprovalController extends Controller
 
         $student = User::findOrFail($studentId);
 
-        // Validate teacher has student in their class
+        // Validate teacher has student via class OR explicit assignment
         $teacherClassIds = $teacher->teacherClasses()->pluck('classes.id');
         $studentClassIds = $student->studentClasses()->pluck('classes.id');
-
         $sharedClasses = $teacherClassIds->intersect($studentClassIds);
+        $isAssigned = TeacherStudentAssignment::where('teacher_id', $teacher->id)
+            ->where('student_id', $studentId)->exists();
 
-        if ($sharedClasses->isEmpty()) {
+        if ($sharedClasses->isEmpty() && !$isAssigned) {
             return response()->json(['error' => 'Unauthorized: student bukan bagian dari kelas Anda.'], 403);
         }
 
@@ -31,7 +33,7 @@ class DocumentApprovalController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json(['documents' => $documents]);
+        return response()->json($documents);
     }
 
     public function approve(int $id): JsonResponse

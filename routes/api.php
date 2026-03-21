@@ -91,9 +91,10 @@ Route::prefix('v1')->group(function () {
             Route::get('student/attendance', [App\Http\Controllers\Api\V1\StudentEvaluationController::class, 'myAttendance']);
             Route::post('student/documents', [App\Http\Controllers\Api\V1\StudentDocumentController::class, 'store']);
             Route::delete('student/documents/{id}', [App\Http\Controllers\Api\V1\StudentDocumentController::class, 'destroy']);
+            Route::post('student/daily-logs/{id}/comments', [App\Http\Controllers\Api\V1\StudentEvaluationController::class, 'addComment']);
         });
 
-        // Teacher document approval
+        // Teacher document approval + panel
         Route::middleware('role:teacher')->group(function () {
             Route::get('teacher/students/{id}/documents', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'teacherDocuments']);
             Route::post('teacher/documents/{id}/approve', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'approve']);
@@ -102,6 +103,24 @@ Route::prefix('v1')->group(function () {
             Route::post('document-requirements', [App\Http\Controllers\Api\V1\DocumentRequirementController::class, 'store']);
             Route::put('document-requirements/{id}', [App\Http\Controllers\Api\V1\DocumentRequirementController::class, 'update']);
             Route::delete('document-requirements/{id}', [App\Http\Controllers\Api\V1\DocumentRequirementController::class, 'destroy']);
+            // Teacher panel
+            Route::get('teacher/panel/students', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'students']);
+            Route::get('teacher/panel/students/{id}/stats', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'studentStats']);
+            Route::post('teacher/panel/students/{id}/evaluate', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'evaluate']);
+            Route::get('teacher/panel/students/{id}/permissions', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'permissions']);
+            Route::post('teacher/panel/permissions/{id}/approve', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'approvePermission']);
+            Route::post('teacher/panel/permissions/{id}/reject', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'rejectPermission']);
+            Route::get('teacher/panel/students/{id}/logs', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'logs']);
+            Route::post('teacher/panel/daily-logs/{id}/comments', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'addComment']);
+            Route::post('teacher/panel/daily-logs/{id}/review', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'review']);
+            Route::get('teacher/panel/pending', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'pending']);
+        });
+
+        // Admin teacher assignments
+        Route::middleware('role:school_admin')->group(function () {
+            Route::get('admin/teacher-assignments', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'index']);
+            Route::post('admin/teacher-assignments', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'store']);
+            Route::delete('admin/teacher-assignments/{id}', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'destroy']);
         });
 
         // Supervisor document approval (optional)

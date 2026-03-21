@@ -137,6 +137,10 @@
                         <span class="material-symbols-outlined">rate_review</span>
                         <span>Evaluations</span>
                     </a>
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/teacher-assignments*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/teacher-assignments">
+                        <span class="material-symbols-outlined">assignment_ind</span>
+                        <span>Teacher Assignments</span>
+                    </a>
                 </div>
             </div>
         </nav>
@@ -210,8 +214,12 @@
             if (userRole === 'student') {
                 adminMenus.forEach(menu => menu.classList.add('hidden'));
                 studentMenus.forEach(menu => menu.classList.remove('hidden'));
-            } else {
+            } else if (userRole === 'school_admin') {
                 adminMenus.forEach(menu => menu.classList.remove('hidden'));
+                studentMenus.forEach(menu => menu.classList.add('hidden'));
+            } else {
+                // teacher, company_supervisor — hanya tampilkan overview
+                adminMenus.forEach(menu => menu.classList.add('hidden'));
                 studentMenus.forEach(menu => menu.classList.add('hidden'));
             }
         }

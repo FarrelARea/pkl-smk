@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\ClockInOut;
+use App\Models\DailyLog;
+use App\Models\DailyLogComment;
 use App\Models\StudentDocument;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -83,5 +85,28 @@ class StudentEvaluationController extends Controller
             'clock_records' => $clocks,
             'attendance_records' => $attendanceRecords,
         ]);
+    }
+
+    public function addComment(Request $request, int $logId): JsonResponse
+    {
+        $student = auth('api')->user();
+        $log = DailyLog::findOrFail($logId);
+
+        if ($log->student_id !== $student->id) {
+            return response()->json(['error' => 'Anda tidak bisa komentar pada log ini.'], 403);
+        }
+
+        $data = $request->validate(['comment' => 'required|string']);
+
+        $comment = DailyLogComment::create([
+            'daily_log_id' => $log->id,
+            'author_id' => $student->id,
+            'author_role' => 'student',
+            'comment' => $data['comment'],
+        ]);
+
+        $comment->load('author:id,name');
+
+        return response()->json($comment, 201);
     }
 }
