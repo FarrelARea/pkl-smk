@@ -4,9 +4,18 @@
 
 @section('content')
 <div class="space-y-6">
-    {{-- Header --}}
+    {{-- Judul --}}
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Pengajuan Izin & Sakit</h1>
+            <x-help-button title="Panduan Pengajuan Izin & Sakit">
+                <p>Di halaman ini kamu bisa mengajukan izin atau sakit.</p>
+                <ul class="list-disc pl-4 mt-2 space-y-1">
+                    <li>Pilih jenis pengajuan (sakit, izin, atau lainnya)</li>
+                    <li>Isi tanggal dan alasan pengajuan</li>
+                    <li>Lampirkan dokumen pendukung jika ada</li>
+                    <li>Pantau status persetujuan dari guru</li>
+                </ul>
+            </x-help-button>
         <a href="/dashboard" class="text-blue-600 hover:text-blue-700">← Kembali ke Dashboard</a>
     </div>
 
@@ -86,7 +95,7 @@
     waitForAuth(async () => {
         if (!Auth.requireAuth()) return;
 
-        // Set min date to today
+        // Set tanggal minimum ke hari ini
         document.getElementById('req-date').min = new Date().toISOString().split('T')[0];
 
         try {
@@ -98,7 +107,7 @@
             const statusData = await statusRes.json();
             activeInternshipId = statusData.data?.id || null;
         } catch (e) {
-            console.error('Failed to get user info:', e);
+            console.error('Gagal memuat info user:', e);
         }
 
         await loadRequests();
@@ -111,7 +120,7 @@
             const records = data.data || [];
             renderTable(records);
         } catch (e) {
-            console.error('Failed to load requests:', e);
+            console.error('Gagal memuat pengajuan:', e);
         }
     }
 

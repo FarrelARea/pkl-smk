@@ -1,14 +1,25 @@
 @extends('layouts.app')
 
-@section('title', 'Students Management')
+@section('title', 'Manajemen Siswa')
 
 @section('content')
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Students Management</h1>
+        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Siswa</h1>
+        <x-help-button title="Panduan Manajemen Siswa">
+            <p>Di halaman ini kamu bisa mengelola semua data siswa.</p>
+            <ul class="list-disc pl-4 mt-2 space-y-1">
+                <li>Tambah siswa baru atau import dari file</li>
+                <li>Edit dan hapus data siswa</li>
+                <li>Tetapkan siswa ke kelas</li>
+                <li>Reset password siswa</li>
+                <li>Lihat status magang siswa</li>
+                <li>Export data siswa</li>
+            </ul>
+        </x-help-button>
         <p class="text-on-surface-variant max-w-2xl font-body">
-            Manage student records, assign classes, and track internship statuses.
+            Kelola data siswa, atur kelas, dan pantau status magang.
         </p>
     </div>
     <div class="flex items-center gap-2">
@@ -22,7 +33,7 @@
             </label>
         </div>
         <button onclick="openCreateModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">add</span> Add Student
+            <span class="material-symbols-outlined text-sm">add</span> Tambah Siswa
         </button>
     </div>
 </header>
@@ -30,23 +41,23 @@
 <!-- Filter Bar -->
 <div class="flex gap-4 mb-8 flex-wrap items-end">
     <div>
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Search</label>
-        <input type="text" id="filter-search" placeholder="Name or Email..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari</label>
+        <input type="text" id="filter-search" placeholder="Nama atau Email..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
     </div>
     <div class="w-64">
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">School</label>
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
         <select id="filter-school" onchange="onSchoolFilterChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Schools</option>
+            <option value="">Semua Sekolah</option>
         </select>
     </div>
     <div class="w-64">
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Class</label>
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas</label>
         <select id="filter-class" onchange="loadStudents()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Classes</option>
+            <option value="">Semua Kelas</option>
         </select>
     </div>
     <div>
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Page</label>
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Halaman</label>
         <select id="filter-per-page" onchange="loadStudents()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="15">15</option>
             <option value="25">25</option>
@@ -61,15 +72,15 @@
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-surface-container-low">
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Name</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Nama</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Email</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Assigned Classes</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Actions</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Kelas yang Ditugaskan</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Aksi</th>
             </tr>
         </thead>
         <tbody id="students-table" class="divide-y divide-surface-container">
             <tr>
-                <td colspan="3" class="px-6 py-12 text-center text-on-surface-variant">Loading...</td>
+                <td colspan="3" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td>
             </tr>
         </tbody>
     </table>
@@ -77,11 +88,11 @@
 </div>
 
 <!-- Create/Edit Modal -->
-@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Add Student'])
+@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Tambah Siswa'])
     <form id="crud-form" onsubmit="saveStudent(event)" class="space-y-4">
         <input type="hidden" id="edit-id" value="">
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Name</label>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Nama</label>
             <input type="text" id="field-name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
         </div>
         <div>
@@ -93,24 +104,24 @@
             <input type="password" id="field-password" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" minlength="6">
         </div>
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">School</label>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
             <select id="field-school" onchange="onModalSchoolChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                <option value="">Select a school...</option>
+                <option value="">Pilih sekolah...</option>
             </select>
         </div>
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Class <span class="text-error">*</span></label>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas <span class="text-error">*</span></label>
             <input type="hidden" id="field-class" value="">
             <div class="relative">
-                <input type="text" id="class-search" placeholder="Search classes..." class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" oninput="filterClassDropdown()">
+                <input type="text" id="class-search" placeholder="Cari kelas..." class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" oninput="filterClassDropdown()">
                 <div id="class-dropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-surface-container-low border border-outline-variant/20 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                    <p class="text-xs text-outline p-3">Select a class...</p>
+                    <p class="text-xs text-outline p-3">Pilih kelas...</p>
                 </div>
             </div>
             <p id="class-error" class="text-error text-xs mt-1 hidden"></p>
         </div>
         <button type="submit" class="w-full py-3 primary-gradient text-white rounded-lg font-bold text-sm shadow-md active:scale-95 transition-transform">
-            Save Student
+            Simpan
         </button>
     </form>
 @endcomponent
@@ -121,15 +132,15 @@
         <input type="hidden" id="reset-student-id">
         <div class="space-y-4">
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">New Password</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Password Baru</label>
                 <input id="reset-password-field" type="password" required minlength="6" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Confirm Password</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Konfirmasi Password</label>
                 <input id="reset-password-confirm-field" type="password" required minlength="6" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
             <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="AdminUtils.hideModal('reset-password-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Cancel</button>
+                <button type="button" onclick="AdminUtils.hideModal('reset-password-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Batal</button>
                 <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Reset Password</button>
             </div>
         </div>
@@ -137,29 +148,29 @@
 @endcomponent
 
 <!-- Assign to Classes Modal (single-select radio buttons) -->
-@component('partials.modal', ['id' => 'assign-modal', 'title' => 'Assign to Class'])
+@component('partials.modal', ['id' => 'assign-modal', 'title' => 'Tetapkan ke Kelas'])
     <form id="assign-form" onsubmit="submitAssignClass(event)" class="space-y-4">
         <input type="hidden" id="assign-student-id" value="">
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Search Class</label>
-            <input type="text" id="assign-class-search" placeholder="Search classes..." class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-3" oninput="filterAssignClassList()">
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari Kelas</label>
+            <input type="text" id="assign-class-search" placeholder="Cari kelas..." class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-3" oninput="filterAssignClassList()">
         </div>
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Select Class</label>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Pilih Kelas</label>
             <div id="assign-class-list" class="max-h-60 overflow-y-auto space-y-0 bg-surface-container-low rounded-lg border border-outline-variant/20">
-                <p class="text-xs text-outline p-3">Loading classes...</p>
+                <p class="text-xs text-outline p-3">Memuat kelas...</p>
             </div>
         </div>
         <button type="submit" class="w-full py-3 primary-gradient text-white rounded-lg font-bold text-sm shadow-md active:scale-95 transition-transform">
-            Assign Class
+            Tetapkan Kelas
         </button>
     </form>
 @endcomponent
 
 <!-- View Internship Status Modal -->
-@component('partials.modal', ['id' => 'status-modal', 'title' => 'Internship Status'])
+@component('partials.modal', ['id' => 'status-modal', 'title' => 'Status Magang'])
     <div id="status-content" class="space-y-3">
-        <p class="text-on-surface-variant text-sm">Loading...</p>
+        <p class="text-on-surface-variant text-sm">Memuat...</p>
     </div>
 @endcomponent
 @endsection
@@ -188,7 +199,7 @@
     window.onSchoolFilterChange = async function () {
         const schoolId = document.getElementById('filter-school').value;
         const classSelect = document.getElementById('filter-class');
-        classSelect.innerHTML = '<option value="">All Classes</option>';
+        classSelect.innerHTML = '<option value="">Semua Kelas</option>';
 
         if (schoolId) {
             await AdminUtils.populateSelect('filter-class', `/classes?school_id=${schoolId}`);
@@ -197,7 +208,7 @@
             if (!first) {
                 const opt = document.createElement('option');
                 opt.value = '';
-                opt.textContent = 'All Classes';
+                opt.textContent = 'Semua Kelas';
                 classSelect.prepend(opt);
             }
         }
@@ -230,14 +241,14 @@
                 { key: 'email' },
                 { key: 'student_classes', render: (row) => {
                     const classes = row.student_classes || [];
-                    return classes.length ? classes.map(c => `<span class="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-[0.6rem] font-bold">${c.name}</span>`).join(' ') : '<span class="text-outline text-xs">None</span>';
+                    return classes.length ? classes.map(c => `<span class="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-[0.6rem] font-bold">${c.name}</span>`).join(' ') : '<span class="text-outline text-xs">Tidak ada</span>';
                 }},
             ], (row) => `
                 ${AdminUtils.editBtn(row.id)}
                 <button onclick="resetPassword(${row.id}, '${row.name.replace(/'/g, "\\'")}')" class="p-2 text-on-surface-variant hover:text-warning transition-colors" title="Reset Password"><span class="material-symbols-outlined text-sm">lock_reset</span></button>
                 ${AdminUtils.deleteBtn(row.id, row.name)}
-                <button onclick="openAssignModal(${row.id})" class="p-2 text-on-surface-variant hover:text-secondary transition-colors" title="Assign Class"><span class="material-symbols-outlined text-sm">school</span></button>
-                <button onclick="viewStatus(${row.id})" class="p-2 text-on-surface-variant hover:text-tertiary transition-colors" title="View Status"><span class="material-symbols-outlined text-sm">info</span></button>
+                <button onclick="openAssignModal(${row.id})" class="p-2 text-on-surface-variant hover:text-secondary transition-colors" title="Tetapkan Kelas"><span class="material-symbols-outlined text-sm">school</span></button>
+                <button onclick="viewStatus(${row.id})" class="p-2 text-on-surface-variant hover:text-tertiary transition-colors" title="Lihat Status"><span class="material-symbols-outlined text-sm">info</span></button>
             `);
 
             AdminUtils.renderPagination('students-pagination', meta, loadStudents);
@@ -260,7 +271,7 @@
         document.getElementById('field-school').required = true;
         document.getElementById('password-field').style.display = '';
         allClasses = [];
-        document.getElementById('crud-modal-title').textContent = 'Add Student';
+        document.getElementById('crud-modal-title').textContent = 'Tambah Siswa';
         await AdminUtils.populateSelect('field-school', '/schools');
         AdminUtils.showModal('crud-modal');
     };
@@ -367,7 +378,7 @@
                 }
             }
 
-            document.getElementById('crud-modal-title').textContent = 'Edit Student';
+            document.getElementById('crud-modal-title').textContent = 'Edit Siswa';
             AdminUtils.showModal('crud-modal');
         } catch (err) {
             AdminUtils.showToast('Failed to load student', 'error');
@@ -590,7 +601,7 @@
     // ── View Internship Status ────────────────────────────
     window.viewStatus = async function (studentId) {
         const content = document.getElementById('status-content');
-        content.innerHTML = '<p class="text-on-surface-variant text-sm">Loading...</p>';
+        content.innerHTML = '<p class="text-on-surface-variant text-sm">Memuat...</p>';
         AdminUtils.showModal('status-modal');
 
         try {
@@ -602,19 +613,19 @@
                 content.innerHTML = `
                     <div class="space-y-3">
                         <div>
-                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Company</p>
+                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Perusahaan</p>
                             <p class="text-sm font-semibold text-on-surface">${status.company.name || status.company || '—'}</p>
                         </div>
                         <div>
-                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Supervisor</p>
+                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Pembimbing</p>
                             <p class="text-sm font-semibold text-on-surface">${status.supervisor?.name || status.supervisor || '—'}</p>
                         </div>
                         <div>
-                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Start Date</p>
+                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Tanggal Mulai</p>
                             <p class="text-sm font-semibold text-on-surface">${status.start_date || '—'}</p>
                         </div>
                         <div>
-                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">End Date</p>
+                            <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Tanggal Selesai</p>
                             <p class="text-sm font-semibold text-on-surface">${status.end_date || '—'}</p>
                         </div>
                         <div>
@@ -624,10 +635,10 @@
                     </div>
                 `;
             } else {
-                content.innerHTML = '<p class="text-on-surface-variant text-sm">No active internship found for this student.</p>';
+                content.innerHTML = '<p class="text-on-surface-variant text-sm">Tidak ada magang aktif untuk siswa ini.</p>';
             }
         } catch (err) {
-            content.innerHTML = '<p class="text-error text-sm">Failed to load internship status.</p>';
+            content.innerHTML = '<p class="text-error text-sm">Gagal memuat status magang.</p>';
         }
     };
 

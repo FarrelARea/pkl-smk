@@ -1,5 +1,16 @@
 <div class="space-y-6">
-    {{-- Internship Status & Progress --}}
+    <x-help-button title="Panduan Dashboard Siswa">
+        <p>Ini adalah halaman utama kamu selama magang. Di sini kamu bisa:</p>
+        <ul class="list-disc pl-4 mt-2 space-y-1">
+            <li>Absen masuk dan keluar dengan foto dan lokasi</li>
+            <li>Kirim daily log harian</li>
+            <li>Lihat riwayat kehadiran</li>
+            <li>Ajukan izin atau sakit</li>
+            <li>Upload dokumen penilaian</li>
+        </ul>
+    </x-help-button>
+
+    {{-- Status & Progress Magang --}}
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <h3 class="font-semibold text-gray-900 mb-4">Status Magang</h3>
         <div id="student-internship-info" class="space-y-4">
@@ -7,7 +18,7 @@
         </div>
     </div>
 
-    {{-- Attendance Summary Widget --}}
+    {{-- Widget Ringkasan Kehadiran --}}
     <div id="attendance-summary-widget" class="bg-white rounded-xl border border-gray-200 p-6 hidden">
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-900">Ringkasan Kehadiran</h3>
@@ -29,7 +40,7 @@
         </div>
     </div>
 
-    {{-- Quick Actions --}}
+    {{-- Aksi Cepat --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <button id="clock-in-btn" onclick="showClockModal()" class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6 hover:shadow-lg transition-all text-left">
             <div class="text-3xl mb-2">📍</div>
@@ -62,7 +73,7 @@
         </a>
     </div>
 
-    {{-- Today's Clock Status --}}
+    {{-- Status Absen Hari Ini --}}
     <div id="today-clock-status" class="bg-white rounded-xl border border-gray-200 p-6 hidden">
         <h3 class="font-semibold text-gray-900 mb-4">Status Absen Hari Ini</h3>
         <div id="clock-status-content" class="space-y-2">
@@ -70,10 +81,10 @@
         </div>
     </div>
 
-    {{-- Clock In/Out Modal --}}
+    {{-- Modal Absen Masuk/Keluar --}}
     <div id="clock-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
-            {{-- Header --}}
+            {{-- Judul --}}
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white">
                 <div class="flex items-center justify-between">
                     <div>
@@ -87,7 +98,7 @@
             </div>
 
             <div class="p-6 space-y-5">
-                {{-- Step 1: Location --}}
+                {{-- Langkah 1: Lokasi --}}
                 <div id="clock-step-location">
                     <div class="flex items-center gap-2 mb-3">
                         <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span>
@@ -111,34 +122,34 @@
                     </div>
                 </div>
 
-                {{-- Step 2: Camera --}}
+                {{-- Langkah 2: Kamera --}}
                 <div id="clock-step-camera">
                     <div class="flex items-center gap-2 mb-3">
                         <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span>
                         <span class="text-sm font-semibold text-gray-700">Foto Bukti Kehadiran</span>
                     </div>
 
-                    {{-- Camera preview --}}
+                    {{-- Preview kamera --}}
                     <div id="camera-container" class="relative rounded-xl overflow-hidden bg-gray-900 aspect-[4/3]">
                         <video id="camera-preview" class="w-full h-full object-cover" autoplay playsinline muted></video>
                         <canvas id="camera-canvas" class="hidden"></canvas>
 
-                        {{-- Camera overlay --}}
+                        {{-- Overlay kamera --}}
                         <div id="camera-overlay" class="absolute inset-0 flex flex-col items-center justify-center text-white bg-gray-900/60">
                             <span class="material-symbols-outlined text-5xl mb-2">photo_camera</span>
                             <p class="text-sm">Menghubungkan kamera...</p>
                         </div>
 
-                        {{-- Photo preview (replaces video) --}}
+                        {{-- Preview foto (menggantikan video) --}}
                         <img id="photo-preview" class="absolute inset-0 w-full h-full object-cover hidden" alt="Preview">
 
-                        {{-- Retake badge --}}
+                        {{-- Tombol ulangi --}}
                         <button id="retake-btn" onclick="retakePhoto()" class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur hidden transition-colors">
                             <span class="material-symbols-outlined text-sm align-middle mr-1">refresh</span>Ulangi
                         </button>
                     </div>
 
-                    {{-- Capture button --}}
+                    {{-- Tombol ambil foto --}}
                     <div class="flex justify-center mt-3">
                         <button id="capture-btn" onclick="capturePhoto()" class="w-16 h-16 rounded-full border-4 border-blue-600 bg-white hover:bg-blue-50 transition-colors flex items-center justify-center shadow-lg">
                             <span class="w-12 h-12 bg-blue-600 rounded-full"></span>
@@ -146,7 +157,7 @@
                     </div>
                 </div>
 
-                {{-- Action Buttons --}}
+                {{-- Tombol Aksi --}}
                 <div class="grid grid-cols-2 gap-3 pt-2">
                     <button onclick="submitClock('in')" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20" id="clock-in-submit">
                         <span class="material-symbols-outlined">login</span>
@@ -158,13 +169,13 @@
                     </button>
                 </div>
 
-                {{-- Submit feedback --}}
+                {{-- Feedback submit --}}
                 <div id="clock-feedback" class="hidden"></div>
             </div>
         </div>
     </div>
 
-    {{-- Recent Daily Logs --}}
+    {{-- Daily Log Terbaru --}}
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="font-semibold text-gray-900">Daily Log Terbaru</h3>

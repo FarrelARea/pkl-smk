@@ -1,22 +1,31 @@
 @extends('layouts.app')
 
-@section('title', 'Internships Management')
+@section('title', 'Manajemen Magang')
 
 @section('content')
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Internships Management</h1>
+        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Magang</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
-            Manage internship assignments between students, companies and supervisors.
+            Kelola penugasan magang antara siswa, perusahaan, dan pembimbing.
         </p>
     </div>
+    <x-help-button title="Panduan Manajemen Magang">
+        <p>Di halaman ini kamu bisa mengelola penugasan magang.</p>
+        <ul class="list-disc pl-4 mt-2 space-y-1">
+            <li>Tambah penugasan magang baru (siswa → perusahaan → pembimbing)</li>
+            <li>Tetapkan siswa secara massal ke perusahaan</li>
+            <li>Akhiri magang yang sudah selesai</li>
+            <li>Filter berdasarkan siswa, perusahaan, atau status</li>
+        </ul>
+    </x-help-button>
     <div>
         <button onclick="openBatchModal()" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2 mr-3">
-            <span class="material-symbols-outlined text-sm">group_add</span> Batch Assign
+            <span class="material-symbols-outlined text-sm">group_add</span> Tetapkan Massal
         </button>
         <button onclick="openCreateModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">add</span> Add Internship
+            <span class="material-symbols-outlined text-sm">add</span> Tambah Magang
         </button>
     </div>
 </header>
@@ -24,28 +33,28 @@
 <!-- Filter Bar -->
 <div class="mb-6 flex flex-wrap gap-4 items-end">
     <div>
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Search</label>
-        <input type="text" id="filter-search" placeholder="Student name..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari</label>
+        <input type="text" id="filter-search" placeholder="Nama siswa..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
     </div>
     <div class="w-56">
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-student">Student</label>
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-student">Siswa</label>
         <select id="filter-student" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Students</option>
+            <option value="">Semua Siswa</option>
         </select>
     </div>
     <div class="w-56">
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-company">Company</label>
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-company">Perusahaan</label>
         <select id="filter-company" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Companies</option>
+            <option value="">Semua Perusahaan</option>
         </select>
     </div>
     <div class="w-48">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-status">Status</label>
         <select id="filter-status" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="">Semua Status</option>
+            <option value="active">Aktif</option>
+            <option value="completed">Selesai</option>
+            <option value="cancelled">Dibatalkan</option>
         </select>
     </div>
     <div>
@@ -62,117 +71,117 @@
 <!-- Table -->
 <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
     <div class="p-6 flex justify-between items-center border-b border-surface-container">
-        <h2 class="text-xl font-bold tracking-tight font-headline">Internships</h2>
+        <h2 class="text-xl font-bold tracking-tight font-headline">Magang</h2>
     </div>
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-surface-container-low">
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Student</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Company</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Supervisor</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Start Date</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">End Date</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Siswa</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Perusahaan</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Pembimbing</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Tanggal Mulai</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Tanggal Selesai</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Status</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Actions</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Aksi</th>
             </tr>
         </thead>
         <tbody id="data-table" class="divide-y divide-surface-container">
-            <tr><td colspan="7" class="px-6 py-12 text-center text-on-surface-variant">Loading...</td></tr>
+            <tr><td colspan="7" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td></tr>
         </tbody>
     </table>
     <div id="pagination"></div>
 </div>
 
 <!-- Modal -->
-@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Internship'])
+@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Magang'])
     <form id="crud-form" onsubmit="event.preventDefault(); saveItem();">
         <input type="hidden" id="item-id">
         <div class="space-y-4">
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Search Student</label>
-                <input type="text" id="field-student-search" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-2" placeholder="Type student name..." oninput="filterStudentDropdown()">
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari Siswa</label>
+                <input type="text" id="field-student-search" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-2" placeholder="Ketik nama siswa..." oninput="filterStudentDropdown()">
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-student_id">Student</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-student_id">Siswa</label>
                 <select id="field-student_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select Student</option>
+                    <option value="">Pilih Siswa</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-company_id">Company</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-company_id">Perusahaan</label>
                 <select id="field-company_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select Company</option>
+                    <option value="">Pilih Perusahaan</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-supervisor_id">Supervisor</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-supervisor_id">Pembimbing</label>
                 <select id="field-supervisor_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select Supervisor</option>
+                    <option value="">Pilih Pembimbing</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-start_date">Start Date</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-start_date">Tanggal Mulai</label>
                 <input id="field-start_date" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-end_date">End Date</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-end_date">Tanggal Selesai</label>
                 <input id="field-end_date" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-status">Status</label>
                 <select id="field-status" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="active">Aktif</option>
+                    <option value="completed">Selesai</option>
+                    <option value="cancelled">Dibatalkan</option>
                 </select>
             </div>
             <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="AdminUtils.hideModal('crud-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Cancel</button>
-                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Save</button>
+                <button type="button" onclick="AdminUtils.hideModal('crud-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Batal</button>
+                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Simpan</button>
             </div>
         </div>
     </form>
 @endcomponent
 
 <!-- Batch Assignment Modal -->
-@component('partials.modal', ['id' => 'batch-modal', 'title' => 'Batch Assign Students'])
+@component('partials.modal', ['id' => 'batch-modal', 'title' => 'Tetapkan Siswa Massal'])
     <form id="batch-form" onsubmit="event.preventDefault(); submitBatch();">
         <div class="space-y-4">
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-company_id">Company</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-company_id">Perusahaan</label>
                 <select id="batch-company_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onchange="loadCompanySupervisors()">
-                    <option value="">Select Company</option>
+                    <option value="">Pilih Perusahaan</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-supervisor_id">Supervisor</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-supervisor_id">Pembimbing</label>
                 <select id="batch-supervisor_id" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select Supervisor</option>
+                    <option value="">Pilih Pembimbing</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-start_date">Start Date</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-start_date">Tanggal Mulai</label>
                 <input id="batch-start_date" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-end_date">End Date</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-end_date">Tanggal Selesai</label>
                 <input id="batch-end_date" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-student-search">Search Students</label>
-                <input type="text" id="batch-student-search" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Type to search students..." oninput="filterStudents()">
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-student-search">Cari Siswa</label>
+                <input type="text" id="batch-student-search" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Ketik untuk mencari siswa..." oninput="filterStudents()">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
-                    Students
-                    <span class="normal-case font-normal text-xs" id="selected-count">(0 selected, max 50)</span>
+                    Siswa
+                    <span class="normal-case font-normal text-xs" id="selected-count">(0 dipilih, maks 50)</span>
                 </label>
                 <div id="batch-students-list" class="w-full h-96 overflow-y-auto px-3 py-2 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm space-y-1">
                 </div>
             </div>
             <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="AdminUtils.hideModal('batch-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Cancel</button>
-                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Assign</button>
+                <button type="button" onclick="AdminUtils.hideModal('batch-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Batal</button>
+                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Tetapkan</button>
             </div>
         </div>
     </form>
@@ -231,12 +240,12 @@
             companiesList = Array.isArray(companiesJson.data) ? companiesJson.data : (companiesJson.data?.data || []);
             supervisorsList = Array.isArray(supervisorsJson.data) ? supervisorsJson.data : (supervisorsJson.data?.data || []);
 
-            populateSelect('filter-student', studentsList, 'All Students');
-            populateSelect('filter-company', companiesList, 'All Companies');
-            populateSelect('field-student_id', studentsList, 'Select Student');
-            populateSelect('field-company_id', companiesList, 'Select Company');
-            populateSelect('field-supervisor_id', supervisorsList, 'Select Supervisor');
-            populateSelect('batch-company_id', companiesList, 'Select Company');
+            populateSelect('filter-student', studentsList, 'Semua Siswa');
+            populateSelect('filter-company', companiesList, 'Semua Perusahaan');
+            populateSelect('field-student_id', studentsList, 'Pilih Siswa');
+            populateSelect('field-company_id', companiesList, 'Pilih Perusahaan');
+            populateSelect('field-supervisor_id', supervisorsList, 'Pilih Pembimbing');
+            populateSelect('batch-company_id', companiesList, 'Pilih Perusahaan');
         } catch (e) {
             console.error(e);
             showToast('Failed to load dropdown data', 'error');
@@ -314,7 +323,7 @@
             ], (row) => `
                 <div class="flex justify-end gap-1">
                     ${editBtn(row.id)}
-                    <button onclick="endInternship(${row.id})" class="p-2 text-on-surface-variant hover:text-error transition-colors" title="End Internship"><span class="material-symbols-outlined text-sm">stop_circle</span></button>
+                    <button onclick="endInternship(${row.id})" class="p-2 text-on-surface-variant hover:text-error transition-colors" title="Akhiri Magang"><span class="material-symbols-outlined text-sm">stop_circle</span></button>
                     ${deleteBtn(row.id, row?.student?.name || 'this internship')}
                 </div>
             `);
@@ -333,7 +342,7 @@
         document.getElementById('item-id').value = '';
         document.getElementById('crud-form').reset();
         document.getElementById('field-student-search').value = '';
-        document.getElementById('crud-modal-title').textContent = 'Add Internship';
+        document.getElementById('crud-modal-title').textContent = 'Tambah Magang';
         showModal('crud-modal');
     }
 
@@ -367,7 +376,7 @@
             document.getElementById('field-start_date').value = item.start_date || '';
             document.getElementById('field-end_date').value = item.end_date || '';
             document.getElementById('field-status').value = item.status || 'active';
-            document.getElementById('crud-modal-title').textContent = 'Edit Internship';
+            document.getElementById('crud-modal-title').textContent = 'Edit Magang';
             showModal('crud-modal');
         } catch (e) {
             console.error(e);
@@ -390,7 +399,7 @@
 
     // ── End Internship ───────────────────────────────────
     async function endInternship(id) {
-        if (!confirm('Are you sure you want to end this internship?')) return;
+        if (!confirm('Yakin ingin mengakhiri magang ini?')) return;
         try {
             const res = await Auth.apiFetch(`${ENDPOINT}/${id}/end`, { method: 'POST' });
             if (!res.ok) {
@@ -448,8 +457,8 @@
     // ── Batch Assignment ─────────────────────────────────
     function openBatchModal() {
         document.getElementById('batch-form').reset();
-        populateSelect('batch-company_id', companiesList, 'Select Company');
-        document.getElementById('batch-supervisor_id').innerHTML = '<option value="">Select Supervisor</option>';
+        populateSelect('batch-company_id', companiesList, 'Pilih Perusahaan');
+        document.getElementById('batch-supervisor_id').innerHTML = '<option value="">Pilih Pembimbing</option>';
         document.getElementById('batch-student-search').value = '';
         document.getElementById('batch-students-list').innerHTML = '<p class="text-on-surface-variant text-sm py-4">Select a company to see available students</p>';
         selectedStudentIds = new Set();
@@ -462,7 +471,7 @@
         const supervisorSelect = document.getElementById('batch-supervisor_id');
 
         if (!companyId) {
-            supervisorSelect.innerHTML = '<option value="">Select Supervisor</option>';
+            supervisorSelect.innerHTML = '<option value="">Pilih Pembimbing</option>';
             return;
         }
 
@@ -471,7 +480,7 @@
             const json = await res.json();
             const supervisors = Array.isArray(json.data) ? json.data : (json.data?.data || []);
             
-            supervisorSelect.innerHTML = '<option value="">Select Supervisor</option>';
+            supervisorSelect.innerHTML = '<option value="">Pilih Pembimbing</option>';
             supervisors.forEach(sup => {
                 const option = document.createElement('option');
                 option.value = sup.id;
@@ -551,7 +560,7 @@
     }
 
     function updateSelectedCount() {
-        document.getElementById('selected-count').textContent = `(${selectedStudentIds.size} selected, max 50)`;
+        document.getElementById('selected-count').textContent = `(${selectedStudentIds.size} dipilih, maks 50)`;
     }
 
     async function submitBatch() {

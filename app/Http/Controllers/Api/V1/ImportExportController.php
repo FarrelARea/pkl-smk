@@ -11,6 +11,7 @@ use App\Exports\ClassesExport;
 use App\Exports\SchoolsExport;
 use App\Exports\StudentsExport;
 use App\Exports\TeachersExport;
+use App\Exports\AssessmentRecapExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
@@ -78,5 +79,14 @@ class ImportExportController extends Controller
     public function exportStudents()
     {
         return Excel::download(new StudentsExport, 'students.xlsx');
+    }
+
+    public function exportAssessments(Request $request)
+    {
+        $classId = $request->query('class_id') ? (int) $request->query('class_id') : null;
+        $internshipId = $request->query('internship_id') ? (int) $request->query('internship_id') : null;
+        $academicYear = $request->query('academic_year');
+
+        return Excel::download(new AssessmentRecapExport($classId, $internshipId, $academicYear), 'assessment-recap.xlsx');
     }
 }

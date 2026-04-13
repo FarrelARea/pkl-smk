@@ -34,6 +34,8 @@ Route::prefix('v1')->group(function () {
         Route::post('companies/{id}/assign-supervisor', [App\Http\Controllers\Api\V1\CompanyController::class, 'assignSupervisor'])
             ->middleware('role:school_admin');
 
+        Route::get('classes/academic-years', [App\Http\Controllers\Api\V1\ClassController::class, 'academicYears']);
+
         Route::apiResources([
             'schools' => App\Http\Controllers\Api\V1\SchoolController::class,
             'classes' => App\Http\Controllers\Api\V1\ClassController::class,
@@ -114,6 +116,10 @@ Route::prefix('v1')->group(function () {
             Route::post('teacher/panel/daily-logs/{id}/comments', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'addComment']);
             Route::post('teacher/panel/daily-logs/{id}/review', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'review']);
             Route::get('teacher/panel/pending', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'pending']);
+            // Teacher assessment filling
+            Route::get('teacher/panel/students/{id}/assessment', [App\Http\Controllers\Api\V1\StudentAssessmentController::class, 'getOrInit']);
+            Route::post('teacher/panel/students/{id}/assessment', [App\Http\Controllers\Api\V1\StudentAssessmentController::class, 'store']);
+            Route::put('teacher/panel/assessments/{id}', [App\Http\Controllers\Api\V1\StudentAssessmentController::class, 'update']);
         });
 
         // Admin teacher assignments
@@ -121,6 +127,12 @@ Route::prefix('v1')->group(function () {
             Route::get('admin/teacher-assignments', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'index']);
             Route::post('admin/teacher-assignments', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'store']);
             Route::delete('admin/teacher-assignments/{id}', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'destroy']);
+            // Assessment templates (admin)
+            Route::apiResource('assessment-templates', App\Http\Controllers\Api\V1\AssessmentTemplateController::class);
+            // Assessment recap (admin)
+            Route::get('assessment-recap', [App\Http\Controllers\Api\V1\AssessmentRecapController::class, 'recap']);
+            Route::get('student-assessments', [App\Http\Controllers\Api\V1\AssessmentRecapController::class, 'index']);
+            Route::get('student-assessments/{id}', [App\Http\Controllers\Api\V1\AssessmentRecapController::class, 'show']);
         });
 
         // Supervisor document approval (optional)
@@ -138,6 +150,7 @@ Route::prefix('v1')->group(function () {
             Route::get('export/classes', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportClasses']);
             Route::get('export/teachers', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportTeachers']);
             Route::get('export/students', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportStudents']);
+            Route::get('export/assessments', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportAssessments']);
             
             Route::post('address/geocode', [App\Http\Controllers\Api\V1\AddressController::class, 'geocode']);
         });

@@ -4,13 +4,20 @@
 
 @section('content')
 <div class="space-y-6">
-    {{-- Header --}}
+    {{-- Judul --}}
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Riwayat Kehadiran</h1>
+            <x-help-button title="Panduan Riwayat Kehadiran">
+                <p>Di halaman ini kamu bisa melihat riwayat kehadiran selama magang.</p>
+                <ul class="list-disc pl-4 mt-2 space-y-1">
+                    <li>Lihat ringkasan total hadir, sakit, izin, dan tidak hadir</li>
+                    <li>Cek riwayat clock in/out lengkap dengan foto dan lokasi</li>
+                </ul>
+            </x-help-button>
         <a href="/dashboard" class="text-blue-600 hover:text-blue-700">← Kembali ke Dashboard</a>
     </div>
 
-    {{-- Summary Stats --}}
+    {{-- Ringkasan Statistik --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-gray-200 p-6 text-center">
             <p class="text-xs text-gray-500 uppercase">Total Hari Hadir</p>
@@ -51,7 +58,7 @@
         </div>
     </div>
 
-    {{-- Clock History Table --}}
+    {{-- Tabel Riwayat Clock In/Out --}}
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="font-semibold text-gray-900">Riwayat Clock In/Out</h3>
@@ -96,7 +103,7 @@
             const clocks = data.clock_records || [];
             const attendanceRecords = data.attendance_records || [];
 
-            // Stats from clock records
+            // Statistik dari data clock
             const uniqueDays = new Set(clocks.filter(r => r.type === 'clock_in').map(r => new Date(r.created_at).toDateString()));
             document.getElementById('stat-total').textContent = uniqueDays.size;
             document.getElementById('stat-sick').textContent = attendanceRecords.filter(r => r.status === 'sick').length;
@@ -108,7 +115,7 @@
             renderStatusTable(attendanceRecords);
             renderClockTable(clocks);
         } catch (err) {
-            console.error('Failed to load attendance:', err);
+            console.error('Gagal memuat kehadiran:', err);
         }
     }
 

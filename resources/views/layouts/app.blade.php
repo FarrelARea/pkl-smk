@@ -29,7 +29,7 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-black text-blue-800 leading-tight">Curator Portal</h3>
-                    <p class="text-xs text-slate-500">Academic Management</p>
+                    <p class="text-xs text-slate-500">Manajemen Akademik</p>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
             <!-- Overview Group -->
             <div class="sidebar-group" data-group="overview">
                 <button class="sidebar-group-header w-full flex items-center justify-between px-4 py-2 text-slate-500 hover:bg-slate-200/50">
-                    <span class="text-xs font-bold uppercase tracking-wider">Overview</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Ringkasan</span>
                     <span class="material-symbols-outlined text-sm chevron transition-transform duration-200">expand_more</span>
                 </button>
                 <div class="sidebar-group-content hidden">
@@ -73,25 +73,25 @@
             <!-- Academic Group (admin only) -->
             <div class="sidebar-group admin-only hidden" data-group="academic">
                 <button class="sidebar-group-header w-full flex items-center justify-between px-4 py-2 text-slate-500 hover:bg-slate-200/50">
-                    <span class="text-xs font-bold uppercase tracking-wider">Academic</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Akademik</span>
                     <span class="material-symbols-outlined text-sm chevron transition-transform duration-200">expand_more</span>
                 </button>
                 <div class="sidebar-group-content hidden">
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/schools*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/schools">
                         <span class="material-symbols-outlined">account_balance</span>
-                        <span>Schools</span>
+                        <span>Sekolah</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/classes*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/classes">
                         <span class="material-symbols-outlined">class</span>
-                        <span>Classes</span>
+                        <span>Kelas</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/teachers*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/teachers">
                         <span class="material-symbols-outlined">person</span>
-                        <span>Teachers</span>
+                        <span>Guru</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/students*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/students">
                         <span class="material-symbols-outlined">school</span>
-                        <span>Students</span>
+                        <span>Siswa</span>
                     </a>
                 </div>
             </div>
@@ -99,25 +99,25 @@
             <!-- Internship Group (admin only) -->
             <div class="sidebar-group admin-only hidden" data-group="internship">
                 <button class="sidebar-group-header w-full flex items-center justify-between px-4 py-2 text-slate-500 hover:bg-slate-200/50">
-                    <span class="text-xs font-bold uppercase tracking-wider">Internship</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Magang</span>
                     <span class="material-symbols-outlined text-sm chevron transition-transform duration-200">expand_more</span>
                 </button>
                 <div class="sidebar-group-content hidden">
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/companies*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/companies">
                         <span class="material-symbols-outlined">business</span>
-                        <span>Companies</span>
+                        <span>Perusahaan</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/supervisors*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/supervisors">
                         <span class="material-symbols-outlined">supervisor_account</span>
-                        <span>Supervisors</span>
+                        <span>Pembimbing Lapangan</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/internships*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/internships">
                         <span class="material-symbols-outlined">work</span>
-                        <span>Internships</span>
+                        <span>Magang</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/daily-logs*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/daily-logs">
                         <span class="material-symbols-outlined">description</span>
-                        <span>Daily Logs</span>
+                        <span>Daily Log</span>
                     </a>
                 </div>
             </div>
@@ -125,21 +125,25 @@
             <!-- Monitoring Group (admin only) -->
             <div class="sidebar-group admin-only hidden" data-group="monitoring">
                 <button class="sidebar-group-header w-full flex items-center justify-between px-4 py-2 text-slate-500 hover:bg-slate-200/50">
-                    <span class="text-xs font-bold uppercase tracking-wider">Monitoring</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Pemantauan</span>
                     <span class="material-symbols-outlined text-sm chevron transition-transform duration-200">expand_more</span>
                 </button>
                 <div class="sidebar-group-content hidden">
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/attendance*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/attendance">
                         <span class="material-symbols-outlined">fact_check</span>
-                        <span>Attendance</span>
+                        <span>Kehadiran</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/evaluations*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/evaluations">
                         <span class="material-symbols-outlined">rate_review</span>
-                        <span>Evaluations</span>
+                        <span>Penilaian</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/assessment-templates*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/assessment-templates">
+                        <span class="material-symbols-outlined">assignment</span>
+                        <span>Template Penilaian</span>
                     </a>
                     <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/teacher-assignments*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/teacher-assignments">
                         <span class="material-symbols-outlined">assignment_ind</span>
-                        <span>Teacher Assignments</span>
+                        <span>Penugasan Guru</span>
                     </a>
                 </div>
             </div>

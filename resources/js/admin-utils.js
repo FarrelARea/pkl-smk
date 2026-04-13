@@ -25,7 +25,7 @@ export function showToast(message, type = 'success') {
 
 // ── Confirm Delete ─────────────────────────────────────
 export function confirmDelete(name) {
-    return confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`);
+    return confirm(`Yakin mau hapus "${name}"? Tindakan ini tidak bisa dibatalkan.`);
 }
 
 // ── Render Table ───────────────────────────────────────
@@ -33,7 +33,7 @@ export function renderTable(tbodyId, rows, columns, actions) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
     if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${columns.length + (actions ? 1 : 0)}" class="px-6 py-12 text-center text-on-surface-variant">No data found</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${columns.length + (actions ? 1 : 0)}" class="px-6 py-12 text-center text-on-surface-variant">Data tidak ditemukan</td></tr>`;
         return;
     }
     tbody.innerHTML = rows.map(row => {
@@ -55,12 +55,12 @@ export function renderPagination(containerId, meta, onPageChange) {
     if (last <= 1) { el.innerHTML = ''; return; }
 
     const buttons = [];
-    buttons.push(`<button class="px-3 py-1.5 rounded-md text-xs font-bold ${current <= 1 ? 'text-outline cursor-not-allowed' : 'text-primary hover:bg-primary-fixed'}" data-page="${current - 1}" ${current <= 1 ? 'disabled' : ''}>Prev</button>`);
+    buttons.push(`<button class="px-3 py-1.5 rounded-md text-xs font-bold ${current <= 1 ? 'text-outline cursor-not-allowed' : 'text-primary hover:bg-primary-fixed'}" data-page="${current - 1}" ${current <= 1 ? 'disabled' : ''}>Sebelumnya</button>`);
     for (let i = 1; i <= last; i++) {
         const active = i === current ? 'bg-primary text-white' : 'text-on-surface hover:bg-surface-container-high';
         buttons.push(`<button class="px-3 py-1.5 rounded-md text-xs font-bold ${active}" data-page="${i}">${i}</button>`);
     }
-    buttons.push(`<button class="px-3 py-1.5 rounded-md text-xs font-bold ${current >= last ? 'text-outline cursor-not-allowed' : 'text-primary hover:bg-primary-fixed'}" data-page="${current + 1}" ${current >= last ? 'disabled' : ''}>Next</button>`);
+    buttons.push(`<button class="px-3 py-1.5 rounded-md text-xs font-bold ${current >= last ? 'text-outline cursor-not-allowed' : 'text-primary hover:bg-primary-fixed'}" data-page="${current + 1}" ${current >= last ? 'disabled' : ''}>Selanjutnya</button>`);
 
     el.innerHTML = `<div class="flex items-center gap-1 justify-center py-4">${buttons.join('')}</div>`;
     el.querySelectorAll('button:not([disabled])').forEach(btn => {
@@ -87,7 +87,7 @@ export async function populateSelect(selectId, endpoint, labelKey = 'name', valu
             select.appendChild(opt);
         });
     } catch (e) {
-        console.error(`Failed to populate ${selectId}:`, e);
+        console.error(`Gagal memuat ${selectId}:`, e);
     }
 }
 

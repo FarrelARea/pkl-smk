@@ -1,15 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'Classes Management')
+@section('title', 'Manajemen Kelas')
 
 @section('content')
 <div class="space-y-6">
     {{-- Page Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Classes Management</h1>
+            <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Kelas</h1>
         </div>
     <div class="flex items-center gap-2">
+        <x-help-button title="Panduan Manajemen Kelas">
+            <p>Di halaman ini kamu bisa mengelola data kelas.</p>
+            <ul class="list-disc pl-4 mt-2 space-y-1">
+                <li>Tambah kelas baru</li>
+                <li>Edit dan hapus data kelas</li>
+                <li>Filter kelas berdasarkan sekolah</li>
+            </ul>
+        </x-help-button>
         <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
             <button onclick="exportData()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">download</span> Export
@@ -21,7 +29,7 @@
         </div>
         <button onclick="openCreateModal()" class="primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider px-5 py-2.5 flex items-center gap-2 shadow-md hover:shadow-lg transition-shadow">
             <span class="material-symbols-outlined text-sm">add</span>
-            Add Class
+            Tambah Kelas
         </button>
     </div>
     </div>
@@ -29,17 +37,17 @@
     {{-- Filters --}}
     <div class="flex items-end gap-4 flex-wrap">
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Search</label>
-            <input type="text" id="filter-search" placeholder="Class name..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari</label>
+            <input type="text" id="filter-search" placeholder="Nama kelas..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
         </div>
         <div class="w-64">
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">School</label>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
             <select id="filter-school" onchange="loadData()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                <option value="">All Schools</option>
+                <option value="">Semua Sekolah</option>
             </select>
         </div>
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Page</label>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Halaman</label>
             <select id="filter-per-page" onchange="loadData()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="15">15</option>
                 <option value="25">25</option>
@@ -54,14 +62,14 @@
         <table class="w-full">
             <thead class="bg-surface-container-low">
                 <tr>
-                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Name</th>
-                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">School</th>
-                    <th class="px-6 py-4 text-right text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Actions</th>
+                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Nama</th>
+                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Sekolah</th>
+                    <th class="px-6 py-4 text-right text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Aksi</th>
                 </tr>
             </thead>
             <tbody id="table-body">
                 <tr>
-                    <td colspan="3" class="px-6 py-12 text-center text-on-surface-variant">Loading...</td>
+                    <td colspan="3" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td>
                 </tr>
             </tbody>
         </table>
@@ -70,28 +78,28 @@
 </div>
 
 {{-- Modal --}}
-@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Class'])
+@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Kelas'])
     <form id="crud-form" onsubmit="event.preventDefault(); saveItem()">
         <input type="hidden" id="form-id">
         <div class="space-y-4">
             <div>
-                <label for="form-name" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Name</label>
-                <input type="text" id="form-name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Class name">
+                <label for="form-name" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Nama</label>
+                <input type="text" id="form-name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Nama kelas">
             </div>
             <div>
-                <label for="form-academic-year" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Academic Year</label>
+                <label for="form-academic-year" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tahun Akademik</label>
                 <input type="text" id="form-academic-year" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="2025/2026" maxlength="9">
             </div>
             <div>
-                <label for="form-school" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">School</label>
+                <label for="form-school" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
                 <select id="form-school" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select School</option>
+                    <option value="">Pilih Sekolah</option>
                 </select>
             </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
-            <button type="button" onclick="AdminUtils.hideModal('crud-modal')" class="px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container-high transition-colors">Cancel</button>
-            <button type="submit" class="primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider px-5 py-2.5 shadow-md hover:shadow-lg transition-shadow">Save</button>
+            <button type="button" onclick="AdminUtils.hideModal('crud-modal')" class="px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container-high transition-colors">Batal</button>
+            <button type="submit" class="primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider px-5 py-2.5 shadow-md hover:shadow-lg transition-shadow">Simpan</button>
         </div>
     </form>
 @endcomponent
@@ -133,7 +141,7 @@
             AdminUtils.renderPagination('pagination', meta, (p) => loadData(p));
         } catch (e) {
             console.error('Failed to load classes:', e);
-            AdminUtils.showToast('Failed to load classes', 'error');
+            AdminUtils.showToast('Gagal memuat data kelas', 'error');
         }
     }
 
@@ -145,7 +153,7 @@
         document.getElementById('form-name').value = item.name;
         document.getElementById('form-academic-year').value = item.academic_year || '';
         document.getElementById('form-school').value = item.school_id || item.school?.id || '';
-        document.getElementById('crud-modal-title').textContent = 'Edit Class';
+        document.getElementById('crud-modal-title').textContent = 'Edit Kelas';
         AdminUtils.showModal('crud-modal');
     }
 
@@ -155,15 +163,15 @@
         try {
             const res = await Auth.apiFetch('/classes/' + id, { method: 'DELETE' });
             if (res.ok) {
-                AdminUtils.showToast('Class deleted successfully');
+                AdminUtils.showToast('Kelas berhasil dihapus');
                 loadData(currentPage);
             } else {
                 const json = await res.json();
-                AdminUtils.showToast(json.message || 'Failed to delete class', 'error');
+                AdminUtils.showToast(json.message || 'Gagal menghapus kelas', 'error');
             }
         } catch (e) {
             console.error('Failed to delete class:', e);
-            AdminUtils.showToast('Failed to delete class', 'error');
+            AdminUtils.showToast('Gagal menghapus kelas', 'error');
         }
     }
 
@@ -187,15 +195,15 @@
 
             if (res.ok) {
                 AdminUtils.hideModal('crud-modal');
-                AdminUtils.showToast(id ? 'Class updated successfully' : 'Class created successfully');
+                AdminUtils.showToast(id ? 'Kelas berhasil diperbarui' : 'Kelas berhasil ditambahkan');
                 loadData(currentPage);
             } else {
                 const json = await res.json();
-                AdminUtils.showToast(json.message || 'Failed to save class', 'error');
+                AdminUtils.showToast(json.message || 'Gagal menyimpan kelas', 'error');
             }
         } catch (e) {
             console.error('Failed to save class:', e);
-            AdminUtils.showToast('Failed to save class', 'error');
+            AdminUtils.showToast('Gagal menyimpan kelas', 'error');
         }
     }
 
@@ -204,7 +212,7 @@
         document.getElementById('form-name').value = '';
         document.getElementById('form-academic-year').value = '';
         document.getElementById('form-school').value = '';
-        document.getElementById('crud-modal-title').textContent = 'Add Class';
+        document.getElementById('crud-modal-title').textContent = 'Tambah Kelas';
         AdminUtils.showModal('crud-modal');
     }
 
@@ -236,7 +244,7 @@
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
-            showToast('Failed to export classes', 'error');
+            showToast('Gagal export kelas', 'error');
         }
     }
 
@@ -261,11 +269,11 @@
                 throw new Error(err.message || 'Import failed');
             }
             
-            showToast('Classes imported successfully');
+            showToast('Kelas berhasil diimport');
             loadData();
         } catch (e) {
             console.error(e);
-            showToast(e.message || 'Failed to import classes', 'error');
+            showToast(e.message || 'Gagal import kelas', 'error');
         }
         
         input.value = '';

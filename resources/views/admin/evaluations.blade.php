@@ -1,460 +1,370 @@
 @extends('layouts.app')
 
-@section('title', 'Evaluations & Assessments')
+@section('title', 'Rekap Penilaian PKL')
 
 @section('content')
-<!-- Header -->
-<header class="mb-10">
-    <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Evaluations & Assessments</h1>
-    <p class="text-on-surface-variant max-w-2xl font-body">
-        Manage teacher/supervisor evaluations and final assessments for internships.
-    </p>
-</header>
+<div class="space-y-6">
+    {{-- Page Header --}}
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Rekap Penilaian PKL</h1>
+            <p class="text-sm text-on-surface-variant">Lihat dan export data penilaian terstruktur per jurusan</p>
+        </div>
+        <x-help-button title="Panduan Rekap Penilaian">
+            <p>Di halaman ini kamu bisa melihat rekap penilaian PKL.</p>
+            <ul class="list-disc pl-4 mt-2 space-y-1">
+                <li>Lihat data penilaian per kelas/jurusan</li>
+                <li>Filter berdasarkan kelas, status, dan tahun akademik</li>
+                <li>Export data penilaian ke Excel</li>
+                <li>Lihat detail penilaian setiap siswa</li>
+            </ul>
+        </x-help-button>
+        <button onclick="exportData()" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:shadow-md transition-shadow">
+            <span class="material-symbols-outlined text-sm">download</span> Export Excel
+        </button>
+    </div>
 
-<!-- Tab Navigation -->
-<div class="flex gap-4 mb-8 border-b border-outline-variant/20">
-    <button id="tab-evaluations" onclick="switchTab('evaluations')" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-primary text-primary transition-all">Evaluations</button>
-    <button id="tab-assessments" onclick="switchTab('assessments')" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-on-surface-variant hover:text-on-surface transition-all">Final Assessments</button>
+    {{-- Filters --}}
+    <div class="flex items-end gap-4 flex-wrap">
+        <div class="w-64">
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas / Jurusan</label>
+            <select id="filter-class" onchange="loadRecap()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <option value="">Semua Kelas</option>
+            </select>
+        </div>
+        <div class="w-48">
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Status</label>
+            <select id="filter-status" onchange="loadRecap()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <option value="">Semua</option>
+                <option value="submitted">Submitted</option>
+                <option value="draft">Draft</option>
+            </select>
+        </div>
+        <div class="w-48">
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tahun Akademik</label>
+            <select id="filter-academic-year" onchange="onAcademicYearChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <option value="">Semua</option>
+            </select>
+        </div>
+    </div>
+
+    {{-- Summary Cards --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10">
+            <p class="text-2xl font-bold text-primary" id="summary-total">0</p>
+            <p class="text-xs text-on-surface-variant mt-1">Total Penilaian</p>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10">
+            <p class="text-2xl font-bold text-tertiary" id="summary-submitted">0</p>
+            <p class="text-xs text-on-surface-variant mt-1">Submitted</p>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10">
+            <p class="text-2xl font-bold text-secondary" id="summary-draft">0</p>
+            <p class="text-xs text-on-surface-variant mt-1">Draft</p>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10">
+            <p class="text-2xl font-bold text-on-surface" id="summary-avg">—</p>
+            <p class="text-xs text-on-surface-variant mt-1">Rata-rata Keseluruhan</p>
+        </div>
+    </div>
+
+    {{-- Table --}}
+    <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
+        <table class="w-full">
+            <thead class="bg-surface-container-low">
+                <tr>
+                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Siswa</th>
+                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Kelas</th>
+                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Guru</th>
+                    <th class="px-6 py-4 text-center text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">TP1</th>
+                    <th class="px-6 py-4 text-center text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">TP2</th>
+                    <th class="px-6 py-4 text-center text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">TP3</th>
+                    <th class="px-6 py-4 text-center text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">TP4</th>
+                    <th class="px-6 py-4 text-center text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Rata-rata</th>
+                    <th class="px-6 py-4 text-left text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
+                    <th class="px-6 py-4 text-right text-[0.65rem] font-bold text-on-surface-variant uppercase tracking-widest">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td colspan="10" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td></tr>
+            </tbody>
+        </table>
+        <div id="pagination"></div>
+    </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- Evaluations Section -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div id="section-evaluations">
-    <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
-        <div class="p-6 flex flex-wrap justify-between items-center gap-4 border-b border-surface-container">
-            <h2 class="text-xl font-bold tracking-tight font-headline">Evaluations</h2>
-            <div class="flex items-center gap-3">
-                <select id="eval-filter-student" onchange="loadEvals()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">All Students</option>
-                </select>
-                <select id="eval-filter-type" onchange="loadEvals()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">All Types</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="supervisor">Supervisor</option>
-                </select>
-                <button onclick="editEval(null)" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">add</span> Add Evaluation
+{{-- Detail Modal --}}
+<div id="detail-modal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="AdminUtils.hideModal('detail-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative">
+            <div class="flex justify-between items-center p-6 border-b border-surface-container">
+                <h3 id="detail-modal-title" class="text-lg font-bold font-headline">Detail Penilaian</h3>
+                <button onclick="AdminUtils.hideModal('detail-modal')" class="p-1 text-on-surface-variant hover:text-on-surface transition-colors">
+                    <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
+            <div id="detail-content" class="p-6"></div>
         </div>
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-surface-container-low">
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Student</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Internship</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Score</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Type</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Comments</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="eval-table" class="divide-y divide-surface-container">
-                <tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">Loading...</td></tr>
-            </tbody>
-        </table>
     </div>
 </div>
-
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- Final Assessments Section -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div id="section-assessments" class="hidden">
-    <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
-        <div class="p-6 flex justify-between items-center border-b border-surface-container">
-            <h2 class="text-xl font-bold tracking-tight font-headline">Final Assessments</h2>
-            <button onclick="editAssessment(null)" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">add</span> Add Final Assessment
-            </button>
-        </div>
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-surface-container-low">
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Student</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Internship</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Score</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Comments</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="assessment-table" class="divide-y divide-surface-container">
-                <tr><td colspan="5" class="px-6 py-12 text-center text-on-surface-variant">Loading...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- Evaluation Modal -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-@component('partials.modal', ['id' => 'eval-modal', 'title' => 'Evaluation'])
-    <form id="eval-form" onsubmit="event.preventDefault(); saveEval();">
-        <input type="hidden" id="eval-id">
-        <div class="space-y-4">
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="eval-student_id">Student</label>
-                <select id="eval-student_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select student...</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="eval-internship_id">Internship</label>
-                <select id="eval-internship_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select internship...</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="eval-score">Score</label>
-                <input id="eval-score" required type="number" min="0" max="100" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            </div>
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="eval-type">Type</label>
-                <select id="eval-type" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select type...</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="supervisor">Supervisor</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="eval-comments">Comments</label>
-                <textarea id="eval-comments" rows="3" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="AdminUtils.hideModal('eval-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Cancel</button>
-                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Save</button>
-            </div>
-        </div>
-    </form>
-@endcomponent
-
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- Final Assessment Modal -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-@component('partials.modal', ['id' => 'assessment-modal', 'title' => 'Final Assessment'])
-    <form id="assessment-form" onsubmit="event.preventDefault(); saveAssessment();">
-        <input type="hidden" id="assessment-id">
-        <div class="space-y-4">
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="assessment-student_id">Student</label>
-                <select id="assessment-student_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select student...</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="assessment-internship_id">Internship</label>
-                <select id="assessment-internship_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">Select internship...</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="assessment-score">Score</label>
-                <input id="assessment-score" required type="number" min="0" max="100" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            </div>
-            <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="assessment-comments">Comments</label>
-                <textarea id="assessment-comments" rows="3" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="AdminUtils.hideModal('assessment-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Cancel</button>
-                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Save</button>
-            </div>
-        </div>
-    </form>
-@endcomponent
 @endsection
 
 @push('scripts')
 <script type="module">
-    const { showModal, hideModal, showToast, confirmDelete, renderTable, editBtn, deleteBtn } = AdminUtils;
+    let currentPage = 1;
+    let allItems = [];
 
-    let studentsCache = [];
-    let internshipsCache = [];
+    async function loadRecap(page = 1) {
+        currentPage = page;
+        const classId = document.getElementById('filter-class').value;
+        const status = document.getElementById('filter-status').value;
 
-    // ── Tab Switching ─────────────────────────────────────
-    function switchTab(tab) {
-        document.getElementById('section-evaluations').classList.toggle('hidden', tab !== 'evaluations');
-        document.getElementById('section-assessments').classList.toggle('hidden', tab !== 'assessments');
+        const academicYear = document.getElementById('filter-academic-year').value;
 
-        document.getElementById('tab-evaluations').classList.toggle('border-primary', tab === 'evaluations');
-        document.getElementById('tab-evaluations').classList.toggle('text-primary', tab === 'evaluations');
-        document.getElementById('tab-evaluations').classList.toggle('border-transparent', tab !== 'evaluations');
-        document.getElementById('tab-evaluations').classList.toggle('text-on-surface-variant', tab !== 'evaluations');
+        let url = '/student-assessments?page=' + page + '&per_page=15';
+        if (classId) url += '&class_id=' + classId;
+        if (status) url += '&status=' + status;
+        if (academicYear) url += '&academic_year=' + encodeURIComponent(academicYear);
 
-        document.getElementById('tab-assessments').classList.toggle('border-primary', tab === 'assessments');
-        document.getElementById('tab-assessments').classList.toggle('text-primary', tab === 'assessments');
-        document.getElementById('tab-assessments').classList.toggle('border-transparent', tab !== 'assessments');
-        document.getElementById('tab-assessments').classList.toggle('text-on-surface-variant', tab !== 'assessments');
-    }
-
-    // ── Load Dropdown Data ────────────────────────────────
-    async function loadDropdowns() {
         try {
-            const [studentsRes, internshipsRes] = await Promise.all([
-                Auth.apiFetch('/students'),
-                Auth.apiFetch('/internships'),
-            ]);
-            const studentsJson = await studentsRes.json();
-            const internshipsJson = await internshipsRes.json();
-
-            studentsCache = Array.isArray(studentsJson.data) ? studentsJson.data : (studentsJson.data?.data || []);
-            internshipsCache = Array.isArray(internshipsJson.data) ? internshipsJson.data : (internshipsJson.data?.data || []);
-
-            const studentOptions = studentsCache.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            const internshipOptions = internshipsCache.map(i => `<option value="${i.id}">${i.id}</option>`).join('');
-
-            // Populate filter dropdown
-            document.getElementById('eval-filter-student').innerHTML = '<option value="">All Students</option>' + studentOptions;
-
-            // Populate modal dropdowns
-            ['eval-student_id', 'assessment-student_id'].forEach(id => {
-                document.getElementById(id).innerHTML = '<option value="">Select student...</option>' + studentOptions;
-            });
-            ['eval-internship_id', 'assessment-internship_id'].forEach(id => {
-                document.getElementById(id).innerHTML = '<option value="">Select internship...</option>' + internshipOptions;
-            });
-        } catch (e) {
-            console.error(e);
-            showToast('Failed to load dropdown data', 'error');
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // EVALUATIONS
-    // ═══════════════════════════════════════════════════════
-
-    async function loadEvals() {
-        try {
-            const params = new URLSearchParams();
-            const studentId = document.getElementById('eval-filter-student').value;
-            const type = document.getElementById('eval-filter-type').value;
-            if (studentId) params.set('student_id', studentId);
-            if (type) params.set('type', type);
-
-            const res = await Auth.apiFetch(`/evaluations?${params}`);
+            const res = await Auth.apiFetch(url);
             const json = await res.json();
             const items = Array.isArray(json.data) ? json.data : (json.data?.data || []);
+            const meta = json.meta || json;
+            allItems = items;
 
-            const tbody = document.getElementById('eval-table');
+            // Update summary
+            updateSummary(items, meta);
+
+            const tbody = document.getElementById('table-body');
             if (!items.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">No evaluations found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="px-6 py-12 text-center text-on-surface-variant">Belum ada data penilaian.</td></tr>';
+                AdminUtils.renderPagination('pagination', meta, (p) => loadRecap(p));
                 return;
             }
 
-            tbody.innerHTML = items.map(row => `
-                <tr class="hover:bg-surface-container-lowest/60 transition-colors">
-                    <td class="px-6 py-4 text-sm text-on-surface">${row.student?.name || '-'}</td>
-                    <td class="px-6 py-4 text-sm text-on-surface">${row.internship?.id || '-'}</td>
-                    <td class="px-6 py-4 text-sm text-on-surface font-semibold">${row.score ?? '-'}</td>
-                    <td class="px-6 py-4 text-sm">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${row.type === 'teacher' ? 'bg-primary/10 text-primary' : 'bg-tertiary/10 text-tertiary'}">${row.type || '-'}</span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-on-surface-variant max-w-xs truncate">${row.comments ? row.comments.substring(0, 60) + (row.comments.length > 60 ? '...' : '') : '-'}</td>
+            // We need to fetch scores for each assessment to show section averages
+            // Load details for visible items
+            const detailPromises = items.map(item =>
+                Auth.apiFetch('/student-assessments/' + item.id).then(r => r.json())
+            );
+            const details = await Promise.all(detailPromises);
+
+            tbody.innerHTML = items.map((row, idx) => {
+                const detail = details[idx];
+                const sectionAvgs = {};
+                (detail.sections || []).forEach(sec => {
+                    sectionAvgs[sec.section_number] = sec.average;
+                });
+
+                const statusBadge = row.status === 'submitted'
+                    ? '<span class="px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-widest bg-tertiary-fixed text-on-tertiary-fixed-variant">Submitted</span>'
+                    : '<span class="px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-widest bg-surface-container-highest text-on-surface-variant">Draft</span>';
+
+                const studentClasses = row.student?.classes?.map(c => c.name).join(', ') || '—';
+
+                return `<tr class="hover:bg-surface-container-high transition-colors border-b border-surface-container">
+                    <td class="px-6 py-4 text-sm font-medium text-on-surface">${row.student?.name || '—'}</td>
+                    <td class="px-6 py-4 text-sm text-on-surface-variant">${studentClasses}</td>
+                    <td class="px-6 py-4 text-sm text-on-surface-variant">${row.teacher?.name || '—'}</td>
+                    <td class="px-6 py-4 text-sm text-center font-semibold">${sectionAvgs['1'] ?? '—'}</td>
+                    <td class="px-6 py-4 text-sm text-center font-semibold">${sectionAvgs['2'] ?? '—'}</td>
+                    <td class="px-6 py-4 text-sm text-center font-semibold">${sectionAvgs['3'] ?? '—'}</td>
+                    <td class="px-6 py-4 text-sm text-center font-semibold">${sectionAvgs['4'] ?? '—'}</td>
+                    <td class="px-6 py-4 text-sm text-center font-bold text-primary">${detail.overall_average ?? '—'}</td>
+                    <td class="px-6 py-4 text-sm">${statusBadge}</td>
                     <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-1">
-                            ${editBtn(row.id, 'editEval')}
-                            ${deleteBtn(row.id, row.student?.name || 'this evaluation', 'deleteEval')}
-                        </div>
+                        <button onclick="viewDetail(${row.id})" class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-sm">visibility</span>
+                        </button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
+
+            AdminUtils.renderPagination('pagination', meta, (p) => loadRecap(p));
         } catch (e) {
-            console.error(e);
-            showToast('Failed to load evaluations', 'error');
+            console.error('Failed to load recap:', e);
+            AdminUtils.showToast('Gagal memuat data penilaian', 'error');
         }
     }
 
-    async function editEval(id) {
-        document.getElementById('eval-id').value = '';
-        document.getElementById('eval-form').reset();
-        document.getElementById('eval-modal-title').textContent = id ? 'Edit Evaluation' : 'Add Evaluation';
+    function updateSummary(items, meta) {
+        const total = meta.total || items.length;
+        const submitted = items.filter(i => i.status === 'submitted').length;
+        const draft = items.filter(i => i.status === 'draft').length;
 
-        if (id) {
-            try {
-                const res = await Auth.apiFetch(`/evaluations/${id}`);
-                const json = await res.json();
-                const item = json.data || json;
-
-                document.getElementById('eval-id').value = item.id;
-                document.getElementById('eval-student_id').value = item.student_id || '';
-                document.getElementById('eval-internship_id').value = item.internship_id || '';
-                document.getElementById('eval-score').value = item.score || '';
-                document.getElementById('eval-type').value = item.type || '';
-                document.getElementById('eval-comments').value = item.comments || '';
-            } catch (e) {
-                console.error(e);
-                showToast('Failed to load evaluation details', 'error');
-                return;
-            }
-        }
-
-        showModal('eval-modal');
+        document.getElementById('summary-total').textContent = total;
+        document.getElementById('summary-submitted').textContent = submitted;
+        document.getElementById('summary-draft').textContent = draft;
+        document.getElementById('summary-avg').textContent = '—';
     }
 
-    async function deleteEval(id, name) {
-        if (!confirmDelete(name)) return;
+    async function viewDetail(id) {
         try {
-            await Auth.apiFetch(`/evaluations/${id}`, { method: 'DELETE' });
-            showToast('Evaluation deleted successfully');
-            loadEvals();
-        } catch (e) {
-            console.error(e);
-            showToast('Failed to delete evaluation', 'error');
-        }
-    }
+            const res = await Auth.apiFetch('/student-assessments/' + id);
+            const data = await res.json();
+            const assessment = data.assessment;
+            const snapshot = assessment.template_snapshot || {};
 
-    async function saveEval() {
-        const id = document.getElementById('eval-id').value;
-        const payload = {
-            student_id: document.getElementById('eval-student_id').value,
-            internship_id: document.getElementById('eval-internship_id').value,
-            score: document.getElementById('eval-score').value,
-            type: document.getElementById('eval-type').value,
-            comments: document.getElementById('eval-comments').value,
-        };
+            let html = `
+                <div class="mb-4 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-lg font-bold text-on-surface">${assessment.student?.name || '—'}</h4>
+                        <p class="text-sm text-on-surface-variant">Guru: ${assessment.teacher?.name || '—'} &middot; Tempat PKL: ${assessment.internship?.company?.name || '—'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-2xl font-bold text-primary">${data.overall_average ?? '—'}</p>
+                        <p class="text-xs text-on-surface-variant">Rata-rata</p>
+                    </div>
+                </div>
+            `;
 
-        try {
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/evaluations/${id}` : '/evaluations';
-            const res = await Auth.apiFetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+            (data.sections || []).forEach(sec => {
+                const sectionInfo = (snapshot.sections || []).find(s => String(s.number) === String(sec.section_number));
+                const title = sectionInfo ? `TP ${sectionInfo.number}: ${sectionInfo.title}` : `Section ${sec.section_number}`;
+
+                html += `
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h5 class="font-bold text-sm text-on-surface">${title}</h5>
+                        <span class="text-sm font-bold text-primary">${sec.average}</span>
+                    </div>
+                    <div class="space-y-1 ml-2">`;
+
+                (sec.scores || []).forEach(score => {
+                    const additional = score.is_additional ? ' <span class="text-xs text-primary/60 italic">(tambahan)</span>' : '';
+                    html += `
+                    <div class="flex items-center justify-between text-sm py-1 border-b border-surface-container/50">
+                        <span class="text-on-surface-variant"><span class="font-medium text-on-surface">${score.indicator_number}</span> ${score.indicator_description}${additional}</span>
+                        <div class="flex items-center gap-3">
+                            ${score.notes ? `<span class="text-xs text-on-surface-variant">${score.notes}</span>` : ''}
+                            <span class="font-bold text-on-surface w-8 text-right">${score.score}</span>
+                        </div>
+                    </div>`;
+                });
+
+                html += `</div></div>`;
             });
 
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.message || 'Validation error');
+            if (assessment.teacher_notes) {
+                html += `
+                <div class="mt-4 pt-4 border-t border-surface-container">
+                    <h5 class="font-bold text-sm text-on-surface mb-1">Catatan Guru Pembimbing</h5>
+                    <p class="text-sm text-on-surface-variant">${assessment.teacher_notes}</p>
+                </div>`;
             }
 
-            hideModal('eval-modal');
-            showToast(id ? 'Evaluation updated successfully' : 'Evaluation created successfully');
-            loadEvals();
-        } catch (e) {
-            console.error(e);
-            showToast(e.message || 'Failed to save evaluation', 'error');
-        }
-    }
+            // Documents section
+            const docs = data.documents || [];
+            html += `
+            <div class="mt-4 pt-4 border-t border-surface-container">
+                <h5 class="font-bold text-sm text-on-surface mb-3">Dokumen Laporan Siswa</h5>`;
 
-    // ═══════════════════════════════════════════════════════
-    // FINAL ASSESSMENTS
-    // ═══════════════════════════════════════════════════════
+            if (docs.length === 0) {
+                html += `<p class="text-sm text-on-surface-variant">Belum ada dokumen yang diupload.</p>`;
+            } else {
+                html += `<div class="space-y-2">`;
+                docs.forEach(doc => {
+                    const statusStyles = {
+                        pending: 'bg-surface-container-highest text-on-surface-variant',
+                        approved: 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+                        rejected: 'bg-error-container text-on-error-container',
+                    };
+                    const statusCls = statusStyles[doc.status] || statusStyles.pending;
+                    const date = new Date(doc.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
-    async function loadAssessments() {
-        try {
-            const res = await Auth.apiFetch('/final-assessments');
-            const json = await res.json();
-            const items = Array.isArray(json.data) ? json.data : (json.data?.data || []);
-
-            const tbody = document.getElementById('assessment-table');
-            if (!items.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-on-surface-variant">No final assessments found.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = items.map(row => `
-                <tr class="hover:bg-surface-container-lowest/60 transition-colors">
-                    <td class="px-6 py-4 text-sm text-on-surface">${row.student?.name || '-'}</td>
-                    <td class="px-6 py-4 text-sm text-on-surface">${row.internship?.id || '-'}</td>
-                    <td class="px-6 py-4 text-sm text-on-surface font-semibold">${row.score ?? '-'}</td>
-                    <td class="px-6 py-4 text-sm text-on-surface-variant max-w-xs truncate">${row.comments ? row.comments.substring(0, 60) + (row.comments.length > 60 ? '...' : '') : '-'}</td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-1">
-                            ${editBtn(row.id, 'editAssessment')}
-                            ${deleteBtn(row.id, row.student?.name || 'this assessment', 'deleteAssessment')}
+                    html += `
+                    <div class="flex items-center justify-between bg-surface-container-low rounded-lg px-4 py-3">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-on-surface truncate">${doc.title}</p>
+                            <p class="text-xs text-on-surface-variant">${(doc.file_type || '').toUpperCase()} &middot; ${date}</p>
+                            ${doc.teacher_note ? `<p class="text-xs text-on-surface-variant mt-0.5 italic">Catatan: ${doc.teacher_note}</p>` : ''}
                         </div>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            console.error(e);
-            showToast('Failed to load final assessments', 'error');
-        }
-    }
-
-    async function editAssessment(id) {
-        document.getElementById('assessment-id').value = '';
-        document.getElementById('assessment-form').reset();
-        document.getElementById('assessment-modal-title').textContent = id ? 'Edit Final Assessment' : 'Add Final Assessment';
-
-        if (id) {
-            try {
-                const res = await Auth.apiFetch(`/final-assessments/${id}`);
-                const json = await res.json();
-                const item = json.data || json;
-
-                document.getElementById('assessment-id').value = item.id;
-                document.getElementById('assessment-student_id').value = item.student_id || '';
-                document.getElementById('assessment-internship_id').value = item.internship_id || '';
-                document.getElementById('assessment-score').value = item.score || '';
-                document.getElementById('assessment-comments').value = item.comments || '';
-            } catch (e) {
-                console.error(e);
-                showToast('Failed to load assessment details', 'error');
-                return;
+                        <div class="flex items-center gap-2 ml-3 shrink-0">
+                            <span class="px-2.5 py-1 rounded-full text-[0.6rem] font-bold uppercase tracking-widest ${statusCls}">${doc.status}</span>
+                            <a href="/storage/${doc.file_path}" target="_blank" class="p-1.5 text-primary hover:text-primary/80 transition-colors" title="Lihat dokumen">
+                                <span class="material-symbols-outlined text-sm">open_in_new</span>
+                            </a>
+                        </div>
+                    </div>`;
+                });
+                html += `</div>`;
             }
-        }
+            html += `</div>`;
 
-        showModal('assessment-modal');
-    }
-
-    async function deleteAssessment(id, name) {
-        if (!confirmDelete(name)) return;
-        try {
-            await Auth.apiFetch(`/final-assessments/${id}`, { method: 'DELETE' });
-            showToast('Final assessment deleted successfully');
-            loadAssessments();
+            document.getElementById('detail-content').innerHTML = html;
+            document.getElementById('detail-modal-title').textContent = 'Detail Penilaian — ' + (assessment.student?.name || '');
+            AdminUtils.showModal('detail-modal');
         } catch (e) {
             console.error(e);
-            showToast('Failed to delete final assessment', 'error');
+            AdminUtils.showToast('Gagal memuat detail penilaian', 'error');
         }
     }
 
-    async function saveAssessment() {
-        const id = document.getElementById('assessment-id').value;
-        const payload = {
-            student_id: document.getElementById('assessment-student_id').value,
-            internship_id: document.getElementById('assessment-internship_id').value,
-            score: document.getElementById('assessment-score').value,
-            comments: document.getElementById('assessment-comments').value,
-        };
+    async function exportData() {
+        const classId = document.getElementById('filter-class').value;
+        const academicYear = document.getElementById('filter-academic-year').value;
+        let url = '/api/v1/export/assessments';
+        const params = [];
+        if (classId) params.push('class_id=' + classId);
+        if (academicYear) params.push('academic_year=' + encodeURIComponent(academicYear));
+        if (params.length) url += '?' + params.join('&');
 
         try {
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/final-assessments/${id}` : '/final-assessments';
-            const res = await Auth.apiFetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+            const res = await fetch(url, {
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
             });
-
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.message || 'Validation error');
-            }
-
-            hideModal('assessment-modal');
-            showToast(id ? 'Final assessment updated successfully' : 'Final assessment created successfully');
-            loadAssessments();
+            if (!res.ok) throw new Error('Export failed');
+            const blob = await res.blob();
+            const a = document.createElement('a');
+            a.href = window.URL.createObjectURL(blob);
+            a.download = 'rekap-penilaian-pkl.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(a.href);
+            document.body.removeChild(a);
+            AdminUtils.showToast('Export berhasil');
         } catch (e) {
             console.error(e);
-            showToast(e.message || 'Failed to save final assessment', 'error');
+            AdminUtils.showToast('Gagal export data', 'error');
         }
     }
 
-    // ── Expose to window ─────────────────────────────────
-    window.switchTab = switchTab;
-    window.loadEvals = loadEvals;
-    window.editEval = editEval;
-    window.deleteEval = deleteEval;
-    window.saveEval = saveEval;
-    window.loadAssessments = loadAssessments;
-    window.editAssessment = editAssessment;
-    window.deleteAssessment = deleteAssessment;
-    window.saveAssessment = saveAssessment;
+    async function loadAcademicYears() {
+        try {
+            const res = await Auth.apiFetch('/classes/academic-years');
+            const years = await res.json();
+            const select = document.getElementById('filter-academic-year');
+            select.innerHTML = '<option value="">Semua</option>';
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                select.appendChild(opt);
+            });
+        } catch (e) { console.error('Failed to load academic years:', e); }
+    }
 
-    // ── Init ─────────────────────────────────────────────
-    await loadDropdowns();
-    loadEvals();
-    loadAssessments();
+    function onAcademicYearChange() {
+        // Reload class dropdown filtered by academic year, then reload data
+        const academicYear = document.getElementById('filter-academic-year').value;
+        const classUrl = academicYear ? '/classes?academic_year=' + encodeURIComponent(academicYear) : '/classes';
+        AdminUtils.populateSelect('filter-class', classUrl);
+        loadRecap();
+    }
+
+    // Expose to window
+    window.loadRecap = loadRecap;
+    window.viewDetail = viewDetail;
+    window.exportData = exportData;
+    window.onAcademicYearChange = onAcademicYearChange;
+
+    // Init
+    if (Auth.requireAuth()) {
+        await loadAcademicYears();
+        AdminUtils.populateSelect('filter-class', '/classes');
+        loadRecap();
+    }
 </script>
 @endpush

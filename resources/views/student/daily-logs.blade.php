@@ -4,9 +4,19 @@
 
 @section('content')
 <div class="space-y-6">
-    {{-- Header with Create Button --}}
+    {{-- Header dengan Tombol Buat --}}
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Daily Log</h1>
+            <x-help-button title="Panduan Daily Log">
+                <p>Di halaman ini kamu bisa mencatat aktivitas harian selama magang.</p>
+                <ul class="list-disc pl-4 mt-2 space-y-1">
+                    <li>Buat daily log baru setiap hari kerja</li>
+                    <li>Deskripsikan aktivitas minimal 20 karakter</li>
+                    <li>Lampirkan foto jika diperlukan</li>
+                    <li>Lokasi akan otomatis terdeteksi lewat GPS</li>
+                    <li>Edit atau hapus log yang belum disetujui</li>
+                </ul>
+            </x-help-button>
         <div class="flex gap-4">
             <button onclick="showCreateLogForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
                 + Buat Log Baru
@@ -15,7 +25,7 @@
         </div>
     </div>
 
-    {{-- Edit Log Modal --}}
+    {{-- Modal Edit Log --}}
     <div id="edit-log-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-6">
@@ -67,7 +77,7 @@
         </div>
     </div>
 
-    {{-- Create Log Modal --}}
+    {{-- Modal Buat Log --}}
     <div id="create-log-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-6">
@@ -119,7 +129,7 @@
         </div>
     </div>
 
-    {{-- View Log Detail Modal --}}
+    {{-- Modal Detail Log --}}
     <div id="view-log-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-6">
@@ -174,7 +184,7 @@
         </div>
     </div>
 
-    {{-- Daily Logs Table --}}
+    {{-- Tabel Daily Log --}}
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -206,19 +216,19 @@
     waitForAuth(async () => {
         if (!Auth.requireAuth()) return;
 
-        // Get user info and internship for this page
+        // Ambil info user dan magang untuk halaman ini
         try {
             const meRes = await Auth.apiFetch('/auth/me');
             const meData = await meRes.json();
             const user = meData.data || meData;
             window.currentUserId = user.id;
 
-            // Get internship ID
+            // Ambil ID magang
             const statusRes = await Auth.apiFetch(`/students/${user.id}/internship-status`);
             const statusData = await statusRes.json();
             window.activeInternshipId = statusData.data?.id || null;
         } catch (e) {
-            console.error('Failed to load user/internship info:', e);
+            console.error('Gagal memuat info user/magang:', e);
         }
 
         loadStudentDailyLogs();
@@ -273,7 +283,7 @@
                 </tr>`;
             }
         } catch (err) {
-            console.error('Failed to load daily logs:', err);
+            console.error('Gagal memuat daily log:', err);
             document.getElementById('daily-logs-body').innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-600">Gagal memuat data</td></tr>';
         }
     };
@@ -452,7 +462,7 @@
             });
             if (!res.ok) { const err = await res.json(); alert(err.error || 'Gagal mengirim komentar'); return; }
             input.value = '';
-            // Reload comments
+            // Muat ulang komentar
             const logRes = await Auth.apiFetch(`/daily-logs/${window.currentLogId}`);
             if (logRes.ok) {
                 const data = await logRes.json();
@@ -543,7 +553,7 @@
         } catch (err) { alert('Error: ' + err.message); }
     };
 
-    // Character counters
+    // Penghitung karakter
     document.getElementById('log-activity')?.addEventListener('input', (e) => {
         document.getElementById('char-count').textContent = e.target.value.length;
     });

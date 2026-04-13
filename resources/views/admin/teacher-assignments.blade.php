@@ -1,16 +1,24 @@
 @extends('layouts.app')
 
-@section('title', 'Teacher Assignments')
+@section('title', 'Penugasan Guru')
 
 @section('content')
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Teacher Assignments</h1>
+        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Penugasan Guru</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Tentukan guru yang bertanggung jawab atas murid tertentu.
         </p>
     </div>
+    <x-help-button title="Panduan Penugasan Guru">
+        <p>Di halaman ini kamu bisa mengatur penugasan guru ke siswa.</p>
+        <ul class="list-disc pl-4 mt-2 space-y-1">
+            <li>Tetapkan guru pembimbing untuk siswa tertentu</li>
+            <li>Hapus penugasan yang sudah tidak berlaku</li>
+            <li>Cari berdasarkan nama guru atau siswa</li>
+        </ul>
+    </x-help-button>
     <button onclick="openAssignModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
         <span class="material-symbols-outlined text-sm">add</span> Tambah Penugasan
     </button>

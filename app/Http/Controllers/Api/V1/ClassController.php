@@ -17,6 +17,10 @@ class ClassController extends Controller
             $query->where('school_id', $request->school_id);
         }
 
+        if ($request->has('academic_year')) {
+            $query->where('academic_year', $request->academic_year);
+        }
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->where('name', 'like', '%' . $search . '%');
@@ -25,6 +29,13 @@ class ClassController extends Controller
         $classes = $query->paginate($request->get('per_page', 15));
 
         return response()->json($classes);
+    }
+
+    public function academicYears(): JsonResponse
+    {
+        $years = SchoolClass::distinct()->orderBy('academic_year', 'desc')->pluck('academic_year');
+
+        return response()->json($years);
     }
 
     public function store(Request $request): JsonResponse

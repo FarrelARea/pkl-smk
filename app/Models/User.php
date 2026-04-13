@@ -202,4 +202,19 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(DocumentRequirement::class, 'teacher_id');
     }
+
+    public function createdAssessmentTemplates(): HasMany
+    {
+        return $this->hasMany(AssessmentTemplate::class, 'created_by');
+    }
+
+    public function studentAssessments(): HasMany
+    {
+        return $this->hasMany(StudentAssessment::class, 'student_id');
+    }
+
+    public function givenStudentAssessments(): HasMany
+    {
+        return $this->hasMany(StudentAssessment::class, 'teacher_id');
+    }
 }

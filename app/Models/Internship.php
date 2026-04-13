@@ -55,6 +55,11 @@ class Internship extends Model
         return $this->hasMany(StudentDocument::class);
     }
 
+    public function studentAssessments(): HasMany
+    {
+        return $this->hasMany(StudentAssessment::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';

@@ -17,11 +17,20 @@ use Illuminate\Http\Request;
 
 class TeacherPanelController extends Controller
 {
-    public function students(): JsonResponse
+    public function students(Request $request): JsonResponse
     {
         $teacher = auth('api')->user();
 
-        $studentIds = $teacher->assignedStudents()->where('role', 'student')->pluck('users.id');
+        $studentQuery = $teacher->assignedStudents()->where('role', 'student');
+
+        if ($request->has('academic_year')) {
+            $academicYear = $request->academic_year;
+            $studentQuery->whereHas('classes', function ($q) use ($academicYear) {
+                $q->where('academic_year', $academicYear);
+            });
+        }
+
+        $studentIds = $studentQuery->pluck('users.id');
 
         $pendingPermissions = PermissionRequest::whereIn('student_id', $studentIds)
             ->where('status', 'pending')
@@ -35,8 +44,17 @@ class TeacherPanelController extends Controller
             ->groupBy('student_id')
             ->pluck('cnt', 'student_id');
 
-        $students = $teacher->assignedStudents()
-            ->where('role', 'student')
+        $studentsQuery = $teacher->assignedStudents()
+            ->where('role', 'student');
+
+        if ($request->has('academic_year')) {
+            $academicYear = $request->academic_year;
+            $studentsQuery->whereHas('classes', function ($q) use ($academicYear) {
+                $q->where('academic_year', $academicYear);
+            });
+        }
+
+        $students = $studentsQuery
             ->with(['internships' => fn($q) => $q->where('status', 'active')->with('company')])
             ->get()
             ->map(function ($student) use ($pendingPermissions, $pendingDocuments) {
@@ -205,7 +223,8 @@ class TeacherPanelController extends Controller
         }
 
         $student = User::findOrFail($studentId);
-        $activeInternship = Internship::where('student_id', $studentId)
+        $activeInternship = Internship::with('company')
+            ->where('student_id', $studentId)
             ->where('status', 'active')
             ->first();
 
@@ -229,6 +248,8 @@ class TeacherPanelController extends Controller
 
         return response()->json([
             'student' => ['id' => $student->id, 'name' => $student->name, 'email' => $student->email],
+            'student_name' => $student->name,
+            'company_name' => $activeInternship?->company?->name,
             'active_internship_id' => $activeInternship?->id,
             'total_present' => $totalPresent,
             'total_logs' => $totalLogs,

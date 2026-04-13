@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Companies Management')
+@section('title', 'Manajemen Perusahaan')
 
 @push('styles')
 <style>
@@ -20,14 +20,22 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Companies Management</h1>
+        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Perusahaan</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
-            Manage partner companies and their contact information.
+            Kelola data perusahaan mitra dan informasi kontak mereka.
         </p>
     </div>
-    <div>
+    <div class="flex items-center gap-2">
+        <x-help-button title="Panduan Manajemen Perusahaan">
+            <p>Di halaman ini kamu bisa mengelola data perusahaan mitra magang.</p>
+            <ul class="list-disc pl-4 mt-2 space-y-1">
+                <li>Tambah perusahaan baru dengan lokasi di peta</li>
+                <li>Edit dan hapus data perusahaan</li>
+                <li>Atur batas jarak untuk validasi kehadiran siswa</li>
+            </ul>
+        </x-help-button>
         <button onclick="openCreateModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">add</span> Add Company
+            <span class="material-symbols-outlined text-sm">add</span> Tambah Perusahaan
         </button>
     </div>
 </header>
@@ -35,14 +43,14 @@
 <!-- Search & Table -->
 <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
     <div class="p-6 flex justify-between items-center border-b border-surface-container gap-4">
-        <h2 class="text-xl font-bold tracking-tight font-headline">Companies</h2>
+        <h2 class="text-xl font-bold tracking-tight font-headline">Perusahaan</h2>
         <div class="flex gap-3 items-end">
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Search companies..." type="text">
+                <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Cari perusahaan..." type="text">
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Per Page</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Per Halaman</label>
                 <select id="per-page-select" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
                     <option value="15">15</option>
                     <option value="25">25</option>
@@ -55,32 +63,32 @@
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-surface-container-low">
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Name</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Industry</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Address</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Phone</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Nama</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Industri</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Alamat</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Telepon</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Email</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Actions</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Aksi</th>
             </tr>
         </thead>
         <tbody id="data-table" class="divide-y divide-surface-container">
-            <tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">Loading...</td></tr>
+            <tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td></tr>
         </tbody>
     </table>
     <div id="pagination"></div>
 </div>
 
 <!-- Modal -->
-@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Company'])
+@component('partials.modal', ['id' => 'crud-modal', 'title' => 'Perusahaan'])
     <form id="crud-form" onsubmit="event.preventDefault(); saveItem();">
         <input type="hidden" id="item-id">
         <div class="space-y-4">
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-name">Name</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-name">Nama</label>
                 <input id="field-name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="text">
             </div>
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-industry">Industry</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-industry">Industri</label>
                 <input id="field-industry" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="text">
             </div>
             
@@ -107,7 +115,7 @@
             </div>
 
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-phone">Phone</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-phone">Telepon</label>
                 <input id="field-phone" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="text">
             </div>
             <div>
@@ -150,14 +158,14 @@
             </div>
 
             <div>
-                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-distance-threshold">Distance Threshold (meters)</label>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-distance-threshold">Batas Jarak (meter)</label>
                 <input id="field-distance-threshold" value="100" min="10" max="1000" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="number" min="10" max="1000">
-                <p class="text-xs text-on-surface-variant mt-1">Max distance for attendance validation (10-1000 meters)</p>
+                <p class="text-xs text-on-surface-variant mt-1">Jarak maksimal untuk validasi kehadiran (10-1000 meter)</p>
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="AdminUtils.hideModal('crud-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Cancel</button>
-                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Save</button>
+                <button type="button" onclick="AdminUtils.hideModal('crud-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Batal</button>
+                <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Simpan</button>
             </div>
         </div>
     </form>
@@ -350,7 +358,7 @@
             renderPagination('pagination', meta, loadData);
         } catch (e) {
             console.error(e);
-            showToast('Failed to load companies', 'error');
+            showToast('Gagal memuat data perusahaan', 'error');
         }
     }
 
@@ -362,7 +370,7 @@
         document.getElementById('field-latitude').value = '';
         document.getElementById('field-longitude').value = '';
         document.getElementById('geocode-status').classList.add('hidden');
-        document.getElementById('crud-modal-title').textContent = 'Add Company';
+        document.getElementById('crud-modal-title').textContent = 'Tambah Perusahaan';
         
         resetAddressSelects();
         loadProvinces();
@@ -463,7 +471,7 @@
         const fullAddress = getFullAddress();
         
         if (!fullAddress || fullAddress === 'Indonesia') {
-            showToast('Please fill in address first', 'error');
+            showToast('Isi alamat terlebih dahulu', 'error');
             return;
         }
         
@@ -574,7 +582,7 @@
             document.getElementById('field-distance-threshold').value = item.distance_threshold || 100;
             document.getElementById('geocode-status').classList.add('hidden');
             
-            document.getElementById('crud-modal-title').textContent = 'Edit Company';
+            document.getElementById('crud-modal-title').textContent = 'Edit Perusahaan';
             
             resetAddressSelects();
             await loadProvinces();
@@ -611,7 +619,7 @@
             setTimeout(refreshMap, 150);
         } catch (e) {
             console.error(e);
-            showToast('Failed to load company details', 'error');
+            showToast('Gagal memuat detail perusahaan', 'error');
         }
     }
 
@@ -620,11 +628,11 @@
         if (!confirmDelete(name)) return;
         try {
             await Auth.apiFetch(`${ENDPOINT}/${id}`, { method: 'DELETE' });
-            showToast('Company deleted successfully');
+            showToast('Perusahaan berhasil dihapus');
             loadData(currentPage);
         } catch (e) {
             console.error(e);
-            showToast('Failed to delete company', 'error');
+            showToast('Gagal menghapus perusahaan', 'error');
         }
     }
 
@@ -669,11 +677,11 @@
             }
 
             hideModal('crud-modal');
-            showToast(id ? 'Company updated successfully' : 'Company created successfully');
+            showToast(id ? 'Perusahaan berhasil diperbarui' : 'Perusahaan berhasil ditambahkan');
             loadData(id ? currentPage : 1);
         } catch (e) {
             console.error(e);
-            showToast(e.message || 'Failed to save company', 'error');
+            showToast(e.message || 'Gagal menyimpan perusahaan', 'error');
         }
     }
 
