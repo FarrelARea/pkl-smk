@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\AttendancePoint;
 use App\Models\Internship;
 use App\Services\DistanceService;
 use Illuminate\Http\JsonResponse;
@@ -64,22 +65,36 @@ class AttendanceController extends Controller
         }
 
         $data['recorded_by'] = auth('api')->id();
-        
+
         $internship = Internship::with('company')->findOrFail($data['internship_id']);
         $company = $internship->company;
-        
+
         $locationValidation = null;
-        if ($company && $company->hasLocation() && isset($data['latitude']) && isset($data['longitude'])) {
-            $locationValidation = $this->distanceService->validateLocation(
-                $data['latitude'],
-                $data['longitude'],
-                $company->latitude,
-                $company->longitude,
-                $company->distance_threshold ?? 100
-            );
-            
-            $data['location_verified'] = $locationValidation['verified'];
-            $data['location_distance'] = $locationValidation['distance'];
+        if ($company && isset($data['latitude']) && isset($data['longitude'])) {
+            $approvedPoints = AttendancePoint::approved()->forCompany($company->id)->get();
+
+            if ($approvedPoints->isNotEmpty()) {
+                $locationValidation = $this->distanceService->findNearestPoint(
+                    $data['latitude'],
+                    $data['longitude'],
+                    $approvedPoints
+                );
+                $data['location_verified'] = $locationValidation['verified'];
+                $data['location_distance'] = $locationValidation['distance'];
+                $data['attendance_point_id'] = $locationValidation['point']->id;
+            } elseif ($company->hasLocation()) {
+                $locationValidation = $this->distanceService->validateLocation(
+                    $data['latitude'],
+                    $data['longitude'],
+                    $company->latitude,
+                    $company->longitude,
+                    $company->distance_threshold ?? 100
+                );
+                $data['location_verified'] = $locationValidation['verified'];
+                $data['location_distance'] = $locationValidation['distance'];
+            } else {
+                $data['location_verified'] = false;
+            }
         } else {
             $data['location_verified'] = false;
         }
@@ -87,7 +102,7 @@ class AttendanceController extends Controller
         $attendance = Attendance::create($data);
 
         $response = ['data' => $attendance];
-        
+
         if ($locationValidation) {
             $response['location'] = [
                 'verified' => $locationValidation['verified'],
@@ -156,22 +171,38 @@ class AttendanceController extends Controller
             }
 
             $item['recorded_by'] = auth('api')->id();
-            
+
             $internship = Internship::with('company')->find($item['internship_id']);
             $company = $internship?->company;
-            
-            if ($company && $company->hasLocation() && isset($item['latitude']) && isset($item['longitude'])) {
-                $validation = $this->distanceService->validateLocation(
-                    $item['latitude'],
-                    $item['longitude'],
-                    $company->latitude,
-                    $company->longitude,
-                    $company->distance_threshold ?? 100
-                );
-                $item['location_verified'] = $validation['verified'];
-                $item['location_distance'] = $validation['distance'];
-                
-                if (!$validation['verified']) {
+
+            if ($company && isset($item['latitude']) && isset($item['longitude'])) {
+                $approvedPoints = AttendancePoint::approved()->forCompany($company->id)->get();
+
+                if ($approvedPoints->isNotEmpty()) {
+                    $validation = $this->distanceService->findNearestPoint(
+                        $item['latitude'],
+                        $item['longitude'],
+                        $approvedPoints
+                    );
+                    $item['location_verified'] = $validation['verified'];
+                    $item['location_distance'] = $validation['distance'];
+                    $item['attendance_point_id'] = $validation['point']->id;
+                } elseif ($company->hasLocation()) {
+                    $validation = $this->distanceService->validateLocation(
+                        $item['latitude'],
+                        $item['longitude'],
+                        $company->latitude,
+                        $company->longitude,
+                        $company->distance_threshold ?? 100
+                    );
+                    $item['location_verified'] = $validation['verified'];
+                    $item['location_distance'] = $validation['distance'];
+                } else {
+                    $validation = null;
+                    $item['location_verified'] = false;
+                }
+
+                if (isset($validation) && $validation && !$validation['verified']) {
                     $locationWarnings[] = "Student {$item['student_id']}: {$validation['message']}";
                 }
             } else {

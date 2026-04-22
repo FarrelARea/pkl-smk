@@ -110,7 +110,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'nullable|in:school_admin,teacher,student,company_supervisor',
+            'role' => 'nullable|in:school_admin,teacher,student,company_supervisor', // superadmin cannot self-register
             'school_id' => 'nullable|exists:schools,id',
         ]);
 

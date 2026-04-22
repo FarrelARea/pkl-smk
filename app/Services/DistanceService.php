@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\AttendancePoint;
+use Illuminate\Support\Collection;
+
 class DistanceService
 {
     protected const EARTH_RADIUS_METERS = 6371000;
@@ -57,12 +60,41 @@ class DistanceService
         return $this->calculateDistance($lat1, $lon1, $lat2, $lon2);
     }
 
+    public function findNearestPoint(float $studentLat, float $studentLon, Collection $points): array
+    {
+        if ($points->isEmpty()) {
+            return ['point' => null, 'distance' => null, 'verified' => false, 'message' => 'No attendance points available'];
+        }
+
+        $nearest = null;
+        $nearestDistance = PHP_FLOAT_MAX;
+
+        foreach ($points as $point) {
+            $distance = $this->calculateDistance($studentLat, $studentLon, $point->latitude, $point->longitude);
+            if ($distance < $nearestDistance) {
+                $nearestDistance = $distance;
+                $nearest = $point;
+            }
+        }
+
+        $verified = $nearestDistance <= $nearest->distance_threshold;
+
+        return [
+            'point' => $nearest,
+            'distance' => round($nearestDistance, 2),
+            'verified' => $verified,
+            'message' => $verified
+                ? "Location verified at {$nearest->name}"
+                : "Location outside threshold ({$nearestDistance}m from {$nearest->name}, max {$nearest->distance_threshold}m)",
+        ];
+    }
+
     public function formatDistance(float $meters): string
     {
         if ($meters < 1000) {
             return round($meters, 1) . ' m';
         }
-        
+
         return round($meters / 1000, 2) . ' km';
     }
 }

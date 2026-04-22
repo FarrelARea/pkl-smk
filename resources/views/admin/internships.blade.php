@@ -73,6 +73,7 @@
     <div class="p-6 flex justify-between items-center border-b border-surface-container">
         <h2 class="text-xl font-bold tracking-tight font-headline">Magang</h2>
     </div>
+    <div class="overflow-x-auto">
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-surface-container-low">
@@ -89,6 +90,7 @@
             <tr><td colspan="7" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td></tr>
         </tbody>
     </table>
+    </div>
     <div id="pagination"></div>
 </div>
 

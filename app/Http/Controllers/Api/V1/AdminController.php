@@ -24,8 +24,9 @@ class AdminController extends Controller
             return response()->json(['error' => 'Cannot reset password for users with this role'], 403);
         }
 
-        // Check that target user belongs to the same school as the requesting admin
-        if ($targetUser->school_id !== $request->user()->school_id) {
+        // Superadmin can reset any user; school_admin can only reset within their school
+        $requestingUser = $request->user();
+        if ($requestingUser->role !== 'superadmin' && $targetUser->school_id !== $requestingUser->school_id) {
             return response()->json(['error' => 'Can only reset passwords for users in the same school'], 403);
         }
 

@@ -11,12 +11,14 @@ class SchoolController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = School::query();
-        
+        $query = School::withCount(['users as students_count' => function ($q) {
+            $q->where('role', 'student');
+        }]);
+
         if ($request->has('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
-        
+
         $schools = $query->paginate($request->get('per_page', 15));
         
         return response()->json($schools);

@@ -17,6 +17,7 @@ class ClockInOut extends Model
         'company_longitude',
         'distance_meters',
         'is_within_range',
+        'attendance_point_id',
         'notes',
         'photo',
     ];
@@ -38,6 +39,11 @@ class ClockInOut extends Model
     public function internship(): BelongsTo
     {
         return $this->belongsTo(Internship::class);
+    }
+
+    public function attendancePoint(): BelongsTo
+    {
+        return $this->belongsTo(AttendancePoint::class);
     }
 
     public static function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float

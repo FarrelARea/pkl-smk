@@ -52,7 +52,13 @@ Route::get('/admin/daily-logs', fn() => view('admin.daily-logs'));
 Route::get('/admin/attendance', fn() => view('admin.attendance'));
 Route::get('/admin/evaluations', fn() => view('admin.evaluations'));
 Route::get('/admin/teacher-assignments', fn() => view('admin.teacher-assignments'));
+Route::get('/admin/teacher-company-assignments', fn() => view('admin.teacher-company-assignments'));
+Route::get('/admin/attendance-points', fn() => view('admin.attendance-points'));
 Route::get('/admin/assessment-templates', fn() => view('admin.assessment-templates'));
+
+// Supervisor pages
+Route::get('/supervisor/attendance-points', fn() => view('supervisor.attendance-points'));
 
 // Teacher pages
 Route::get('/teacher/students/{id}', fn() => view('teacher.student-detail'));
+Route::get('/teacher/attendance-points', fn() => view('teacher.attendance-points'));

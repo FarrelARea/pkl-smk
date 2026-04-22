@@ -98,6 +98,7 @@ Route::prefix('v1')->group(function () {
 
         // Teacher document approval + panel
         Route::middleware('role:teacher')->group(function () {
+            Route::get('teacher/my-companies', [App\Http\Controllers\Api\V1\TeacherCompanyAssignmentController::class, 'myCompanies']);
             Route::get('teacher/students/{id}/documents', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'teacherDocuments']);
             Route::post('teacher/documents/{id}/approve', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'approve']);
             Route::post('teacher/documents/{id}/reject', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'reject']);
@@ -122,11 +123,26 @@ Route::prefix('v1')->group(function () {
             Route::put('teacher/panel/assessments/{id}', [App\Http\Controllers\Api\V1\StudentAssessmentController::class, 'update']);
         });
 
+        // Attendance points (nested under companies)
+        Route::get('companies/{companyId}/attendance-points', [App\Http\Controllers\Api\V1\AttendancePointController::class, 'index']);
+        Route::post('companies/{companyId}/attendance-points', [App\Http\Controllers\Api\V1\AttendancePointController::class, 'store']);
+        Route::get('companies/{companyId}/attendance-points/{id}', [App\Http\Controllers\Api\V1\AttendancePointController::class, 'show']);
+        Route::put('companies/{companyId}/attendance-points/{id}', [App\Http\Controllers\Api\V1\AttendancePointController::class, 'update']);
+        Route::delete('companies/{companyId}/attendance-points/{id}', [App\Http\Controllers\Api\V1\AttendancePointController::class, 'destroy']);
+        Route::post('companies/{companyId}/attendance-points/{id}/approve', [App\Http\Controllers\Api\V1\AttendancePointController::class, 'approve'])
+            ->middleware('role:school_admin');
+        Route::post('companies/{companyId}/attendance-points/{id}/reject', [App\Http\Controllers\Api\V1\AttendancePointController::class, 'reject'])
+            ->middleware('role:school_admin');
+
         // Admin teacher assignments
         Route::middleware('role:school_admin')->group(function () {
             Route::get('admin/teacher-assignments', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'index']);
             Route::post('admin/teacher-assignments', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'store']);
             Route::delete('admin/teacher-assignments/{id}', [App\Http\Controllers\Api\V1\TeacherStudentAssignmentController::class, 'destroy']);
+            // Teacher-company assignments
+            Route::get('admin/teacher-company-assignments', [App\Http\Controllers\Api\V1\TeacherCompanyAssignmentController::class, 'index']);
+            Route::post('admin/teacher-company-assignments', [App\Http\Controllers\Api\V1\TeacherCompanyAssignmentController::class, 'store']);
+            Route::delete('admin/teacher-company-assignments/{id}', [App\Http\Controllers\Api\V1\TeacherCompanyAssignmentController::class, 'destroy']);
             // Assessment templates (admin)
             Route::apiResource('assessment-templates', App\Http\Controllers\Api\V1\AssessmentTemplateController::class);
             // Assessment recap (admin)

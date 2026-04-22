@@ -69,6 +69,7 @@
 
 <!-- Students Table -->
 <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
+    <div class="overflow-x-auto">
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-surface-container-low">
@@ -84,6 +85,7 @@
             </tr>
         </tbody>
     </table>
+    </div>
     <div id="students-pagination"></div>
 </div>
 

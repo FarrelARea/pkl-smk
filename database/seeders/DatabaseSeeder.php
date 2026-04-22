@@ -306,6 +306,15 @@ class DatabaseSeeder extends Seeder
         ]);
         echo "✓ Created admin user (admin@example.com / password)\n";
 
+        // 15. Create superadmin user
+        User::create([
+            'name' => 'Super Admin',
+            'email' => 'superadmin@example.com',
+            'password' => 'password',
+            'role' => 'superadmin',
+        ]);
+        echo "✓ Created superadmin user (superadmin@example.com / password)\n";
+
         echo "\n✅ Database seeding completed successfully!\n";
         echo "Total records created:\n";
         echo "  - Schools: {$schoolCount}\n";

@@ -50,6 +50,7 @@
 
     {{-- Table --}}
     <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
+        <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-surface-container-low">
                 <tr>
@@ -65,6 +66,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 

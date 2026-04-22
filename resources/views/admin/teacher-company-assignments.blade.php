@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Penugasan Guru')
+@section('title', 'Penugasan Perusahaan ke Guru')
 
 @section('content')
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Penugasan Guru</h1>
+        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Penugasan Perusahaan ke Guru</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
-            Tentukan guru yang bertanggung jawab atas murid tertentu.
+            Tentukan perusahaan mana yang bisa diakses oleh guru tertentu untuk pengelolaan titik absensi.
         </p>
     </div>
-    <x-help-button title="Panduan Penugasan Guru">
-        <p>Di halaman ini kamu bisa mengatur penugasan guru ke siswa.</p>
+    <x-help-button title="Panduan Penugasan Perusahaan">
+        <p>Di halaman ini kamu bisa mengatur akses guru ke perusahaan.</p>
         <ul class="list-disc pl-4 mt-2 space-y-1">
-            <li>Tetapkan guru pembimbing untuk siswa tertentu</li>
+            <li>Tetapkan perusahaan yang bisa dikelola oleh guru</li>
+            <li>Guru hanya bisa menambah titik absensi pada perusahaan yang ditugaskan</li>
             <li>Hapus penugasan yang sudah tidak berlaku</li>
-            <li>Cari berdasarkan nama guru atau siswa</li>
         </ul>
     </x-help-button>
     <button onclick="openAssignModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
@@ -31,7 +31,7 @@
         <div class="flex flex-wrap gap-3 items-end">
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-56 transition-all" placeholder="Cari guru atau murid..." type="text">
+                <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-56 transition-all" placeholder="Cari guru atau perusahaan..." type="text">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Filter Guru</label>
@@ -46,8 +46,8 @@
         <thead>
             <tr class="bg-surface-container-low">
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Guru</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Murid</th>
-                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Email Murid</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Perusahaan</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Industri</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Ditugaskan</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Aksi</th>
             </tr>
@@ -60,7 +60,7 @@
 </div>
 
 <!-- Assign Modal -->
-@component('partials.modal', ['id' => 'assign-modal', 'title' => 'Tambah Penugasan Guru'])
+@component('partials.modal', ['id' => 'assign-modal', 'title' => 'Tambah Penugasan Perusahaan ke Guru'])
 <div class="space-y-5">
     <!-- Teacher search -->
     <div>
@@ -76,19 +76,19 @@
         <p id="selected-teacher-name" class="mt-1 text-xs text-primary font-medium hidden"></p>
     </div>
 
-    <!-- Student multi-select -->
+    <!-- Company multi-select -->
     <div>
-        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Murid <span class="text-red-500">*</span> <span class="text-outline font-normal normal-case">(bisa pilih lebih dari satu)</span></label>
+        <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Perusahaan <span class="text-red-500">*</span> <span class="text-outline font-normal normal-case">(bisa pilih lebih dari satu)</span></label>
         <div class="relative mb-1">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-            <input id="student-search" type="text" placeholder="Cari murid..." class="w-full pl-9 pr-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+            <input id="company-search" type="text" placeholder="Cari perusahaan..." class="w-full pl-9 pr-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
         </div>
         <div class="flex items-center gap-3 mb-1">
-            <button type="button" onclick="selectAllStudents()" class="text-xs text-primary hover:underline">Pilih Semua</button>
-            <button type="button" onclick="clearStudents()" class="text-xs text-outline hover:underline">Hapus Pilihan</button>
+            <button type="button" onclick="selectAllCompanies()" class="text-xs text-primary hover:underline">Pilih Semua</button>
+            <button type="button" onclick="clearCompanies()" class="text-xs text-outline hover:underline">Hapus Pilihan</button>
             <span id="selected-count" class="text-xs text-on-surface-variant ml-auto"></span>
         </div>
-        <div id="student-list" class="max-h-52 overflow-y-auto border border-outline-variant/20 rounded-lg divide-y divide-surface-container">
+        <div id="company-list" class="max-h-52 overflow-y-auto border border-outline-variant/20 rounded-lg divide-y divide-surface-container">
             <p class="px-3 py-2 text-xs text-outline">Memuat...</p>
         </div>
     </div>
@@ -109,12 +109,11 @@
 
     let allAssignments = [];
     let allTeachers = [];
-    let allStudents = [];
-    let filteredStudents = [];
-    let selectedStudentIds = new Set();
+    let allCompanies = [];
+    let filteredCompanies = [];
+    let selectedCompanyIds = new Set();
     let searchTimeout = null;
 
-    // ── Init ─────────────────────────────────────────────
     function waitForAuth(cb) {
         const check = () => window.Auth ? cb() : setTimeout(check, 50);
         check();
@@ -122,14 +121,13 @@
 
     waitForAuth(async () => {
         if (!Auth.requireAuth()) return;
-        await Promise.all([loadData(), loadTeachersAndStudents()]);
+        await Promise.all([loadData(), loadTeachersAndCompanies()]);
         setupSearch();
     });
 
-    // ── Load all data ─────────────────────────────────────
     async function loadData() {
         try {
-            const res = await Auth.apiFetch('/admin/teacher-assignments');
+            const res = await Auth.apiFetch('/admin/teacher-company-assignments');
             allAssignments = await res.json();
             renderTable(allAssignments);
             populateFilterTeacher();
@@ -139,23 +137,22 @@
         }
     }
 
-    async function loadTeachersAndStudents() {
+    async function loadTeachersAndCompanies() {
         try {
-            const [tRes, sRes] = await Promise.all([
+            const [tRes, cRes] = await Promise.all([
                 Auth.apiFetch('/teachers?per_page=1000'),
-                Auth.apiFetch('/students?per_page=1000'),
+                Auth.apiFetch('/companies?per_page=1000'),
             ]);
             const tJson = await tRes.json();
-            const sJson = await sRes.json();
+            const cJson = await cRes.json();
             allTeachers = tJson.data?.data || tJson.data || tJson;
-            allStudents = sJson.data?.data || sJson.data || sJson;
-            filteredStudents = [...allStudents];
+            allCompanies = cJson.data?.data || cJson.data || cJson;
+            filteredCompanies = [...allCompanies];
         } catch (e) {
-            console.error('Failed to load teachers/students', e);
+            console.error('Failed to load teachers/companies', e);
         }
     }
 
-    // ── Render table ──────────────────────────────────────
     function renderTable(assignments) {
         const tbody = document.getElementById('data-table');
         const query = document.getElementById('search-input').value.toLowerCase();
@@ -165,8 +162,7 @@
         if (teacherFilter) filtered = filtered.filter(a => String(a.teacher_id) === teacherFilter);
         if (query) filtered = filtered.filter(a =>
             a.teacher?.name?.toLowerCase().includes(query) ||
-            a.student?.name?.toLowerCase().includes(query) ||
-            a.student?.email?.toLowerCase().includes(query)
+            a.company?.name?.toLowerCase().includes(query)
         );
 
         if (filtered.length === 0) {
@@ -178,11 +174,11 @@
             const date = new Date(a.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
             return `<tr class="hover:bg-surface-container/50 transition-colors">
                 <td class="px-6 py-4 text-sm font-medium text-on-surface">${a.teacher?.name || '—'}</td>
-                <td class="px-6 py-4 text-sm text-on-surface">${a.student?.name || '—'}</td>
-                <td class="px-6 py-4 text-sm text-on-surface-variant">${a.student?.email || '—'}</td>
+                <td class="px-6 py-4 text-sm text-on-surface">${a.company?.name || '—'}</td>
+                <td class="px-6 py-4 text-sm text-on-surface-variant">${a.company?.industry || '—'}</td>
                 <td class="px-6 py-4 text-sm text-on-surface-variant">${date}</td>
                 <td class="px-6 py-4 text-right">
-                    <button onclick="deleteAssignment(${a.id}, '${(a.teacher?.name || '').replace(/'/g, "\\'")} → ${(a.student?.name || '').replace(/'/g, "\\'")}')"
+                    <button onclick="deleteAssignment(${a.id}, '${(a.teacher?.name || '').replace(/'/g, "\\'")} → ${(a.company?.name || '').replace(/'/g, "\\'")}')"
                         class="p-2 text-on-surface-variant hover:text-error transition-colors" title="Hapus">
                         <span class="material-symbols-outlined text-sm">delete</span>
                     </button>
@@ -193,6 +189,7 @@
 
     function populateFilterTeacher() {
         const sel = document.getElementById('filter-teacher');
+        sel.innerHTML = '<option value="">Semua Guru</option>';
         const unique = [...new Map(allAssignments.map(a => [a.teacher_id, a.teacher])).entries()];
         unique.forEach(([id, t]) => {
             if (t) sel.innerHTML += `<option value="${id}">${t.name}</option>`;
@@ -207,23 +204,25 @@
         document.getElementById('filter-teacher').addEventListener('change', () => renderTable(allAssignments));
     }
 
-    // ── Assign Modal ──────────────────────────────────────
     window.openAssignModal = () => {
         document.getElementById('selected-teacher-id').value = '';
         document.getElementById('selected-teacher-name').classList.add('hidden');
         document.getElementById('teacher-search').value = '';
-        document.getElementById('student-search').value = '';
+        document.getElementById('company-search').value = '';
         document.getElementById('modal-error').classList.add('hidden');
-        selectedStudentIds = new Set();
-        filteredStudents = [...allStudents];
+        selectedCompanyIds = new Set();
+        filteredCompanies = [...allCompanies];
         renderTeacherList('');
-        renderStudentList('');
+        renderCompanyList('');
         showModal('assign-modal');
     };
 
     function renderTeacherList(query) {
         const container = document.getElementById('teacher-list');
-        const filtered = allTeachers.filter(t => t.name.toLowerCase().includes(query.toLowerCase()) || t.email.toLowerCase().includes(query.toLowerCase()));
+        const filtered = allTeachers.filter(t =>
+            t.name.toLowerCase().includes(query.toLowerCase()) ||
+            t.email.toLowerCase().includes(query.toLowerCase())
+        );
         if (filtered.length === 0) {
             container.innerHTML = '<p class="px-3 py-2 text-xs text-outline">Tidak ada guru ditemukan.</p>';
             return;
@@ -238,25 +237,25 @@
         `).join('');
     }
 
-    function renderStudentList(query) {
-        const container = document.getElementById('student-list');
-        filteredStudents = allStudents.filter(s =>
-            s.name.toLowerCase().includes(query.toLowerCase()) ||
-            s.email.toLowerCase().includes(query.toLowerCase())
+    function renderCompanyList(query) {
+        const container = document.getElementById('company-list');
+        filteredCompanies = allCompanies.filter(c =>
+            c.name.toLowerCase().includes(query.toLowerCase()) ||
+            (c.industry || '').toLowerCase().includes(query.toLowerCase())
         );
-        if (filteredStudents.length === 0) {
-            container.innerHTML = '<p class="px-3 py-2 text-xs text-outline">Tidak ada murid ditemukan.</p>';
+        if (filteredCompanies.length === 0) {
+            container.innerHTML = '<p class="px-3 py-2 text-xs text-outline">Tidak ada perusahaan ditemukan.</p>';
             return;
         }
-        container.innerHTML = filteredStudents.map(s => {
-            const checked = selectedStudentIds.has(s.id);
+        container.innerHTML = filteredCompanies.map(c => {
+            const checked = selectedCompanyIds.has(c.id);
             return `<label class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-surface-container">
-                <input type="checkbox" value="${s.id}" ${checked ? 'checked' : ''}
-                    onchange="toggleStudent(${s.id})"
+                <input type="checkbox" value="${c.id}" ${checked ? 'checked' : ''}
+                    onchange="toggleCompany(${c.id})"
                     class="rounded border-outline-variant/40 text-primary focus:ring-primary">
                 <div>
-                    <p class="text-sm text-on-surface">${s.name}</p>
-                    <p class="text-xs text-on-surface-variant">${s.email}</p>
+                    <p class="text-sm text-on-surface">${c.name}</p>
+                    <p class="text-xs text-on-surface-variant">${c.industry || '—'}</p>
                 </div>
             </label>`;
         }).join('');
@@ -273,30 +272,29 @@
         });
     };
 
-    window.toggleStudent = (id) => {
-        selectedStudentIds.has(id) ? selectedStudentIds.delete(id) : selectedStudentIds.add(id);
+    window.toggleCompany = (id) => {
+        selectedCompanyIds.has(id) ? selectedCompanyIds.delete(id) : selectedCompanyIds.add(id);
         updateSelectedCount();
     };
 
-    window.selectAllStudents = () => {
-        filteredStudents.forEach(s => selectedStudentIds.add(s.id));
-        renderStudentList(document.getElementById('student-search').value);
+    window.selectAllCompanies = () => {
+        filteredCompanies.forEach(c => selectedCompanyIds.add(c.id));
+        renderCompanyList(document.getElementById('company-search').value);
     };
 
-    window.clearStudents = () => {
-        selectedStudentIds.clear();
-        renderStudentList(document.getElementById('student-search').value);
+    window.clearCompanies = () => {
+        selectedCompanyIds.clear();
+        renderCompanyList(document.getElementById('company-search').value);
     };
 
     function updateSelectedCount() {
         document.getElementById('selected-count').textContent =
-            selectedStudentIds.size > 0 ? `${selectedStudentIds.size} murid dipilih` : '';
+            selectedCompanyIds.size > 0 ? `${selectedCompanyIds.size} perusahaan dipilih` : '';
     }
 
     document.getElementById('teacher-search').addEventListener('input', e => renderTeacherList(e.target.value));
-    document.getElementById('student-search').addEventListener('input', e => renderStudentList(e.target.value));
+    document.getElementById('company-search').addEventListener('input', e => renderCompanyList(e.target.value));
 
-    // ── Submit ────────────────────────────────────────────
     window.submitAssignment = async () => {
         const teacherId = document.getElementById('selected-teacher-id').value;
         const errorEl = document.getElementById('modal-error');
@@ -304,16 +302,16 @@
         errorEl.classList.add('hidden');
 
         if (!teacherId) { errorEl.textContent = 'Pilih guru terlebih dahulu.'; errorEl.classList.remove('hidden'); return; }
-        if (selectedStudentIds.size === 0) { errorEl.textContent = 'Pilih minimal satu murid.'; errorEl.classList.remove('hidden'); return; }
+        if (selectedCompanyIds.size === 0) { errorEl.textContent = 'Pilih minimal satu perusahaan.'; errorEl.classList.remove('hidden'); return; }
 
         btn.textContent = 'Menyimpan...';
         btn.disabled = true;
 
         try {
-            const results = await Promise.all([...selectedStudentIds].map(studentId =>
-                Auth.apiFetch('/admin/teacher-assignments', {
+            const results = await Promise.all([...selectedCompanyIds].map(companyId =>
+                Auth.apiFetch('/admin/teacher-company-assignments', {
                     method: 'POST',
-                    body: JSON.stringify({ teacher_id: parseInt(teacherId), student_id: studentId }),
+                    body: JSON.stringify({ teacher_id: parseInt(teacherId), company_id: companyId }),
                 })
             ));
             const failed = results.filter(r => !r.ok).length;
@@ -329,11 +327,10 @@
         }
     };
 
-    // ── Delete ────────────────────────────────────────────
     window.deleteAssignment = async (id, label) => {
         if (!await confirmDelete(label)) return;
         try {
-            const res = await Auth.apiFetch(`/admin/teacher-assignments/${id}`, { method: 'DELETE' });
+            const res = await Auth.apiFetch(`/admin/teacher-company-assignments/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 showToast('Penugasan dihapus', 'success');
                 await loadData();
