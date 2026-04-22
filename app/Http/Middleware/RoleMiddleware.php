@@ -14,7 +14,7 @@ class RoleMiddleware
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        if ($request->user()->role !== $role) {
+        if ($request->user()->role !== $role && $request->user()->role !== 'superadmin') {
             return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
         }
 

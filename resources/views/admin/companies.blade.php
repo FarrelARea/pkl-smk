@@ -2,20 +2,6 @@
 
 @section('title', 'Manajemen Perusahaan')
 
-@push('styles')
-<style>
-    #company-map {
-        background: #f0f0f0;
-        transition: opacity 0.3s ease;
-    }
-    #company-map .leaflet-container {
-        height: 100%;
-        width: 100%;
-        border-radius: 8px;
-    }
-</style>
-@endpush
-
 @section('content')
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
@@ -31,6 +17,7 @@
             <ul class="list-disc pl-4 mt-2 space-y-1">
                 <li>Tambah perusahaan baru dengan lokasi di peta</li>
                 <li>Edit dan hapus data perusahaan</li>
+                <li>Reset password pembimbing lapangan perusahaan</li>
                 <li>Atur batas jarak untuk validasi kehadiran siswa</li>
             </ul>
         </x-help-button>
@@ -60,6 +47,7 @@
             </div>
         </div>
     </div>
+    <div class="overflow-x-auto">
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-surface-container-low">
@@ -75,10 +63,11 @@
             <tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td></tr>
         </tbody>
     </table>
+    </div>
     <div id="pagination"></div>
 </div>
 
-<!-- Modal -->
+<!-- Create/Edit Modal -->
 @component('partials.modal', ['id' => 'crud-modal', 'title' => 'Perusahaan'])
     <form id="crud-form" onsubmit="event.preventDefault(); saveItem();">
         <input type="hidden" id="item-id">
@@ -91,8 +80,8 @@
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-industry">Industri</label>
                 <input id="field-industry" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="text">
             </div>
-            
-            <div class="border-t border-outline-variant/20 pt-4 mt-4">
+
+            <div class="border-t border-outline-variant/20 pt-4">
                 <h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Alamat</h4>
                 <div class="space-y-3">
                     <div>
@@ -123,7 +112,7 @@
                 <input id="field-email" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="email">
             </div>
 
-            <div class="border-t border-outline-variant/20 pt-4 mt-4">
+            <div class="border-t border-outline-variant/20 pt-4">
                 <h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Lokasi</h4>
                 <div class="mb-2">
                     <div class="relative">
@@ -134,7 +123,6 @@
                 </div>
                 <div id="map-container" class="rounded-lg overflow-hidden border border-outline-variant/20 relative" style="height: 200px;">
                     <div id="company-map" class="w-full h-full"></div>
-                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3 mt-3">
                     <div>
@@ -159,7 +147,7 @@
 
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-distance-threshold">Batas Jarak (meter)</label>
-                <input id="field-distance-threshold" value="100" min="10" max="1000" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="number" min="10" max="1000">
+                <input id="field-distance-threshold" value="100" min="10" max="1000" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="number">
                 <p class="text-xs text-on-surface-variant mt-1">Jarak maksimal untuk validasi kehadiran (10-1000 meter)</p>
             </div>
 
@@ -170,175 +158,252 @@
         </div>
     </form>
 @endcomponent
+
+<!-- Reset Password Modal -->
+@component('partials.modal', ['id' => 'reset-password-modal', 'title' => 'Reset Password Pembimbing'])
+    <form id="reset-password-form" onsubmit="event.preventDefault(); submitResetPassword();">
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Pembimbing <span class="text-red-500">*</span></label>
+                <select id="reset-supervisor-id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="">Pilih pembimbing...</option>
+                </select>
+                <p id="no-supervisor-msg" class="hidden mt-1 text-xs text-amber-600">Perusahaan ini belum memiliki pembimbing lapangan.</p>
+            </div>
+            <div>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="reset-password-field">Password Baru <span class="text-red-500">*</span></label>
+                <input id="reset-password-field" type="password" required minlength="6" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            <div>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="reset-password-confirm-field">Konfirmasi Password <span class="text-red-500">*</span></label>
+                <input id="reset-password-confirm-field" type="password" required minlength="6" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            <div id="reset-error" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg"></div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="AdminUtils.hideModal('reset-password-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Batal</button>
+                <button type="submit" id="reset-submit-btn" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Reset Password</button>
+            </div>
+        </div>
+    </form>
+@endcomponent
 @endsection
 
 @push('scripts')
 <script type="module">
-    const { showModal, hideModal, showToast, confirmDelete, renderTable, renderPagination, editBtn, deleteBtn } = AdminUtils;
+    const { showModal, hideModal, showToast, confirmDelete, renderTable, renderPagination } = AdminUtils;
 
     const ENDPOINT = '/companies';
     let currentPage = 1;
     let searchQuery = '';
     let searchTimeout = null;
     let provinces = [];
-    let cities = [];
     let companyMap = null;
     let marker = null;
 
-    function getPerPage() {
-        return document.getElementById('per-page-select').value || 15;
+    function waitForAuth(cb) {
+        const check = () => window.Auth ? cb() : setTimeout(check, 50);
+        check();
     }
 
-    // ── Map Functions ────────────────────────────────────────
+    // ── Map Functions ─────────────────────────────────────────────────
+
     function initMap() {
-        if (companyMap) {
-            companyMap.invalidateSize();
-            return;
-        }
-        
-        const mapContainer = document.getElementById('company-map');
-        if (!mapContainer) return;
-        
-        companyMap = L.map('company-map', {
-            center: [-2.5489, 118.0149],
-            zoom: 5,
-            zoomControl: true,
-            attributionControl: true
-        });
-        
+        if (companyMap) { companyMap.invalidateSize(); return; }
+        companyMap = L.map('company-map', { center: [-2.5489, 118.0149], zoom: 5 });
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors',
-            maxZoom: 19
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
         }).addTo(companyMap);
-        
-        companyMap.on('load', () => {
-            document.getElementById('company-map').classList.add('loaded');
-        });
     }
-
-    function refreshMap() {
-        if (companyMap) {
-            setTimeout(() => companyMap.invalidateSize(), 50);
-        }
-    }
-    
-    // ── Map Search Functions ────────────────────────────────
-    function handleMapSearch(event) {
-        const query = event.target.value.trim();
-        
-        clearTimeout(searchTimeout);
-        
-        if (query.length < 3) {
-            document.getElementById('map-search-results').classList.add('hidden');
-            return;
-        }
-        
-        searchTimeout = setTimeout(() => searchLocation(query), 300);
-    }
-    
-    async function searchLocation(query) {
-        const resultsDiv = document.getElementById('map-search-results');
-        resultsDiv.innerHTML = '<div class="px-4 py-3 text-sm text-on-surface-variant">Mencari...</div>';
-        resultsDiv.classList.remove('hidden');
-        
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Indonesia')}&format=json&limit=5&addressdetails=1`);
-            const results = await res.json();
-            
-            if (results.length === 0) {
-                resultsDiv.innerHTML = '<div class="px-4 py-3 text-sm text-on-surface-variant">Tidak ada hasil</div>';
-                return;
-            }
-            
-            resultsDiv.innerHTML = results.map(result => `
-                <div class="px-4 py-3 text-sm cursor-pointer hover:bg-surface-container-high border-b border-outline-variant/10 last:border-0" onclick="selectMapResult(${result.lat}, ${result.lon}, '${result.display_name.replace(/'/g, "\\'")}')">
-                    <div class="font-medium text-on-surface line-clamp-1">${result.display_name.split(',')[0]}</div>
-                    <div class="text-xs text-on-surface-variant line-clamp-1">${result.display_name}</div>
-                </div>
-            `).join('');
-            
-            resultsDiv.classList.remove('hidden');
-        } catch (e) {
-            console.error('Search failed:', e);
-            resultsDiv.innerHTML = '<div class="px-4 py-3 text-sm text-on-surface-variant">Gagal mencari</div>';
-        }
-    }
-    
-    function selectMapResult(lat, lon, displayName) {
-        document.getElementById('map-search-input').value = displayName.split(',')[0];
-        document.getElementById('map-search-results').classList.add('hidden');
-        
-        document.getElementById('field-latitude').value = parseFloat(lat).toFixed(7);
-        document.getElementById('field-longitude').value = parseFloat(lon).toFixed(7);
-        updateMap(lat, lon);
-        showToast('Lokasi ditemukan!');
-    }
-    
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#map-search-input') && !e.target.closest('#map-search-results')) {
-            document.getElementById('map-search-results').classList.add('hidden');
-        }
-    });
 
     function updateMap(lat, lng) {
         if (!companyMap) initMap();
-        if (!companyMap) return;
-        
         setTimeout(() => companyMap.invalidateSize(), 50);
-        
-        const latNum = parseFloat(lat);
-        const lngNum = parseFloat(lng);
-        
+        const latNum = parseFloat(lat), lngNum = parseFloat(lng);
         if (isNaN(latNum) || isNaN(lngNum)) {
             companyMap.setView([-2.5489, 118.0149], 5);
-            if (marker) {
-                companyMap.removeLayer(marker);
-                marker = null;
-            }
+            if (marker) { companyMap.removeLayer(marker); marker = null; }
             return;
         }
-        
         if (marker) {
             marker.setLatLng([latNum, lngNum]);
         } else {
             marker = L.marker([latNum, lngNum], { draggable: true }).addTo(companyMap);
-            marker.on('dragend', function(e) {
+            marker.on('dragend', e => {
                 const pos = e.target.getLatLng();
                 document.getElementById('field-latitude').value = pos.lat.toFixed(7);
                 document.getElementById('field-longitude').value = pos.lng.toFixed(7);
             });
         }
-        
         companyMap.setView([latNum, lngNum], 16);
     }
 
-    function updateMapFromInputs() {
-        const lat = document.getElementById('field-latitude').value;
-        const lng = document.getElementById('field-longitude').value;
-        updateMap(lat, lng);
-    }
-
     function clearMap() {
-        if (marker && companyMap) {
-            companyMap.removeLayer(marker);
-            marker = null;
-        }
-        if (companyMap) {
-            companyMap.setView([-2.5489, 118.0149], 5);
+        if (marker && companyMap) { companyMap.removeLayer(marker); marker = null; }
+        if (companyMap) companyMap.setView([-2.5489, 118.0149], 5);
+    }
+
+    window.updateMapFromInputs = () => updateMap(
+        document.getElementById('field-latitude').value,
+        document.getElementById('field-longitude').value
+    );
+
+    // ── Map Search ────────────────────────────────────────────────────
+
+    window.handleMapSearch = (event) => {
+        const query = event.target.value.trim();
+        clearTimeout(searchTimeout);
+        if (query.length < 3) { document.getElementById('map-search-results').classList.add('hidden'); return; }
+        searchTimeout = setTimeout(() => searchLocation(query), 300);
+    };
+
+    async function searchLocation(query) {
+        const resultsDiv = document.getElementById('map-search-results');
+        resultsDiv.innerHTML = '<div class="px-4 py-3 text-sm text-on-surface-variant">Mencari...</div>';
+        resultsDiv.classList.remove('hidden');
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Indonesia')}&format=json&limit=5`);
+            const results = await res.json();
+            if (results.length === 0) { resultsDiv.innerHTML = '<div class="px-4 py-3 text-sm text-on-surface-variant">Tidak ada hasil</div>'; return; }
+            resultsDiv.innerHTML = results.map(r => `
+                <div class="px-4 py-3 text-sm cursor-pointer hover:bg-surface-container-high border-b border-outline-variant/10 last:border-0"
+                    onclick="selectMapResult(${r.lat}, ${r.lon}, '${r.display_name.replace(/'/g, "\\'")}')">
+                    <div class="font-medium text-on-surface line-clamp-1">${r.display_name.split(',')[0]}</div>
+                    <div class="text-xs text-on-surface-variant line-clamp-1">${r.display_name}</div>
+                </div>`).join('');
+        } catch (e) {
+            resultsDiv.innerHTML = '<div class="px-4 py-3 text-sm text-on-surface-variant">Gagal mencari</div>';
         }
     }
 
-    // ── Load Data ────────────────────────────────────────
+    window.selectMapResult = (lat, lon, displayName) => {
+        document.getElementById('map-search-input').value = displayName.split(',')[0];
+        document.getElementById('map-search-results').classList.add('hidden');
+        document.getElementById('field-latitude').value = parseFloat(lat).toFixed(7);
+        document.getElementById('field-longitude').value = parseFloat(lon).toFixed(7);
+        updateMap(lat, lon);
+        showToast('Lokasi ditemukan!');
+    };
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#map-search-input') && !e.target.closest('#map-search-results'))
+            document.getElementById('map-search-results').classList.add('hidden');
+    });
+
+    // ── Address (Province/City) ───────────────────────────────────────
+
+    async function loadProvinces() {
+        try {
+            const res = await fetch('/api/v1/address/provinces');
+            const json = await res.json();
+            provinces = json.data || [];
+            const sel = document.getElementById('field-province');
+            sel.innerHTML = '<option value="">Pilih Provinsi...</option>';
+            provinces.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.code; opt.textContent = p.name;
+                sel.appendChild(opt);
+            });
+        } catch (e) { console.error('Failed to load provinces:', e); }
+    }
+
+    window.onProvinceChange = async () => {
+        const code = document.getElementById('field-province').value;
+        const citySelect = document.getElementById('field-city');
+        citySelect.innerHTML = '<option value="">Memuat...</option>';
+        citySelect.disabled = true;
+        citySelect.classList.add('opacity-50', 'cursor-not-allowed');
+        if (!code) { citySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten...</option>'; return; }
+        try {
+            const res = await fetch(`/api/v1/address/cities?province_code=${code}`);
+            const json = await res.json();
+            citySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten...</option>';
+            (json.data || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.code; opt.textContent = c.name;
+                citySelect.appendChild(opt);
+            });
+            citySelect.disabled = false;
+            citySelect.classList.remove('opacity-50', 'cursor-not-allowed');
+        } catch (e) {
+            citySelect.innerHTML = '<option value="">Error loading</option>';
+        }
+    };
+
+    function resetAddressSelects() {
+        const citySelect = document.getElementById('field-city');
+        citySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten...</option>';
+        citySelect.disabled = true;
+        citySelect.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    // ── Geocode ───────────────────────────────────────────────────────
+
+    window.geocodeAddress = async () => {
+        const provinceSelect = document.getElementById('field-province');
+        const citySelect = document.getElementById('field-city');
+        const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+        const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
+        const addressDetail = document.getElementById('field-address').value.trim();
+        const parts = [addressDetail, cityName, provinceName, 'Indonesia'].filter(p => p && !p.startsWith('Pilih'));
+        const fullAddress = parts.join(', ');
+
+        if (!fullAddress || fullAddress === 'Indonesia') { showToast('Isi alamat terlebih dahulu', 'error'); return; }
+
+        const btn = document.getElementById('btn-geocode');
+        const status = document.getElementById('geocode-status');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Processing...';
+        status.classList.remove('hidden');
+        status.textContent = 'Geocoding...';
+
+        try {
+            const res = await Auth.apiFetch('/address/geocode', { method: 'POST', body: JSON.stringify({ address: fullAddress }) });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'Geocoding failed');
+            document.getElementById('field-latitude').value = json.data.latitude.toFixed(6);
+            document.getElementById('field-longitude').value = json.data.longitude.toFixed(6);
+            updateMap(json.data.latitude, json.data.longitude);
+            status.textContent = '✓ ' + json.data.latitude.toFixed(6) + ', ' + json.data.longitude.toFixed(6);
+            showToast('Lokasi ditemukan!');
+        } catch (e) {
+            status.textContent = '✗ ' + (e.message || 'Gagal');
+            showToast(e.message || 'Geocoding gagal', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">location_searching</span> Geocode';
+        }
+    };
+
+    window.getCurrentLocation = () => {
+        if (!navigator.geolocation) { showToast('Geolocation tidak didukung', 'error'); return; }
+        const btn = document.getElementById('btn-location');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Getting...';
+        navigator.geolocation.getCurrentPosition(pos => {
+            document.getElementById('field-latitude').value = pos.coords.latitude.toFixed(6);
+            document.getElementById('field-longitude').value = pos.coords.longitude.toFixed(6);
+            updateMap(pos.coords.latitude, pos.coords.longitude);
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">my_location</span> GPS';
+            showToast('Lokasi berhasil didapat!');
+        }, () => {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">my_location</span> GPS';
+            showToast('Gagal mendapatkan lokasi', 'error');
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    };
+
+    // ── Load Data ─────────────────────────────────────────────────────
+
     async function loadData(page = 1) {
         currentPage = page;
         try {
-            const perPage = getPerPage();
+            const perPage = document.getElementById('per-page-select').value || 15;
             const params = new URLSearchParams({ page, per_page: perPage });
             if (searchQuery) params.set('search', searchQuery);
 
             const res = await Auth.apiFetch(`${ENDPOINT}?${params}`);
             const json = await res.json();
-
             const items = Array.isArray(json.data) ? json.data : (json.data?.data || []);
             const meta = json.meta || json;
 
@@ -348,12 +413,12 @@
                 { key: 'address' },
                 { key: 'phone' },
                 { key: 'email' },
-            ], (row) => `
-                <div class="flex justify-end gap-1">
-                    ${editBtn(row.id)}
-                    ${deleteBtn(row.id, row.name)}
-                </div>
-            `);
+            ], row => `
+                <div class="flex items-center justify-end gap-1">
+                    <button onclick="editItem(${row.id})" class="p-2 text-on-surface-variant hover:text-primary transition-colors" title="Edit"><span class="material-symbols-outlined text-sm">edit</span></button>
+                    <button onclick="openResetPassword(${row.id}, '${row.name.replace(/'/g, "\\'")}')" class="p-2 text-on-surface-variant hover:text-amber-500 transition-colors" title="Reset Password Pembimbing"><span class="material-symbols-outlined text-sm">lock_reset</span></button>
+                    <button onclick="deleteItem(${row.id}, '${row.name.replace(/'/g, "\\'")}')" class="p-2 text-on-surface-variant hover:text-error transition-colors" title="Hapus"><span class="material-symbols-outlined text-sm">delete</span></button>
+                </div>`);
 
             renderPagination('pagination', meta, loadData);
         } catch (e) {
@@ -362,212 +427,30 @@
         }
     }
 
-    // ── Open Create Modal ────────────────────────────────
-    function openCreateModal() {
+    // ── Create Modal ──────────────────────────────────────────────────
+
+    window.openCreateModal = () => {
         document.getElementById('item-id').value = '';
         document.getElementById('crud-form').reset();
         document.getElementById('field-distance-threshold').value = '100';
         document.getElementById('field-latitude').value = '';
         document.getElementById('field-longitude').value = '';
         document.getElementById('geocode-status').classList.add('hidden');
+        document.getElementById('map-search-input').value = '';
         document.getElementById('crud-modal-title').textContent = 'Tambah Perusahaan';
-        
         resetAddressSelects();
         loadProvinces();
         clearMap();
-        
         showModal('crud-modal');
-        setTimeout(refreshMap, 150);
-    }
+        setTimeout(() => companyMap?.invalidateSize(), 150);
+    };
 
-    // ── Reset All Address Selects ────────────────────────
-    function resetAddressSelects() {
-        const citySelect = document.getElementById('field-city');
-        citySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten...</option>';
-        citySelect.disabled = true;
-        citySelect.classList.add('opacity-50', 'cursor-not-allowed');
-    }
+    // ── Edit Item ─────────────────────────────────────────────────────
 
-    // ── Load Provinces ────────────────────────────────────
-    async function loadProvinces() {
-        try {
-            const res = await fetch('/api/v1/address/provinces');
-            const json = await res.json();
-            provinces = json.data || [];
-            
-            const provinceSelect = document.getElementById('field-province');
-            provinceSelect.innerHTML = '<option value="">Pilih Provinsi...</option>';
-            provinces.forEach(province => {
-                const opt = document.createElement('option');
-                opt.value = province.code;
-                opt.textContent = province.name;
-                provinceSelect.appendChild(opt);
-            });
-            
-            // Enable city dropdown after provinces are loaded
-            const citySelect = document.getElementById('field-city');
-            citySelect.disabled = false;
-            citySelect.classList.remove('opacity-50', 'cursor-not-allowed');
-        } catch (e) {
-            console.error('Failed to load provinces:', e);
-        }
-    }
-
-    // ── On Province Change ────────────────────────────────
-    async function onProvinceChange() {
-        const provinceCode = document.getElementById('field-province').value;
-        const citySelect = document.getElementById('field-city');
-        
-        citySelect.innerHTML = '<option value="">Memuat...</option>';
-        citySelect.disabled = true;
-        citySelect.classList.add('opacity-50', 'cursor-not-allowed');
-        
-        if (!provinceCode) {
-            citySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten...</option>';
-            return;
-        }
-        
-        try {
-            const res = await fetch(`/api/v1/address/cities?province_code=${provinceCode}`);
-            const json = await res.json();
-            cities = json.data || [];
-            
-            citySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten...</option>';
-            cities.forEach(city => {
-                const opt = document.createElement('option');
-                opt.value = city.code;
-                opt.textContent = city.name;
-                citySelect.appendChild(opt);
-            });
-            citySelect.disabled = false;
-            citySelect.classList.remove('opacity-50', 'cursor-not-allowed');
-        } catch (e) {
-            console.error('Failed to load cities:', e);
-            citySelect.innerHTML = '<option value="">Error loading</option>';
-        }
-    }
-
-    // ── Get Full Address ─────────────────────────────────
-    function getFullAddress() {
-        const provinceSelect = document.getElementById('field-province');
-        const citySelect = document.getElementById('field-city');
-        
-        const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
-        const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
-        const addressDetail = document.getElementById('field-address')?.value?.trim() || '';
-        
-        const parts = [
-            addressDetail,
-            cityName !== 'Pilih Kota/Kabupaten...' ? cityName : '',
-            provinceName !== 'Pilih Provinsi...' ? provinceName : '',
-            'Indonesia'
-        ].filter(Boolean);
-        
-        return parts.join(', ');
-    }
-
-    // ── Geocode Address ──────────────────────────────────
-    async function geocodeAddress() {
-        const fullAddress = getFullAddress();
-        
-        if (!fullAddress || fullAddress === 'Indonesia') {
-            showToast('Isi alamat terlebih dahulu', 'error');
-            return;
-        }
-        
-        const btn = document.getElementById('btn-geocode');
-        const status = document.getElementById('geocode-status');
-        
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Processing...';
-        status.classList.remove('hidden');
-        status.textContent = 'Geocoding address...';
-        
-        try {
-            const res = await Auth.apiFetch('/address/geocode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ address: fullAddress }),
-            });
-            
-            const json = await res.json();
-            
-            if (!res.ok) {
-                throw new Error(json.error || 'Geocoding failed');
-            }
-            
-            document.getElementById('field-latitude').value = json.data.latitude.toFixed(6);
-            document.getElementById('field-longitude').value = json.data.longitude.toFixed(6);
-            updateMap(json.data.latitude.toFixed(6), json.data.longitude.toFixed(6));
-            
-            status.textContent = '✓ Location found: ' + json.data.latitude.toFixed(6) + ', ' + json.data.longitude.toFixed(6);
-            status.classList.remove('text-error');
-            status.classList.add('text-success');
-            showToast('Location found!');
-        } catch (e) {
-            console.error('Geocoding failed:', e);
-            status.textContent = '✗ ' + (e.message || 'Geocoding failed');
-            status.classList.remove('text-success');
-            status.classList.add('text-error');
-            showToast(e.message || 'Geocoding failed', 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-symbols-outlined text-sm">location_searching</span> Geocode';
-        }
-    }
-
-    // ── Get Current Location ──────────────────────────────
-    function getCurrentLocation() {
-        const btn = document.getElementById('btn-location');
-        const status = document.getElementById('geocode-status');
-        
-        if (!navigator.geolocation) {
-            showToast('Geolocation not supported', 'error');
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Getting...';
-        status.classList.remove('hidden');
-        status.textContent = 'Getting your location...';
-        
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                document.getElementById('field-latitude').value = position.coords.latitude.toFixed(6);
-                document.getElementById('field-longitude').value = position.coords.longitude.toFixed(6);
-                updateMap(position.coords.latitude.toFixed(6), position.coords.longitude.toFixed(6));
-                
-                status.textContent = '✓ Location captured!';
-                status.classList.remove('text-error');
-                status.classList.add('text-success');
-                
-                btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-outlined text-sm">my_location</span> GPS';
-                showToast('Location captured!');
-            },
-            (error) => {
-                console.error('Geolocation error:', error);
-                let message = 'Failed to get location';
-                if (error.code === 1) message = 'Location permission denied';
-                if (error.code === 2) message = 'Location unavailable';
-                if (error.code === 3) message = 'Location request timeout';
-                
-                status.textContent = '✗ ' + message;
-                status.classList.remove('text-success');
-                status.classList.add('text-error');
-                
-                btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-outlined text-sm">my_location</span> GPS';
-                showToast(message, 'error');
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
-    }
-
-    // ── Edit Item ────────────────────────────────────────
-    async function editItem(id) {
+    window.editItem = async (id) => {
         try {
             const res = await Auth.apiFetch(`${ENDPOINT}/${id}`);
+            if (!res.ok) { showToast('Gagal memuat data perusahaan', 'error'); return; }
             const json = await res.json();
             const item = json.data || json;
 
@@ -581,29 +464,22 @@
             document.getElementById('field-longitude').value = item.longitude || '';
             document.getElementById('field-distance-threshold').value = item.distance_threshold || 100;
             document.getElementById('geocode-status').classList.add('hidden');
-            
+            document.getElementById('map-search-input').value = '';
             document.getElementById('crud-modal-title').textContent = 'Edit Perusahaan';
-            
+
             resetAddressSelects();
             await loadProvinces();
-            
-            if (item.latitude && item.longitude) {
-                updateMap(item.latitude, item.longitude);
-            } else {
-                clearMap();
-            }
-            
+
             if (item.province_name) {
                 const provinceSelect = document.getElementById('field-province');
-                for (let opt of provinceSelect.options) {
+                for (const opt of provinceSelect.options) {
                     if (opt.textContent === item.province_name) {
                         provinceSelect.value = opt.value;
                         await onProvinceChange();
-                        
+                        await new Promise(r => setTimeout(r, 150));
                         if (item.city_name) {
-                            await new Promise(r => setTimeout(r, 100)); // Wait for cities to load
                             const citySelect = document.getElementById('field-city');
-                            for (let cityOpt of citySelect.options) {
+                            for (const cityOpt of citySelect.options) {
                                 if (cityOpt.textContent === item.city_name) {
                                     citySelect.value = cityOpt.value;
                                     break;
@@ -614,106 +490,165 @@
                     }
                 }
             }
-            
+
             showModal('crud-modal');
-            setTimeout(refreshMap, 150);
+            setTimeout(() => {
+                if (item.latitude && item.longitude) {
+                    updateMap(item.latitude, item.longitude);
+                } else {
+                    clearMap();
+                }
+                companyMap?.invalidateSize();
+            }, 150);
         } catch (e) {
             console.error(e);
             showToast('Gagal memuat detail perusahaan', 'error');
         }
-    }
+    };
 
-    // ── Delete Item ──────────────────────────────────────
-    async function deleteItem(id, name) {
+    // ── Delete Item ───────────────────────────────────────────────────
+
+    window.deleteItem = async (id, name) => {
         if (!confirmDelete(name)) return;
         try {
-            await Auth.apiFetch(`${ENDPOINT}/${id}`, { method: 'DELETE' });
-            showToast('Perusahaan berhasil dihapus');
-            loadData(currentPage);
+            const res = await Auth.apiFetch(`${ENDPOINT}/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Perusahaan berhasil dihapus');
+                loadData(currentPage);
+            } else {
+                showToast('Gagal menghapus perusahaan', 'error');
+            }
         } catch (e) {
-            console.error(e);
             showToast('Gagal menghapus perusahaan', 'error');
         }
-    }
+    };
 
-    // ── Save Item ────────────────────────────────────────
-    async function saveItem() {
+    // ── Save Item ─────────────────────────────────────────────────────
+
+    window.saveItem = async () => {
         const id = document.getElementById('item-id').value;
-        
         const provinceSelect = document.getElementById('field-province');
         const citySelect = document.getElementById('field-city');
-        
         const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
         const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
-        
+
         const payload = {
             name: document.getElementById('field-name').value,
             industry: document.getElementById('field-industry').value,
             address: document.getElementById('field-address').value,
             phone: document.getElementById('field-phone').value,
             email: document.getElementById('field-email').value,
-            province_name: provinceName !== 'Pilih Provinsi...' ? provinceName : '',
-            city_name: cityName !== 'Pilih Kota/Kabupaten...' ? cityName : '',
+            province_name: provinceName.startsWith('Pilih') ? '' : provinceName,
+            city_name: cityName.startsWith('Pilih') ? '' : cityName,
             distance_threshold: parseInt(document.getElementById('field-distance-threshold').value) || 100,
         };
-        
         const lat = document.getElementById('field-latitude').value;
         const lng = document.getElementById('field-longitude').value;
         if (lat) payload.latitude = parseFloat(lat);
         if (lng) payload.longitude = parseFloat(lng);
 
         try {
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `${ENDPOINT}/${id}` : ENDPOINT;
-            const res = await Auth.apiFetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
+            const res = await Auth.apiFetch(id ? `${ENDPOINT}/${id}` : ENDPOINT, {
+                method: id ? 'PUT' : 'POST',
                 body: JSON.stringify(payload),
             });
-
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.message || 'Validation error');
+                showToast(err.message || 'Validasi gagal', 'error');
+                return;
             }
-
             hideModal('crud-modal');
             showToast(id ? 'Perusahaan berhasil diperbarui' : 'Perusahaan berhasil ditambahkan');
             loadData(id ? currentPage : 1);
         } catch (e) {
-            console.error(e);
-            showToast(e.message || 'Gagal menyimpan perusahaan', 'error');
+            showToast('Gagal menyimpan perusahaan', 'error');
         }
-    }
+    };
 
-    // ── Search ───────────────────────────────────────────
-    document.getElementById('search-input').addEventListener('input', (e) => {
+    // ── Reset Password ────────────────────────────────────────────────
+
+    window.openResetPassword = async (companyId, companyName) => {
+        document.getElementById('reset-password-modal-title').textContent = `Reset Password — ${companyName}`;
+        document.getElementById('reset-password-field').value = '';
+        document.getElementById('reset-password-confirm-field').value = '';
+        document.getElementById('reset-error').classList.add('hidden');
+
+        const supervisorSelect = document.getElementById('reset-supervisor-id');
+        const noMsg = document.getElementById('no-supervisor-msg');
+        supervisorSelect.innerHTML = '<option value="">Memuat...</option>';
+        supervisorSelect.disabled = true;
+        noMsg.classList.add('hidden');
+
+        showModal('reset-password-modal');
+
+        try {
+            const res = await Auth.apiFetch(`${ENDPOINT}/${companyId}`);
+            const json = await res.json();
+            const supervisors = (json.data || json).supervisors || [];
+
+            supervisorSelect.innerHTML = '<option value="">Pilih pembimbing...</option>';
+            if (supervisors.length === 0) {
+                noMsg.classList.remove('hidden');
+            } else {
+                supervisors.forEach(s => {
+                    supervisorSelect.innerHTML += `<option value="${s.id}">${s.name} (${s.email})</option>`;
+                });
+                if (supervisors.length === 1) supervisorSelect.value = supervisors[0].id;
+            }
+            supervisorSelect.disabled = false;
+        } catch (e) {
+            supervisorSelect.innerHTML = '<option value="">Gagal memuat</option>';
+            supervisorSelect.disabled = false;
+        }
+    };
+
+    window.submitResetPassword = async () => {
+        const supervisorId = document.getElementById('reset-supervisor-id').value;
+        const password = document.getElementById('reset-password-field').value;
+        const confirm = document.getElementById('reset-password-confirm-field').value;
+        const errorEl = document.getElementById('reset-error');
+        const btn = document.getElementById('reset-submit-btn');
+        errorEl.classList.add('hidden');
+
+        if (!supervisorId) { errorEl.textContent = 'Pilih pembimbing terlebih dahulu.'; errorEl.classList.remove('hidden'); return; }
+        if (password !== confirm) { errorEl.textContent = 'Password dan konfirmasi tidak cocok.'; errorEl.classList.remove('hidden'); return; }
+        if (password.length < 6) { errorEl.textContent = 'Password minimal 6 karakter.'; errorEl.classList.remove('hidden'); return; }
+
+        btn.textContent = 'Menyimpan...';
+        btn.disabled = true;
+
+        try {
+            const res = await Auth.apiFetch('/admin/reset-password', {
+                method: 'POST',
+                body: JSON.stringify({ user_id: parseInt(supervisorId), new_password: password, new_password_confirmation: confirm }),
+            });
+            const json = await res.json();
+            if (!res.ok) { errorEl.textContent = json.error || json.message || 'Gagal reset password.'; errorEl.classList.remove('hidden'); return; }
+            hideModal('reset-password-modal');
+            showToast('Password berhasil direset', 'success');
+        } catch (e) {
+            errorEl.textContent = 'Terjadi kesalahan.';
+            errorEl.classList.remove('hidden');
+        } finally {
+            btn.textContent = 'Reset Password';
+            btn.disabled = false;
+        }
+    };
+
+    // ── Search & Per-page ─────────────────────────────────────────────
+
+    document.getElementById('search-input').addEventListener('input', e => {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            searchQuery = e.target.value.trim();
-            loadData(1);
-        }, 300);
+        searchTimeout = setTimeout(() => { searchQuery = e.target.value.trim(); loadData(1); }, 300);
     });
 
-    // ── Per Page Select ──────────────────────────────────
-    document.getElementById('per-page-select').addEventListener('change', () => {
-        currentPage = 1;
-        loadData(1);
+    document.getElementById('per-page-select').addEventListener('change', () => { currentPage = 1; loadData(1); });
+
+    // ── Init ──────────────────────────────────────────────────────────
+
+    waitForAuth(() => {
+        if (!Auth.requireAuth()) return;
+        loadData();
     });
-
-    // ── Expose to window ─────────────────────────────────
-    window.loadData = loadData;
-    window.editItem = editItem;
-    window.deleteItem = deleteItem;
-    window.saveItem = saveItem;
-    window.openCreateModal = openCreateModal;
-    window.geocodeAddress = geocodeAddress;
-    window.getCurrentLocation = getCurrentLocation;
-    window.onProvinceChange = onProvinceChange;
-    window.updateMapFromInputs = updateMapFromInputs;
-    window.refreshMap = refreshMap;
-    window.handleMapSearch = handleMapSearch;
-
-    // ── Init ─────────────────────────────────────────────
-    loadData();
 </script>
 @endpush

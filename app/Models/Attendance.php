@@ -20,6 +20,7 @@ class Attendance extends Model
         'longitude',
         'location_verified',
         'location_distance',
+        'attendance_point_id',
     ];
 
     protected $casts = [
@@ -43,5 +44,10 @@ class Attendance extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function attendancePoint(): BelongsTo
+    {
+        return $this->belongsTo(AttendancePoint::class);
     }
 }

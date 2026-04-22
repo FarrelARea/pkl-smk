@@ -3,14 +3,23 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttendancePoint;
 use App\Models\ClockInOut;
 use App\Models\Internship;
+use App\Services\DistanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ClockInOutController extends Controller
 {
     protected const MAX_DISTANCE_METERS = 20;
+
+    protected DistanceService $distanceService;
+
+    public function __construct(DistanceService $distanceService)
+    {
+        $this->distanceService = $distanceService;
+    }
 
     public function index(Request $request): JsonResponse
     {
@@ -64,8 +73,24 @@ class ClockInOutController extends Controller
         $distance = null;
         $companyLat = $company->latitude ?? null;
         $companyLng = $company->longitude ?? null;
+        $matchedPointId = null;
+        $maxDistance = self::MAX_DISTANCE_METERS;
 
-        if ($companyLat && $companyLng) {
+        $approvedPoints = AttendancePoint::approved()->forCompany($company->id)->get();
+
+        if ($approvedPoints->isNotEmpty()) {
+            $result = $this->distanceService->findNearestPoint(
+                $data['latitude'],
+                $data['longitude'],
+                $approvedPoints
+            );
+            $distance = $result['distance'];
+            $isWithinRange = $result['verified'];
+            $matchedPointId = $result['point']->id;
+            $companyLat = $result['point']->latitude;
+            $companyLng = $result['point']->longitude;
+            $maxDistance = $result['point']->distance_threshold;
+        } elseif ($companyLat && $companyLng) {
             $distance = ClockInOut::calculateDistance(
                 $data['latitude'],
                 $data['longitude'],
@@ -115,14 +140,15 @@ class ClockInOutController extends Controller
             'company_longitude' => $companyLng,
             'distance_meters' => $distance,
             'is_within_range' => $isWithinRange,
+            'attendance_point_id' => $matchedPointId,
             'notes' => $data['notes'] ?? null,
             'photo' => $photoPath,
         ]);
 
         $message = $data['type'] === 'clock_in' ? 'Clocked in successfully' : 'Clocked out successfully';
 
-        if (!$isWithinRange && $companyLat && $companyLng) {
-            $message .= ' - Warning: You are ' . round($distance) . 'm away from company (max: ' . self::MAX_DISTANCE_METERS . 'm)';
+        if (!$isWithinRange && ($companyLat || $approvedPoints->isNotEmpty())) {
+            $message .= ' - Warning: You are ' . round($distance) . 'm away from the nearest point (max: ' . $maxDistance . 'm)';
         }
 
         return response()->json([
@@ -130,7 +156,7 @@ class ClockInOutController extends Controller
             'clock_record' => $clockRecord->load('internship.company'),
             'distance_meters' => $distance,
             'is_within_range' => $isWithinRange,
-            'max_distance_meters' => self::MAX_DISTANCE_METERS,
+            'max_distance_meters' => $maxDistance,
         ], 201);
     }
 
@@ -192,6 +218,9 @@ class ClockInOutController extends Controller
                 'latitude' => $internship->company->latitude ?? null,
                 'longitude' => $internship->company->longitude ?? null,
             ],
+            'attendance_points' => AttendancePoint::approved()
+                ->forCompany($internship->company_id)
+                ->get(['id', 'name', 'latitude', 'longitude', 'distance_threshold']),
         ]);
     }
 

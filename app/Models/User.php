@@ -116,6 +116,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->role === 'company_supervisor';
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin';
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'company_id');
@@ -147,6 +152,12 @@ class User extends Authenticatable implements JWTSubject
     public function assignedTeachers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(User::class, 'teacher_student_assignments', 'student_id', 'teacher_id')
+            ->withTimestamps();
+    }
+
+    public function assignedCompanies(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'teacher_company_assignments', 'teacher_id', 'company_id')
             ->withTimestamps();
     }
 

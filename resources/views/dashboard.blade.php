@@ -102,32 +102,8 @@
         }
     }
 
-    async function loadAdminDashboard() {
-        try {
-            const [studentsRes, schoolsRes, companiesRes, internshipsRes] = await Promise.all([
-                Auth.apiFetch('/students'),
-                Auth.apiFetch('/schools'),
-                Auth.apiFetch('/companies'),
-                Auth.apiFetch('/internships'),
-            ]);
-
-            const students = await studentsRes.json();
-            const schools = await schoolsRes.json();
-            const companies = await companiesRes.json();
-            const internships = await internshipsRes.json();
-
-            const getData = (d) => Array.isArray(d.data) ? d.data : (d.data?.data || []);
-
-            document.getElementById('stat-students').textContent = getData(students).length;
-            document.getElementById('stat-schools').textContent = getData(schools).length;
-            document.getElementById('stat-companies').textContent = getData(companies).length;
-
-            const activeInternships = getData(internships).filter(i => i.status === 'active');
-            document.getElementById('stat-internships').textContent = activeInternships.length;
-        } catch (err) {
-            console.error('Admin dashboard error:', err);
-        }
-    }
+    // Admin dashboard data loading is handled by dashboard/admin.blade.php
+    async function loadAdminDashboard() {}
 
     async function loadTeacherDashboard() {
         try {

@@ -70,6 +70,34 @@
                 </div>
             </div>
 
+            <!-- Supervisor Menu (visible only for company supervisors) -->
+            <div class="sidebar-group supervisor-only hidden" data-group="supervisor-menu">
+                <button class="sidebar-group-header w-full flex items-center justify-between px-4 py-2 text-slate-500 hover:bg-slate-200/50">
+                    <span class="text-xs font-bold uppercase tracking-wider">Perusahaan</span>
+                    <span class="material-symbols-outlined text-sm chevron transition-transform duration-200">expand_more</span>
+                </button>
+                <div class="sidebar-group-content hidden">
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('supervisor/attendance-points*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/supervisor/attendance-points">
+                        <span class="material-symbols-outlined">location_on</span>
+                        <span>Titik Absensi</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Teacher Menu (visible only for teachers) -->
+            <div class="sidebar-group teacher-only hidden" data-group="teacher-menu">
+                <button class="sidebar-group-header w-full flex items-center justify-between px-4 py-2 text-slate-500 hover:bg-slate-200/50">
+                    <span class="text-xs font-bold uppercase tracking-wider">Magang</span>
+                    <span class="material-symbols-outlined text-sm chevron transition-transform duration-200">expand_more</span>
+                </button>
+                <div class="sidebar-group-content hidden">
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('teacher/attendance-points*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/teacher/attendance-points">
+                        <span class="material-symbols-outlined">location_on</span>
+                        <span>Titik Absensi</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Academic Group (admin only) -->
             <div class="sidebar-group admin-only hidden" data-group="academic">
                 <button class="sidebar-group-header w-full flex items-center justify-between px-4 py-2 text-slate-500 hover:bg-slate-200/50">
@@ -145,6 +173,14 @@
                         <span class="material-symbols-outlined">assignment_ind</span>
                         <span>Penugasan Guru</span>
                     </a>
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/teacher-company-assignments*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/teacher-company-assignments">
+                        <span class="material-symbols-outlined">business_center</span>
+                        <span>Penugasan Perusahaan</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/attendance-points*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/attendance-points">
+                        <span class="material-symbols-outlined">location_on</span>
+                        <span>Titik Absensi</span>
+                    </a>
                 </div>
             </div>
         </nav>
@@ -214,17 +250,23 @@
         function updateMenuBasedOnRole(userRole) {
             const adminMenus = document.querySelectorAll('.admin-only');
             const studentMenus = document.querySelectorAll('.student-only');
+            const teacherMenus = document.querySelectorAll('.teacher-only');
+            const supervisorMenus = document.querySelectorAll('.supervisor-only');
+
+            // Hide all role-specific menus first
+            adminMenus.forEach(menu => menu.classList.add('hidden'));
+            studentMenus.forEach(menu => menu.classList.add('hidden'));
+            teacherMenus.forEach(menu => menu.classList.add('hidden'));
+            supervisorMenus.forEach(menu => menu.classList.add('hidden'));
 
             if (userRole === 'student') {
-                adminMenus.forEach(menu => menu.classList.add('hidden'));
                 studentMenus.forEach(menu => menu.classList.remove('hidden'));
-            } else if (userRole === 'school_admin') {
+            } else if (userRole === 'school_admin' || userRole === 'superadmin') {
                 adminMenus.forEach(menu => menu.classList.remove('hidden'));
-                studentMenus.forEach(menu => menu.classList.add('hidden'));
-            } else {
-                // teacher, company_supervisor — hanya tampilkan overview
-                adminMenus.forEach(menu => menu.classList.add('hidden'));
-                studentMenus.forEach(menu => menu.classList.add('hidden'));
+            } else if (userRole === 'teacher') {
+                teacherMenus.forEach(menu => menu.classList.remove('hidden'));
+            } else if (userRole === 'company_supervisor') {
+                supervisorMenus.forEach(menu => menu.classList.remove('hidden'));
             }
         }
 
