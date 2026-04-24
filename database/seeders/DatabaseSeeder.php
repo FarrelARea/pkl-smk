@@ -32,19 +32,19 @@ class DatabaseSeeder extends Seeder
         $this->truncateTables();
 
         // Configuration for data volumes
-        $schoolCount = 5;
-        $classPerSchoolCount = 4;
-        $teacherCount = 30;
-        $studentPerSchoolCount = 60;
-        $companyCount = 10;
-        $supervisorCount = 10;
-        $internshipCount = 150;
-        $dailyLogsPerStudent = 10;
-        $attendancePerStudent = 20;
-        $evaluationCount = 450;
-        $finalAssessmentCount = 300;
-        $permissionRequestCount = 500;
-        $clockInOutCount = 1000;
+        $schoolCount = 0;
+        $classPerSchoolCount = 0;
+        $teacherCount = 0;
+        $studentPerSchoolCount = 0;
+        $companyCount = 0;
+        $supervisorCount = 0;
+        $internshipCount = 0;
+        $dailyLogsPerStudent = 0;
+        $attendancePerStudent = 0;
+        $evaluationCount = 0;
+        $finalAssessmentCount = 0;
+        $permissionRequestCount = 0;
+        $clockInOutCount = 0;
 
         // 1. Create schools
         $schools = School::factory($schoolCount)->create();
