@@ -26,16 +26,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 14. Create admin user
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => 'password',
-            'role' => 'school_admin',
-            'school_id' => $schools->first()->id,
-        ]);
-        echo "✓ Created admin user (admin@example.com / password)\n";
-
         // 15. Create superadmin user
         User::create([
             'name' => 'Super Admin',
