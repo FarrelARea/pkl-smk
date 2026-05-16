@@ -6,7 +6,7 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Siswa</h1>
+        <h1 data-help-target="page-title" class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Siswa</h1>
         <x-help-button title="Panduan Manajemen Siswa">
             <p>Di halaman ini kamu bisa mengelola semua data siswa.</p>
             <ul class="list-disc pl-4 mt-2 space-y-1">
@@ -22,8 +22,8 @@
             Kelola data siswa, atur kelas, dan pantau status magang.
         </p>
     </div>
-    <div class="flex items-center gap-2">
-        <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
+    <div data-help-target="header-actions" class="flex items-center gap-2">
+        <div data-help-target="import-export" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
             <button onclick="exportData()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">download</span> Export
             </button>
@@ -32,23 +32,24 @@
                 <input type="file" id="import-file" accept=".xlsx,.xls" class="hidden" onchange="importData(this)">
             </label>
         </div>
-        <button onclick="openCreateModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+        <button onclick="openCreateModal()" data-help-target="add-button" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">add</span> Tambah Siswa
         </button>
     </div>
 </header>
 
 <!-- Filter Bar -->
-<div class="flex gap-4 mb-8 flex-wrap items-end">
-    <div>
+<div data-help-target="filter-bar" class="flex gap-4 mb-8 flex-wrap items-end">
+    <div data-help-target="search-field">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari</label>
         <input type="text" id="filter-search" placeholder="Nama atau Email..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
     </div>
-    <div class="w-64">
+    <div id="filter-school-group" class="w-64">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
         <select id="filter-school" onchange="onSchoolFilterChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="">Semua Sekolah</option>
         </select>
+        <p id="filter-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
     </div>
     <div class="w-64">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas</label>
@@ -56,7 +57,7 @@
             <option value="">Semua Kelas</option>
         </select>
     </div>
-    <div>
+    <div data-help-target="per-page-field">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Halaman</label>
         <select id="filter-per-page" onchange="loadStudents()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="15">15</option>
@@ -68,7 +69,7 @@
 </div>
 
 <!-- Students Table -->
-<div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
+<div data-help-target="data-table" class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
     <div class="overflow-x-auto">
     <table class="w-full text-left border-collapse">
         <thead>
@@ -110,6 +111,7 @@
             <select id="field-school" onchange="onModalSchoolChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Pilih sekolah...</option>
             </select>
+            <p id="field-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
         </div>
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas <span class="text-error">*</span></label>
@@ -183,10 +185,325 @@
 
     let currentPage = 1;
     let searchTimeout = null;
+    let currentUser = null;
+
+    function setLockedSchoolField(selectId, textId, schoolId, schoolName) {
+        const select = document.getElementById(selectId);
+        const locked = document.getElementById(textId);
+        if (!select || !locked) return;
+
+        if (currentUser?.role === 'superadmin') {
+            select.classList.remove('hidden');
+            locked.classList.add('hidden');
+            locked.textContent = '';
+            return;
+        }
+
+        select.classList.add('hidden');
+        locked.classList.remove('hidden');
+        locked.textContent = schoolName || 'Sekolah tidak ditemukan';
+        if (schoolId) {
+            select.value = schoolId;
+        }
+    }
+
+    async function resolveSchoolName(schoolId) {
+        if (!schoolId) return '';
+        const existing = document.querySelector(`#field-school option[value="${schoolId}"]`) || document.querySelector(`#filter-school option[value="${schoolId}"]`);
+        if (existing?.textContent) {
+            return existing.textContent;
+        }
+
+        try {
+            const res = await Auth.apiFetch(`/schools/${schoolId}`);
+            const json = await res.json();
+            const school = json.data || json;
+            return school.name || '';
+        } catch {
+            return '';
+        }
+    }
+
+    async function applySchoolScopeUi() {
+        if (currentUser?.role === 'superadmin') {
+            setLockedSchoolField('filter-school', 'filter-school-locked', '', '');
+            setLockedSchoolField('field-school', 'field-school-locked', '', '');
+            return;
+        }
+
+        const schoolId = currentUser?.school_id || '';
+        const schoolName = await resolveSchoolName(schoolId);
+        document.getElementById('filter-school').value = schoolId;
+        document.getElementById('field-school').value = schoolId;
+        setLockedSchoolField('filter-school', 'filter-school-locked', schoolId, schoolName);
+        setLockedSchoolField('field-school', 'field-school-locked', schoolId, schoolName);
+    }
+
+    async function loadModalClasses(schoolId, selectedClassId = null, selectedClassName = '') {
+        document.getElementById('field-class').value = selectedClassId || '';
+        document.getElementById('class-search').value = selectedClassName || '';
+        document.getElementById('class-error').classList.add('hidden');
+
+        if (!schoolId) {
+            allClasses = [];
+            renderClassDropdown();
+            return;
+        }
+
+        try {
+            const res = await Auth.apiFetch(`/classes?school_id=${schoolId}&per_page=1000`);
+            const json = await res.json();
+            allClasses = Array.isArray(json.data) ? json.data : (json.data?.data || []);
+            renderClassDropdown();
+        } catch (err) {
+            console.error('Failed to load classes:', err);
+            allClasses = [];
+            renderClassDropdown();
+        }
+    }
+
+    async function loadFilterClassesForSchool(schoolId) {
+        const classSelect = document.getElementById('filter-class');
+        classSelect.innerHTML = '<option value="">Semua Kelas</option>';
+
+        if (schoolId) {
+            await AdminUtils.populateSelect('filter-class', `/classes?school_id=${schoolId}`);
+            const first = classSelect.querySelector('option[value=""]');
+            if (!first) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Semua Kelas';
+                classSelect.prepend(opt);
+            }
+        }
+    }
+
+    function getEffectiveSchoolId(selectId) {
+        if (currentUser?.role === 'superadmin') {
+            return document.getElementById(selectId).value;
+        }
+
+        return currentUser?.school_id || document.getElementById(selectId).value;
+    }
+
+    function getClassNameById(classId) {
+        const classItem = allClasses.find(cls => String(cls.id) === String(classId));
+        return classItem?.name || '';
+    }
+
+    function getSelectedAssignClassId() {
+        const selectedRadio = document.querySelector('input[name="assign-class-select"]:checked');
+        return selectedRadio ? parseInt(selectedRadio.value) : null;
+    }
+
+    function syncAssignCurrentClass() {
+        assignCurrentClassId = getSelectedAssignClassId();
+    }
+
+    function restrictClassesToStudentSchool(student, classes) {
+        if (currentUser?.role === 'superadmin') {
+            return classes;
+        }
+
+        return classes.filter(cls => String(cls.school_id) === String(student.school_id));
+    }
+
+    function getStatusPayload(json) {
+        return json.data ?? json;
+    }
+
+    function getInternshipPayload(json) {
+        if (!json) return null;
+        if (json.data && json.has_active_internship !== undefined) {
+            return json.data;
+        }
+        return json.data || json;
+    }
+
+    function updateAssignClassSearchPlaceholder() {
+        const input = document.getElementById('assign-class-search');
+        if (!input) return;
+        input.placeholder = currentUser?.role === 'superadmin' ? 'Cari kelas...' : 'Cari kelas di sekolah Anda...';
+    }
+
+    function updateSchoolFiltersVisibility() {
+        const filterGroup = document.getElementById('filter-school-group');
+        if (!filterGroup) return;
+        filterGroup.classList.remove('hidden');
+    }
+
+    function updateModalSchoolRequirement() {
+        document.getElementById('field-school').required = currentUser?.role === 'superadmin';
+    }
+
+    function updateModalSchoolSelection(schoolId) {
+        document.getElementById('field-school').value = schoolId || '';
+    }
+
+    function updateModalTitle(title) {
+        document.getElementById('crud-modal-title').textContent = title;
+    }
+
+    function updateClassSearchValue(value) {
+        document.getElementById('class-search').value = value || '';
+    }
+
+    function clearModalClassSelection() {
+        document.getElementById('field-class').value = '';
+        updateClassSearchValue('');
+    }
+
+    function resetModalValidation() {
+        document.getElementById('class-error').classList.add('hidden');
+        document.getElementById('class-dropdown').classList.add('hidden');
+    }
+
+    function getCurrentSchoolIdForModal() {
+        return currentUser?.role === 'superadmin'
+            ? document.getElementById('field-school').value
+            : (currentUser?.school_id || document.getElementById('field-school').value);
+    }
+
+    function showLockedSchoolContextForCurrentUser() {
+        return applySchoolScopeUi();
+    }
+
+    function getAssignedSchoolId() {
+        return currentUser?.school_id || '';
+    }
+
+    function isSuperAdmin() {
+        return currentUser?.role === 'superadmin';
+    }
+
+    function normalizeStudentStatusResponse(json) {
+        return getStatusPayload(json);
+    }
+
+    function normalizeInternshipStatusResponse(json) {
+        return getInternshipPayload(json);
+    }
+
+    function getModalSchoolId(student = null) {
+        if (isSuperAdmin()) {
+            return student?.school_id || document.getElementById('field-school').value || '';
+        }
+
+        return getAssignedSchoolId();
+    }
+
+    function getFilterSchoolId() {
+        return isSuperAdmin() ? document.getElementById('filter-school').value : getAssignedSchoolId();
+    }
+
+    function syncModalSchoolValue(student = null) {
+        updateModalSchoolSelection(getModalSchoolId(student));
+    }
+
+    async function ensureSchoolScopedUi() {
+        await showLockedSchoolContextForCurrentUser();
+        updateSchoolFiltersVisibility();
+        updateModalSchoolRequirement();
+        updateAssignClassSearchPlaceholder();
+    }
+
+    function getFilteredAssignClasses(search) {
+        if (!search.length) {
+            return assignAllClasses;
+        }
+
+        return assignAllClasses.filter(cls => cls.name.toLowerCase().includes(search));
+    }
+
+    function getSelectedStudentClass(student) {
+        const studentClasses = student.student_classes || [];
+        return studentClasses.length > 0 ? studentClasses[0] : null;
+    }
+
+    async function syncModalClassesForStudent(student) {
+        const schoolId = getModalSchoolId(student);
+        const selectedClass = getSelectedStudentClass(student);
+        await loadModalClasses(schoolId, selectedClass?.id || null, selectedClass?.name || '');
+    }
+
+    async function syncFilterClassesForCurrentRole() {
+        await loadFilterClassesForSchool(getFilterSchoolId());
+    }
+
+    function getStudentRequestSchoolId() {
+        return getEffectiveSchoolId('field-school');
+    }
+
+    function getClassFilterSchoolId() {
+        return getEffectiveSchoolId('filter-school');
+    }
+
+    function getCurrentAssignSchoolId(student) {
+        return isSuperAdmin() ? (student.school_id || null) : getAssignedSchoolId();
+    }
+
+    function filterAssignableClasses(student, classes) {
+        const schoolId = getCurrentAssignSchoolId(student);
+        if (!schoolId) return classes;
+        return classes.filter(cls => String(cls.school_id) === String(schoolId));
+    }
+
+    function setAssignClasses(classes) {
+        assignAllClasses = classes;
+    }
+
+    function getNormalizedStudent(json) {
+        return getStatusPayload(json);
+    }
+
+    function getNormalizedClasses(json) {
+        return Array.isArray(json.data) ? json.data : (json.data?.data || []);
+    }
+
+    function resetAssignClassSelection() {
+        assignCurrentClassId = null;
+    }
+
+    function getStudentInternship(json) {
+        return normalizeInternshipStatusResponse(json);
+    }
+
+    function getStudentEntity(json) {
+        return getNormalizedStudent(json);
+    }
+
+    function getSchoolIdForStudent(student) {
+        return student?.school_id || getAssignedSchoolId();
+    }
+
+    function isSchoolAdmin() {
+        return currentUser?.role === 'school_admin';
+    }
+
+    function lockSchoolSelectorsForAssignedSchool() {
+        if (!isSchoolAdmin()) return;
+        document.getElementById('filter-school').value = getAssignedSchoolId();
+        document.getElementById('field-school').value = getAssignedSchoolId();
+    }
+
+    async function refreshLockedSchoolUi() {
+        lockSchoolSelectorsForAssignedSchool();
+        await ensureSchoolScopedUi();
+    }
 
     // ── Init ──────────────────────────────────────────────
     async function init() {
+        const res = await Auth.apiFetch('/auth/me');
+        currentUser = await res.json();
+        currentUser = currentUser.data || currentUser;
+
         await AdminUtils.populateSelect('filter-school', '/schools');
+        await ensureSchoolScopedUi();
+        if (currentUser.role !== 'superadmin') {
+            await onSchoolFilterChange();
+            return;
+        }
+
         await loadStudents();
     }
 
@@ -199,21 +516,8 @@
 
     // ── Filter: school change ─────────────────────────────
     window.onSchoolFilterChange = async function () {
-        const schoolId = document.getElementById('filter-school').value;
-        const classSelect = document.getElementById('filter-class');
-        classSelect.innerHTML = '<option value="">Semua Kelas</option>';
-
-        if (schoolId) {
-            await AdminUtils.populateSelect('filter-class', `/classes?school_id=${schoolId}`);
-            // Re-add the "All" placeholder if populateSelect cleared it
-            const first = classSelect.querySelector('option[value=""]');
-            if (!first) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'Semua Kelas';
-                classSelect.prepend(opt);
-            }
-        }
+        const schoolId = getClassFilterSchoolId();
+        await loadFilterClassesForSchool(schoolId);
 
         currentPage = 1;
         await loadStudents();
@@ -222,7 +526,7 @@
     // ── Load Students ─────────────────────────────────────
     window.loadStudents = async function (page) {
         if (page) currentPage = page;
-        const schoolId = document.getElementById('filter-school').value;
+        const schoolId = getClassFilterSchoolId();
         const classId = document.getElementById('filter-class').value;
         const search = document.getElementById('filter-search').value;
         const perPage = document.getElementById('filter-per-page').value || 15;
@@ -265,16 +569,17 @@
         document.getElementById('field-name').value = '';
         document.getElementById('field-email').value = '';
         document.getElementById('field-password').value = '';
-        document.getElementById('field-class').value = '';
-        document.getElementById('class-search').value = '';
-        document.getElementById('class-error').classList.add('hidden');
-        document.getElementById('class-dropdown').classList.add('hidden');
+        clearModalClassSelection();
+        resetModalValidation();
         document.getElementById('field-password').required = true;
-        document.getElementById('field-school').required = true;
+        updateModalSchoolRequirement();
         document.getElementById('password-field').style.display = '';
         allClasses = [];
-        document.getElementById('crud-modal-title').textContent = 'Tambah Siswa';
+        updateModalTitle('Tambah Siswa');
         await AdminUtils.populateSelect('field-school', '/schools');
+        syncModalSchoolValue();
+        await ensureSchoolScopedUi();
+        await loadModalClasses(getCurrentSchoolIdForModal());
         AdminUtils.showModal('crud-modal');
     };
 
@@ -283,26 +588,10 @@
 
     // ── School Change (in create/edit modal) ──────────────
     window.onModalSchoolChange = async function () {
-        const schoolId = document.getElementById('field-school').value;
-        document.getElementById('field-class').value = '';
-        document.getElementById('class-search').value = '';
+        const schoolId = getCurrentSchoolIdForModal();
+        clearModalClassSelection();
         document.getElementById('class-error').classList.add('hidden');
-
-        if (schoolId) {
-            try {
-                const res = await Auth.apiFetch(`/classes?school_id=${schoolId}&per_page=1000`);
-                const json = await res.json();
-                allClasses = Array.isArray(json.data) ? json.data : (json.data?.data || []);
-                renderClassDropdown();
-            } catch (err) {
-                console.error('Failed to load classes:', err);
-                allClasses = [];
-                renderClassDropdown();
-            }
-        } else {
-            allClasses = [];
-            renderClassDropdown();
-        }
+        await loadModalClasses(schoolId);
     };
 
     // ── Render Class Dropdown ──────────────────────────────
@@ -368,19 +657,11 @@
             document.getElementById('class-error').classList.add('hidden');
 
             await AdminUtils.populateSelect('field-school', '/schools');
-            document.getElementById('field-school').value = student.school_id || '';
+            syncModalSchoolValue(student);
+            await ensureSchoolScopedUi();
+            await syncModalClassesForStudent(student);
 
-            // Populate classes for the student's school
-            if (student.school_id) {
-                await AdminUtils.populateSelect('field-class', `/classes?school_id=${student.school_id}`);
-                // Pre-select the student's current class
-                const studentClasses = student.student_classes || [];
-                if (studentClasses.length > 0) {
-                    document.getElementById('field-class').value = studentClasses[0].id;
-                }
-            }
-
-            document.getElementById('crud-modal-title').textContent = 'Edit Siswa';
+            updateModalTitle('Edit Siswa');
             AdminUtils.showModal('crud-modal');
         } catch (err) {
             AdminUtils.showToast('Failed to load student', 'error');
@@ -408,7 +689,7 @@
         };
         const password = document.getElementById('field-password').value;
         if (password) payload.password = password;
-        const schoolId = document.getElementById('field-school').value;
+        const schoolId = getStudentRequestSchoolId();
         if (schoolId) payload.school_id = parseInt(schoolId);
 
         try {
@@ -487,11 +768,11 @@
             ]);
             const classesJson = await classesRes.json();
             const studentJson = await studentRes.json();
-            const classes = Array.isArray(classesJson.data) ? classesJson.data : (classesJson.data?.data || []);
-            const student = studentJson.data || studentJson;
+            const classes = getNormalizedClasses(classesJson);
+            const student = getStudentEntity(studentJson);
             const studentClasses = student.student_classes || [];
             assignCurrentClassId = studentClasses.length > 0 ? studentClasses[0].id : null;
-            assignAllClasses = classes;
+            assignAllClasses = filterAssignableClasses(student, classes);
 
             renderAssignClassList();
             AdminUtils.showModal('assign-modal');
@@ -510,7 +791,7 @@
         } else {
             container.innerHTML = classes.map(cls => `
                 <label class="flex items-center gap-3 px-3 py-2 border-b border-outline-variant/10 last:border-b-0 hover:bg-surface-container-high cursor-pointer">
-                    <input type="radio" name="assign-class-select" value="${cls.id}" ${assignCurrentClassId === cls.id ? 'checked' : ''} onchange="document.getElementById('assign-current-class').value = '${cls.id}'">
+                    <input type="radio" name="assign-class-select" value="${cls.id}" ${assignCurrentClassId === cls.id ? 'checked' : ''} onchange="syncAssignCurrentClass()">
                     <span class="text-sm">${cls.name}${cls.school ? ' <span class="text-outline text-xs">(' + cls.school.name + ')</span>' : ''}</span>
                 </label>
             `).join('');
@@ -609,7 +890,7 @@
         try {
             const res = await Auth.apiFetch(`/students/${studentId}/internship-status`);
             const json = await res.json();
-            const status = json.data || json;
+            const status = getStatusPayload(json);
 
             if (status && status.company) {
                 content.innerHTML = `

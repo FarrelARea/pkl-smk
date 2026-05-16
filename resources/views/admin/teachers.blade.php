@@ -95,6 +95,7 @@
                 <select id="field-school" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Pilih sekolah...</option>
                 </select>
+                <p id="field-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
             </div>
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" onclick="AdminUtils.hideModal('crud-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Batal</button>
@@ -153,6 +154,43 @@
     let currentPage = 1;
     let searchQuery = '';
     let searchTimeout = null;
+    let currentUser = null;
+
+    function setLockedSchoolField(schoolId, schoolName) {
+        const select = document.getElementById('field-school');
+        const locked = document.getElementById('field-school-locked');
+
+        if (currentUser?.role === 'superadmin') {
+            select.classList.remove('hidden');
+            locked.classList.add('hidden');
+            locked.textContent = '';
+            return;
+        }
+
+        select.classList.add('hidden');
+        locked.classList.remove('hidden');
+        locked.textContent = schoolName || 'Sekolah tidak ditemukan';
+        if (schoolId) {
+            select.value = schoolId;
+        }
+    }
+
+    async function resolveSchoolName(schoolId) {
+        if (!schoolId) return '';
+        const existing = document.querySelector(`#field-school option[value="${schoolId}"]`);
+        if (existing?.textContent) {
+            return existing.textContent;
+        }
+
+        try {
+            const res = await Auth.apiFetch(`/schools/${schoolId}`);
+            const json = await res.json();
+            const school = json.data || json;
+            return school.name || '';
+        } catch {
+            return '';
+        }
+    }
 
     function getPerPage() {
         return document.getElementById('per-page-select').value || 15;
@@ -204,6 +242,13 @@
         document.getElementById('password-field').style.display = '';
         document.getElementById('crud-modal-title').textContent = 'Tambah Guru';
         await AdminUtils.populateSelect('field-school', '/schools');
+        if (currentUser?.role !== 'superadmin') {
+            const schoolId = currentUser.school_id || '';
+            document.getElementById('field-school').value = schoolId;
+            setLockedSchoolField(schoolId, await resolveSchoolName(schoolId));
+        } else {
+            setLockedSchoolField('', '');
+        }
         showModal('crud-modal');
     }
 
@@ -222,7 +267,9 @@
             document.getElementById('field-school').required = false;
             document.getElementById('password-field').style.display = 'none';
             await AdminUtils.populateSelect('field-school', '/schools');
-            document.getElementById('field-school').value = item.school_id || '';
+            const schoolId = item.school_id || '';
+            document.getElementById('field-school').value = schoolId;
+            setLockedSchoolField(schoolId, item.school?.name || await resolveSchoolName(schoolId));
             document.getElementById('crud-modal-title').textContent = 'Edit Guru';
             showModal('crud-modal');
         } catch (e) {
@@ -459,7 +506,14 @@
         input.value = '';
     }
 
+    async function initPage() {
+        const res = await Auth.apiFetch('/auth/me');
+        currentUser = await res.json();
+        currentUser = currentUser.data || currentUser;
+        loadData();
+    }
+
     // ── Init ─────────────────────────────────────────────
-    loadData();
+    initPage();
 </script>
 @endpush

@@ -23,6 +23,11 @@ class School extends Model
         return $this->hasMany(SchoolClass::class);
     }
 
+    public function companies(): HasMany
+    {
+        return $this->hasMany(Company::class);
+    }
+
     public function teachers(): BelongsToMany
     {
         return $this->users()->where('role', 'teacher');

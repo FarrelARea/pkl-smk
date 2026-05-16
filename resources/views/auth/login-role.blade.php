@@ -7,7 +7,7 @@
     <!-- Left Side: Branding (desktop only) -->
     <div class="hidden lg:flex lg:col-span-5 flex-col space-y-6 pr-12">
         <div class="space-y-2">
-            <span class="font-label text-xs uppercase tracking-[0.1rem] text-primary font-bold">The Digital Curator</span>
+            <span class="font-label text-xs uppercase tracking-[0.1rem] text-primary font-bold">Simaskansa</span>
             <h1 class="font-headline text-5xl font-extrabold leading-[1.1] text-on-surface">
                 Sistem Manajemen PKL.
             </h1>
@@ -43,15 +43,15 @@
 
             <div id="error-message" class="hidden mb-4 p-3 bg-error-container border border-error/20 text-on-error-container rounded-lg text-xs sm:text-sm"></div>
 
-            <form id="login-form" class="space-y-4 sm:space-y-6">
-                <div class="space-y-1.5">
+            <form id="login-form" data-help-target="login-form" class="space-y-4 sm:space-y-6">
+                <div class="space-y-1.5" data-help-target="email-field">
                     <label class="font-label text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant ml-1" for="email">Email</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
                         <input class="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3 bg-surface-container-highest border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-outline/60 text-sm" id="email" placeholder="nama@institusi.ac.id" type="email" inputmode="email" autocomplete="email" required>
                     </div>
                 </div>
-                <div class="space-y-1.5">
+                <div class="space-y-1.5" data-help-target="password-field">
                     <div class="flex justify-between items-center px-1">
                         <label class="font-label text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant" for="password">Password</label>
                         <a class="text-[11px] sm:text-xs font-bold text-primary hover:underline active:opacity-70" href="#">Lupa?</a>
@@ -61,17 +61,17 @@
                         <input class="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3 bg-surface-container-highest border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-outline/60 text-sm" id="password" placeholder="••••••••" type="password" autocomplete="current-password" required>
                     </div>
                 </div>
-                <div class="flex items-center gap-3 px-1">
+                <div class="flex items-center gap-3 px-1" data-help-target="remember-field">
                     <input class="w-5 h-5 sm:w-4 sm:h-4 rounded-sm border-outline-variant text-primary focus:ring-primary" id="remember" type="checkbox">
                     <label class="text-xs sm:text-sm text-on-surface-variant select-none" for="remember">Ingat saya selama 30 hari</label>
                 </div>
-                <button type="submit" id="login-btn" class="w-full primary-gradient text-white py-3.5 sm:py-4 rounded-xl font-headline font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] active:opacity-80 transition-all">
+                <button type="submit" id="login-btn" data-help-target="login-button" class="w-full primary-gradient text-white py-3.5 sm:py-4 rounded-xl font-headline font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] active:opacity-80 transition-all">
                     Masuk
                 </button>
             </form>
 
             <div class="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-outline-variant/10 text-center">
-                <a class="text-xs sm:text-sm text-on-surface-variant hover:text-primary active:text-primary/70 transition-colors inline-flex items-center gap-1 py-2" href="/login">
+                <a class="text-xs sm:text-sm text-on-surface-variant hover:text-primary active:text-primary/70 transition-colors inline-flex items-center gap-1 py-2" href="/login" data-help-target="back-link">
                     <span class="material-symbols-outlined text-[16px] sm:text-[18px]">arrow_back</span>
                     Kembali ke pilihan role
                 </a>

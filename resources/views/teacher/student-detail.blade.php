@@ -49,6 +49,7 @@
         <div class="border-b border-gray-200 px-6">
             <nav class="flex gap-1 -mb-px" id="tab-nav">
                 <button data-tab="assessment" onclick="switchTab('assessment')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600">Penilaian</button>
+                <button data-tab="evaluation" onclick="switchTab('evaluation')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Evaluasi</button>
                 <button data-tab="permissions" onclick="switchTab('permissions')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Pengajuan Izin</button>
                 <button data-tab="logs" onclick="switchTab('logs')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Log Aktivitas</button>
                 <button data-tab="documents" onclick="switchTab('documents')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Dokumen</button>
@@ -91,6 +92,34 @@
                         Submit Penilaian
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div id="tab-evaluation" class="tab-content hidden p-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="font-medium text-gray-800">Evaluasi Ringkas</h4>
+                <span id="evaluation-status-badge"></span>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Nilai</label>
+                    <input id="evaluation-score" type="number" min="0" max="100" placeholder="0-100" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Perusahaan</label>
+                    <input id="evaluation-company" type="text" disabled class="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Catatan Evaluasi</label>
+                <textarea id="evaluation-comments" rows="5" placeholder="Tulis evaluasi singkat..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"></textarea>
+            </div>
+            <div id="simple-eval-error" class="hidden mt-2 text-sm text-red-600"></div>
+            <div id="simple-eval-success" class="hidden mt-2 text-sm text-green-600"></div>
+            <div class="flex gap-2 mt-3">
+                <button onclick="submitSimpleEvaluation()" id="submit-simple-evaluation-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">
+                    Simpan Evaluasi
+                </button>
             </div>
         </div>
 
@@ -184,6 +213,7 @@
         document.getElementById(`tab-${tab}`).classList.remove('hidden');
 
         if (tab === 'assessment') await loadAssessment(studentId);
+        if (tab === 'evaluation') await loadEvaluation(studentId);
         if (tab === 'permissions') await loadPermissions(studentId);
         if (tab === 'logs') await loadLogs(studentId);
         if (tab === 'documents') await loadDocuments(studentId);
@@ -202,8 +232,70 @@
             document.getElementById('stats-present').textContent = data.total_present;
             document.getElementById('stats-logs').textContent = data.total_logs;
             document.getElementById('stats-permission-pending').textContent = data.permission_requests?.pending || 0;
+            document.getElementById('stats-score').textContent = data.evaluation?.score ?? '—';
         } catch (e) { console.error('Gagal memuat statistik:', e); }
     }
+
+    async function loadEvaluation(sid) {
+        try {
+            const res = await Auth.apiFetch(`/teacher/panel/students/${sid}/stats`);
+            const data = await res.json();
+            document.getElementById('evaluation-score').value = data.evaluation?.score ?? '';
+            document.getElementById('evaluation-comments').value = data.evaluation?.comments || '';
+            document.getElementById('evaluation-company').value = data.company_name || 'Belum ada magang aktif';
+            document.getElementById('evaluation-status-badge').innerHTML = data.evaluation
+                ? '<span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">Sudah diisi</span>'
+                : '<span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">Belum diisi</span>';
+            document.getElementById('stats-score').textContent = data.evaluation?.score ?? '—';
+        } catch (e) {
+            console.error('Gagal memuat evaluasi:', e);
+        }
+    }
+
+    window.submitSimpleEvaluation = async () => {
+        const score = parseInt(document.getElementById('evaluation-score').value);
+        const comments = document.getElementById('evaluation-comments').value.trim();
+        const errorEl = document.getElementById('simple-eval-error');
+        const successEl = document.getElementById('simple-eval-success');
+        const btn = document.getElementById('submit-simple-evaluation-btn');
+
+        errorEl.classList.add('hidden');
+        successEl.classList.add('hidden');
+
+        if (Number.isNaN(score) || score < 0 || score > 100) {
+            errorEl.textContent = 'Nilai harus antara 0 dan 100.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        const original = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+
+        try {
+            const res = await Auth.apiFetch(`/teacher/panel/students/${studentId}/evaluate`, {
+                method: 'POST',
+                body: JSON.stringify({ score, comments: comments || null }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                errorEl.textContent = data.error || data.message || 'Gagal menyimpan evaluasi.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            successEl.textContent = 'Evaluasi berhasil disimpan.';
+            successEl.classList.remove('hidden');
+            await loadStats(studentId);
+            await loadEvaluation(studentId);
+        } catch (e) {
+            console.error(e);
+            errorEl.textContent = 'Terjadi kesalahan.';
+            errorEl.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = original;
+        }
+    };
 
     // ── Penilaian ─────────────────────────────────────────────────────
 
@@ -601,6 +693,8 @@
                         ${d.status === 'pending' ? `
                         <button onclick="approveDoc(${d.id}, this)" class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg">Setuju</button>
                         <button onclick="rejectDoc(${d.id}, this)" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-lg">Tolak</button>` : ''}
+                        ${['approved', 'rejected'].includes(d.status) ? `
+                        <button onclick="cancelDocApproval(${d.id}, this)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-lg">Batal</button>` : ''}
                     </div>
                 </div>`).join('')}</div>`;
         } catch (e) { console.error('Gagal memuat dokumen:', e); }
@@ -617,6 +711,12 @@
         if (!note) return;
         btn.disabled = true; btn.textContent = '...';
         await Auth.apiFetch(`/teacher/documents/${id}/reject`, { method: 'POST', body: JSON.stringify({ teacher_note: note }) });
+        await loadDocuments(studentId);
+    };
+
+    window.cancelDocApproval = async (id, btn) => {
+        btn.disabled = true; btn.textContent = '...';
+        await Auth.apiFetch(`/teacher/documents/${id}/cancel-approval`, { method: 'POST', body: JSON.stringify({}) });
         await loadDocuments(studentId);
     };
 

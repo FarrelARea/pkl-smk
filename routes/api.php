@@ -28,6 +28,8 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:api')->group(function () {
         Route::post('admin/reset-password', [App\Http\Controllers\Api\V1\AdminController::class, 'resetPassword'])
             ->middleware('role:school_admin');
+        Route::apiResource('admin/school-admins', App\Http\Controllers\Api\V1\SchoolAdminController::class)
+            ->middleware('role:school_admin');
 
         Route::get('companies/search', [App\Http\Controllers\Api\V1\CompanyController::class, 'search'])
             ->middleware('role:school_admin');
@@ -102,12 +104,18 @@ Route::prefix('v1')->group(function () {
             Route::get('teacher/students/{id}/documents', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'teacherDocuments']);
             Route::post('teacher/documents/{id}/approve', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'approve']);
             Route::post('teacher/documents/{id}/reject', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'reject']);
+            Route::post('teacher/documents/{id}/cancel-approval', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'cancelApproval']);
             Route::get('document-requirements', [App\Http\Controllers\Api\V1\DocumentRequirementController::class, 'index']);
             Route::post('document-requirements', [App\Http\Controllers\Api\V1\DocumentRequirementController::class, 'store']);
             Route::put('document-requirements/{id}', [App\Http\Controllers\Api\V1\DocumentRequirementController::class, 'update']);
             Route::delete('document-requirements/{id}', [App\Http\Controllers\Api\V1\DocumentRequirementController::class, 'destroy']);
             // Teacher panel
             Route::get('teacher/panel/students', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'students']);
+            Route::get('teacher/panel/summary', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'dashboardSummary']);
+            Route::get('teacher/panel/attendance-calendar', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'attendanceCalendar']);
+            Route::get('teacher/panel/documents', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'documentsOverview']);
+            Route::get('teacher/panel/scores', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'scoreOverview']);
+            Route::get('teacher/panel/permissions', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'permissionsOverview']);
             Route::get('teacher/panel/students/{id}/stats', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'studentStats']);
             Route::post('teacher/panel/students/{id}/evaluate', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'evaluate']);
             Route::get('teacher/panel/students/{id}/permissions', [App\Http\Controllers\Api\V1\TeacherPanelController::class, 'permissions']);
@@ -151,10 +159,29 @@ Route::prefix('v1')->group(function () {
             Route::get('student-assessments/{id}', [App\Http\Controllers\Api\V1\AssessmentRecapController::class, 'show']);
         });
 
-        // Supervisor document approval (optional)
         Route::middleware('role:company_supervisor')->group(function () {
+            Route::get('supervisor/students/{id}/documents', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'supervisorDocuments']);
             Route::post('supervisor/documents/{id}/approve', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'supervisorApprove']);
+            Route::post('supervisor/documents/{id}/reject', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'supervisorReject']);
+            Route::post('supervisor/documents/{id}/cancel-approval', [App\Http\Controllers\Api\V1\DocumentApprovalController::class, 'supervisorCancelApproval']);
+            Route::get('supervisor/panel/summary', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'dashboardSummary']);
+            Route::get('supervisor/panel/attendance-calendar', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'attendanceCalendar']);
+            Route::get('supervisor/panel/documents', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'documentsOverview']);
+            Route::get('supervisor/panel/scores', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'scoreOverview']);
+            Route::get('supervisor/panel/permissions', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'permissionsOverview']);
+            Route::get('supervisor/panel/students/{id}/stats', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'studentStats']);
+            Route::get('supervisor/panel/students/{id}/assessment', [App\Http\Controllers\Api\V1\StudentAssessmentController::class, 'getOrInit']);
+            Route::post('supervisor/panel/students/{id}/assessment', [App\Http\Controllers\Api\V1\StudentAssessmentController::class, 'store']);
+            Route::put('supervisor/panel/assessments/{id}', [App\Http\Controllers\Api\V1\StudentAssessmentController::class, 'update']);
+            Route::post('supervisor/panel/students/{id}/evaluate', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'evaluate']);
+            Route::get('supervisor/panel/students/{id}/permissions', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'permissions']);
+            Route::post('supervisor/panel/permissions/{id}/approve', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'approvePermission']);
+            Route::post('supervisor/panel/permissions/{id}/reject', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'rejectPermission']);
+            Route::get('supervisor/panel/students/{id}/logs', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'logs']);
+            Route::post('supervisor/panel/daily-logs/{id}/comments', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'addComment']);
+            Route::post('supervisor/panel/daily-logs/{id}/review', [App\Http\Controllers\Api\V1\SupervisorPanelController::class, 'review']);
         });
+
 
         Route::middleware('role:school_admin')->group(function () {
             Route::post('import/schools', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importSchools']);

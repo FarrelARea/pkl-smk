@@ -15,7 +15,13 @@ class AttendancePointController extends Controller
     {
         $user = auth('api')->user();
 
-        if ($user->isSchoolAdmin() || $user->isSuperAdmin()) {
+        if ($user->isSchoolAdmin()) {
+            return \App\Models\Company::whereKey($companyId)
+                ->where('school_id', $user->school_id)
+                ->exists();
+        }
+
+        if ($user->isSuperAdmin()) {
             return true;
         }
 

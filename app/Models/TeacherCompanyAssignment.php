@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TeacherCompanyAssignment extends Model
 {
-    protected $fillable = ['teacher_id', 'company_id'];
+    protected $fillable = ['teacher_id', 'company_id', 'school_id'];
 
     public function teacher(): BelongsTo
     {
@@ -17,5 +17,10 @@ class TeacherCompanyAssignment extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
     }
 }

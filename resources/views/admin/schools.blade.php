@@ -6,12 +6,12 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Sekolah</h1>
+        <h1 data-help-target="page-title" class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Sekolah</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Kelola data sekolah mitra dan informasi kontak mereka.
         </p>
     </div>
-    <div class="flex items-center gap-2">
+    <div id="school-header-actions" data-help-target="header-actions" class="flex items-center gap-2">
         <x-help-button title="Panduan Manajemen Sekolah">
             <p>Di halaman ini kamu bisa mengelola data sekolah mitra.</p>
             <ul class="list-disc pl-4 mt-2 space-y-1">
@@ -20,7 +20,7 @@
                 <li>Lihat informasi kontak sekolah</li>
             </ul>
         </x-help-button>
-        <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
+        <div data-help-target="import-export" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
             <button onclick="exportData()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">download</span> Export
             </button>
@@ -29,22 +29,22 @@
                 <input type="file" id="import-file" accept=".xlsx,.xls" class="hidden" onchange="importData(this)">
             </label>
         </div>
-        <button onclick="openCreateModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+        <button onclick="openCreateModal()" data-help-target="add-button" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">add</span> Tambah Sekolah
         </button>
     </div>
 </header>
 
 <!-- Search & Table -->
-<div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
-    <div class="p-6 flex justify-between items-center border-b border-surface-container gap-4">
+<div data-help-target="data-table" class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
+    <div data-help-target="filter-bar" class="p-6 flex justify-between items-center border-b border-surface-container gap-4">
         <h2 class="text-xl font-bold tracking-tight font-headline">Sekolah</h2>
         <div class="flex gap-3 items-end">
-            <div class="relative">
+            <div data-help-target="search-field" class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
                 <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Cari sekolah..." type="text">
             </div>
-            <div>
+            <div data-help-target="per-page-field">
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Per Halaman</label>
                 <select id="per-page-select" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
                     <option value="15">15</option>
@@ -112,6 +112,7 @@
     let currentPage = 1;
     let searchQuery = '';
     let searchTimeout = null;
+    let currentUser = null;
 
     function getPerPage() {
         return document.getElementById('per-page-select').value || 15;
@@ -152,6 +153,11 @@
 
     // ── Open Create Modal ────────────────────────────────
     function openCreateModal() {
+        if (currentUser && currentUser.role !== 'superadmin') {
+            showToast('Hanya superadmin yang dapat menambah sekolah', 'error');
+            return;
+        }
+
         document.getElementById('item-id').value = '';
         document.getElementById('crud-form').reset();
         document.getElementById('crud-modal-title').textContent = 'Tambah Sekolah';
@@ -239,6 +245,22 @@
         loadData(1);
     });
 
+    async function initPage() {
+        try {
+            const res = await Auth.apiFetch('/auth/me');
+            currentUser = await res.json();
+            currentUser = currentUser.data || currentUser;
+
+            if (currentUser.role !== 'superadmin') {
+                document.getElementById('school-header-actions')?.classList.add('hidden');
+            }
+        } catch (e) {
+            console.error('Failed to load current user', e);
+        }
+
+        loadData();
+    }
+
     // ── Expose to window ─────────────────────────────────
     window.loadData = loadData;
     window.editItem = editItem;
@@ -304,6 +326,6 @@
     }
 
     // ── Init ─────────────────────────────────────────────
-    loadData();
+    initPage();
 </script>
 @endpush

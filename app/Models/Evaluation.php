@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Evaluation extends Model
 {
-    protected $fillable = ['student_id', 'internship_id', 'evaluator_id', 'score', 'comments', 'type'];
+    protected $fillable = ['student_id', 'internship_id', 'evaluator_id', 'last_updated_by_id', 'score', 'comments', 'type'];
 
     public function student(): BelongsTo
     {
@@ -22,5 +22,10 @@ class Evaluation extends Model
     public function evaluator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'evaluator_id');
+    }
+
+    public function lastUpdatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'last_updated_by_id');
     }
 }

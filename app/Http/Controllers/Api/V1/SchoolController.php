@@ -11,21 +11,30 @@ class SchoolController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
         $query = School::withCount(['users as students_count' => function ($q) {
             $q->where('role', 'student');
         }]);
+
+        if (!$user->isSuperAdmin()) {
+            $query->whereKey($user->school_id);
+        }
 
         if ($request->has('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
         $schools = $query->paginate($request->get('per_page', 15));
-        
+
         return response()->json($schools);
     }
 
     public function store(Request $request): JsonResponse
     {
+        if (!$request->user()->isSuperAdmin()) {
+            return response()->json(['error' => 'Forbidden - only superadmin can create schools'], 403);
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
@@ -34,23 +43,32 @@ class SchoolController extends Controller
         ]);
 
         $school = School::create($data);
-        
+
         return response()->json($school, 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $school = School::with(['classes', 'users'])->findOrFail($id);
+
+        if (!$request->user()->isSuperAdmin() && $school->id !== $request->user()->school_id) {
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
+        }
+
         $school->teachers_count = $school->users()->where('role', 'teacher')->count();
         $school->students_count = $school->users()->where('role', 'student')->count();
-        
+
         return response()->json($school);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
+        if (!$request->user()->isSuperAdmin()) {
+            return response()->json(['error' => 'Forbidden - only superadmin can update schools'], 403);
+        }
+
         $school = School::findOrFail($id);
-        
+
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'address' => 'nullable|string',
@@ -59,15 +77,19 @@ class SchoolController extends Controller
         ]);
 
         $school->update($data);
-        
+
         return response()->json($school);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
+        if (!$request->user()->isSuperAdmin()) {
+            return response()->json(['error' => 'Forbidden - only superadmin can delete schools'], 403);
+        }
+
         $school = School::findOrFail($id);
         $school->delete();
-        
+
         return response()->json(['message' => 'School deleted successfully']);
     }
 }

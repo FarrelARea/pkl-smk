@@ -71,6 +71,7 @@
             document.getElementById('user-name').textContent = user.name;
             const roleLabels = {
                 school_admin: 'Admin Sekolah',
+                superadmin: 'Superadmin',
                 teacher: 'Guru',
                 student: 'Murid',
                 company_supervisor: 'Supervisor'
@@ -81,7 +82,7 @@
             loading.classList.add('hidden');
             content.classList.remove('hidden');
 
-            if (user.role === 'school_admin') {
+            if (user.role === 'school_admin' || user.role === 'superadmin') {
                 document.getElementById('dashboard-admin').classList.remove('hidden');
                 await loadAdminDashboard();
             } else if (user.role === 'teacher') {
@@ -109,7 +110,9 @@
         try {
             const res = await Auth.apiFetch('/my-students');
             const data = await res.json();
-            const students = Array.isArray(data.data) ? data.data : (data.data?.data || []);
+            const students = Array.isArray(data.students)
+                ? data.students
+                : (Array.isArray(data.data) ? data.data : (data.data?.data || []));
 
             const tbody = document.getElementById('teacher-students-body');
             tbody.innerHTML = '';
@@ -135,7 +138,9 @@
         try {
             const res = await Auth.apiFetch('/my-students');
             const data = await res.json();
-            const students = Array.isArray(data.data) ? data.data : (data.data?.data || []);
+            const students = Array.isArray(data.students)
+                ? data.students
+                : (Array.isArray(data.data) ? data.data : (data.data?.data || []));
 
             const tbody = document.getElementById('supervisor-students-body');
             tbody.innerHTML = '';
@@ -176,7 +181,6 @@
             const infoEl = document.getElementById('student-internship-info');
 
             if (status && status.company) {
-                // Calculate progress bar
                 const startDate = new Date(status.start_date);
                 const endDate = new Date(status.end_date);
                 const now = new Date();
@@ -185,56 +189,63 @@
                 const elapsedMs = now - startDate;
                 const progressPercent = Math.max(0, Math.min(100, (elapsedMs / totalMs) * 100));
 
-                const daysElapsed = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+                const daysElapsed = Math.max(0, Math.floor((now - startDate) / (1000 * 60 * 60 * 24)));
                 const daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-                const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                const totalDays = Math.max(0, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
+                const internshipStatus = status.status || 'Aktif';
 
                 const formatDate = (date) => new Date(date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
 
                 infoEl.innerHTML = `
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase">Perusahaan</p>
-                            <p class="font-semibold text-gray-900">${status.company.name || '—'}</p>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div class="rounded-2xl bg-slate-50 px-4 py-4">
+                                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Perusahaan</p>
+                                <p class="mt-1 text-sm font-semibold text-slate-900 sm:text-base">${status.company.name || '—'}</p>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 px-4 py-4">
+                                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Supervisor</p>
+                                <p class="mt-1 text-sm font-semibold text-slate-900 sm:text-base">${status.supervisor?.name || '—'}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase">Supervisor</p>
-                            <p class="font-semibold text-gray-900">${status.supervisor?.name || '—'}</p>
-                        </div>
-                    </div>
 
-                    <div class="mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm text-gray-600">Progress Magang</span>
-                            <span class="text-2xl font-bold text-blue-600">${Math.round(progressPercent)}%</span>
+                        <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
+                            <div class="mb-2 flex items-center justify-between gap-3">
+                                <span class="text-sm font-medium text-slate-600">Progress magang</span>
+                                <span class="text-2xl font-semibold text-blue-600">${Math.round(progressPercent)}%</span>
+                            </div>
+                            <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200">
+                                <div class="h-full rounded-full bg-blue-600 transition-all duration-300" style="width: ${progressPercent}%"></div>
+                            </div>
+                            <div class="mt-2 flex flex-col gap-1 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                                <span>${formatDate(status.start_date)}</span>
+                                <span>${daysRemaining > 0 ? daysRemaining + ' hari tersisa' : 'Periode selesai'}</span>
+                                <span>${formatDate(status.end_date)}</span>
+                            </div>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                            <div class="bg-blue-600 h-full rounded-full transition-all duration-300" style="width: ${progressPercent}%"></div>
-                        </div>
-                        <div class="flex justify-between text-xs text-gray-500 mt-2">
-                            <span>${formatDate(status.start_date)}</span>
-                            <span>${daysRemaining > 0 ? daysRemaining + ' hari tersisa' : 'Selesai'}</span>
-                            <span>${formatDate(status.end_date)}</span>
-                        </div>
-                    </div>
 
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <p class="text-xs text-gray-500">Hari Berjalan</p>
-                            <p class="text-xl font-bold text-gray-900">${daysElapsed}</p>
-                        </div>
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <p class="text-xs text-gray-500">Total Hari</p>
-                            <p class="text-xl font-bold text-gray-900">${totalDays}</p>
-                        </div>
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <p class="text-xs text-gray-500">Status</p>
-                            <p class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 inline-block">${status.status || 'Aktif'}</p>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div class="rounded-2xl bg-blue-50 px-4 py-4">
+                                <p class="text-xs font-medium uppercase tracking-wide text-blue-700">Hari berjalan</p>
+                                <p class="mt-2 text-2xl font-semibold text-slate-900">${daysElapsed}</p>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 px-4 py-4">
+                                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Total hari</p>
+                                <p class="mt-2 text-2xl font-semibold text-slate-900">${totalDays}</p>
+                            </div>
+                            <div class="rounded-2xl bg-emerald-50 px-4 py-4">
+                                <p class="text-xs font-medium uppercase tracking-wide text-emerald-700">Status</p>
+                                <p class="mt-2 inline-flex rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-700">${internshipStatus}</p>
+                            </div>
                         </div>
                     </div>
                 `;
             } else {
-                infoEl.innerHTML = '<p class="text-gray-500">Belum ada magang aktif</p>';
+                infoEl.innerHTML = `
+                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                        Belum ada magang aktif. Hubungi admin sekolah jika penempatan magang kamu belum muncul.
+                    </div>
+                `;
             }
 
             // Load clock status if available
@@ -251,17 +262,20 @@
 
                     let html = '';
 
-                    // Show "currently in" status if applicable
                     if (clockData.is_currently_in && clockData.last_clock_in) {
                         const inTime = formatTime(clockData.last_clock_in.created_at);
                         const inDate = new Date(clockData.last_clock_in.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                        html += `<div class="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200 mb-3">
-                            <span class="material-symbols-outlined text-green-600 animate-pulse">radio_button_checked</span>
-                            <span class="text-green-800 font-semibold">Sedang Masuk sejak ${inDate} ${inTime}</span>
+                        html += `<div class="mb-3 rounded-2xl border border-green-200 bg-green-50 p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="material-symbols-outlined animate-pulse text-green-600">radio_button_checked</span>
+                                <div>
+                                    <p class="font-semibold text-green-800">Sedang masuk</p>
+                                    <p class="mt-1 text-sm text-green-700">Tercatat sejak ${inDate} ${inTime}</p>
+                                </div>
+                            </div>
                         </div>`;
                     }
 
-                    // Show today's records
                     if (todayRecords.length > 0) {
                         html += '<div class="space-y-2">';
                         for (const rec of todayRecords) {
@@ -269,13 +283,16 @@
                             const isIn = rec.type === 'clock_in';
                             const icon = isIn ? 'login' : 'logout';
                             const label = isIn ? 'Masuk' : 'Keluar';
-                            const color = isIn ? 'blue' : 'green';
-                            html += `<div class="flex items-center justify-between py-1">
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-${color}-500 text-sm">${icon}</span>
-                                    <span class="text-sm text-gray-700">${label}</span>
+                            const colorClass = isIn ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700';
+                            html += `<div class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined rounded-xl px-2 py-2 text-sm ${colorClass}">${icon}</span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900">${label}</p>
+                                        <p class="text-xs text-slate-500">Absensi hari ini</p>
+                                    </div>
                                 </div>
-                                <span class="text-sm font-mono font-semibold text-gray-900">${time}</span>
+                                <span class="text-sm font-semibold text-slate-900">${time}</span>
                             </div>`;
                         }
                         html += '</div>';
@@ -291,22 +308,33 @@
 
             const recentLogs = logs.slice(0, 5);
             if (recentLogs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Belum ada daily log</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">Belum ada daily log terbaru. Mulai catat aktivitas harianmu dari menu daily log.</td></tr>';
             } else {
                 for (const log of recentLogs) {
                     const logDate = log.log_date || log.date || '—';
                     const logActivity = log.activities || log.context || '—';
                     const derivedStatus = log.teacher_comment ? 'Direview' : 'Menunggu';
                     const statusClass = log.teacher_comment ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
-                    tbody.innerHTML += `<tr class="border-b border-gray-100">
-                        <td class="px-4 py-3 text-sm">${logDate}</td>
-                        <td class="px-4 py-3 text-sm">${logActivity}</td>
-                        <td class="px-4 py-3 text-sm"><span class="px-2 py-1 rounded-full text-xs ${statusClass}">${derivedStatus}</span></td>
+                    tbody.innerHTML += `<tr class="align-top">
+                        <td class="px-4 py-4 text-sm text-slate-600 sm:px-6">${logDate}</td>
+                        <td class="px-4 py-4 text-sm text-slate-900 sm:px-6">${logActivity}</td>
+                        <td class="px-4 py-4 text-sm sm:px-6"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClass}">${derivedStatus}</span></td>
                     </tr>`;
                 }
             }
 
-            // Load attendance summary from clock-in/out records
+            if (!clockRes.ok) {
+                const clockStatusDiv = document.getElementById('today-clock-status');
+                const clockContent = document.getElementById('clock-status-content');
+                clockStatusDiv.classList.remove('hidden');
+                clockContent.innerHTML = `
+                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                        Belum ada data absensi hari ini. Gunakan tombol <span class="font-medium text-slate-700">Absen sekarang</span> saat kamu mulai atau selesai magang.
+                    </div>
+                `;
+            }
+
+            const attendanceSummaryWidget = document.getElementById('attendance-summary-widget');
             if (attendanceRes.ok) {
                 const attendanceData = await attendanceRes.json();
                 const records = Array.isArray(attendanceData.data) ? attendanceData.data : (attendanceData.data?.data || []);
@@ -319,11 +347,25 @@
                     document.getElementById('attendance-days').textContent = uniqueDays.size;
                     document.getElementById('attendance-in-range').textContent = inRange;
                     document.getElementById('attendance-out-range').textContent = outRange;
-                    document.getElementById('attendance-summary-widget').classList.remove('hidden');
+                    attendanceSummaryWidget.classList.remove('hidden');
+                } else {
+                    attendanceSummaryWidget.classList.remove('hidden');
+                    document.getElementById('attendance-days').textContent = '0';
+                    document.getElementById('attendance-in-range').textContent = '0';
+                    document.getElementById('attendance-out-range').textContent = '0';
                 }
+            } else {
+                attendanceSummaryWidget.classList.remove('hidden');
             }
         } catch (err) {
             console.error('Student dashboard error:', err);
+            if (infoEl) {
+                infoEl.innerHTML = `
+                    <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-5 text-sm text-red-700">
+                        Gagal memuat dashboard siswa. Muat ulang halaman untuk mencoba lagi.
+                    </div>
+                `;
+            }
         }
     }
 

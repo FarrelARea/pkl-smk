@@ -3,20 +3,26 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
 use App\Models\DailyLog;
 use App\Models\DailyLogComment;
 use App\Models\Evaluation;
 use App\Models\Internship;
 use App\Models\PermissionRequest;
+use App\Models\StudentAssessment;
 use App\Models\StudentDocument;
 use App\Models\TeacherStudentAssignment;
 use App\Models\User;
+use App\Services\AttendanceInferenceService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TeacherPanelController extends Controller
 {
+    public function __construct(private AttendanceInferenceService $attendanceInferenceService)
+    {
+    }
+
     public function students(Request $request): JsonResponse
     {
         $teacher = auth('api')->user();
@@ -214,6 +220,201 @@ class TeacherPanelController extends Controller
         ]);
     }
 
+    public function dashboardSummary(): JsonResponse
+    {
+        $teacher = auth('api')->user();
+        $students = $teacher->assignedStudents()
+            ->where('role', 'student')
+            ->with(['classes:id,name,academic_year', 'internships' => fn($q) => $q->where('status', 'active')->with('company:id,name')])
+            ->get();
+        $studentIds = $students->pluck('id');
+        $today = Carbon::today()->toDateString();
+
+        $pendingPermissions = PermissionRequest::whereIn('student_id', $studentIds)
+            ->where('status', 'pending')
+            ->count();
+
+        $pendingDocuments = StudentDocument::whereIn('student_id', $studentIds)
+            ->where('status', 'pending')
+            ->count();
+
+        $submittedAssessments = StudentAssessment::whereIn('student_id', $studentIds)
+            ->where('teacher_id', $teacher->id)
+            ->where('status', 'submitted')
+            ->count();
+
+        $studentNames = $students->pluck('name', 'id');
+        $attendanceToday = $this->attendanceInferenceService
+            ->attendanceForStudentsOnDate($studentIds, $today)
+            ->map(fn($record) => [
+                'student_id' => $record['student_id'],
+                'student_name' => $studentNames[$record['student_id']] ?? null,
+                'attendance_date' => $record['attendance_date'],
+                'status' => $record['status'],
+                'notes' => $record['notes'],
+            ])
+            ->values();
+
+        $activeInternshipCount = $students->filter(fn($student) => $student->internships->isNotEmpty())->count();
+        $classNames = $students
+            ->flatMap(fn($student) => $student->classes->map(fn($class) => [
+                'id' => $class->id,
+                'name' => $class->name,
+                'academic_year' => $class->academic_year,
+            ]))
+            ->unique('id')
+            ->values();
+
+        $studentItems = $students->map(function ($student) {
+            $activeInternship = $student->internships->first();
+
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'email' => $student->email,
+                'class_names' => $student->classes->pluck('name')->filter()->values(),
+                'academic_years' => $student->classes->pluck('academic_year')->filter()->unique()->values(),
+                'active_internship' => $activeInternship ? [
+                    'id' => $activeInternship->id,
+                    'company' => $activeInternship->company?->name,
+                    'start_date' => $activeInternship->start_date,
+                    'end_date' => $activeInternship->end_date,
+                ] : null,
+            ];
+        })->values();
+
+        return response()->json([
+            'summary' => [
+                'assigned_students' => $students->count(),
+                'active_internships' => $activeInternshipCount,
+                'pending_permissions' => $pendingPermissions,
+                'pending_documents' => $pendingDocuments,
+                'submitted_assessments' => $submittedAssessments,
+                'attendance_today_count' => $attendanceToday->where('status', 'present')->count(),
+            ],
+            'today' => [
+                'date' => $today,
+                'attendance' => $attendanceToday,
+            ],
+            'school_scope' => [
+                'classes' => $classNames,
+            ],
+            'students' => $studentItems,
+        ]);
+    }
+
+    public function attendanceCalendar(Request $request): JsonResponse
+    {
+        $teacher = auth('api')->user();
+        $studentIds = $teacher->assignedStudents()->where('role', 'student')->pluck('users.id');
+        $date = $request->query('date', Carbon::today()->toDateString());
+        $parsedDate = Carbon::parse($date)->toDateString();
+
+        $studentNames = $teacher->assignedStudents()
+            ->where('role', 'student')
+            ->pluck('name', 'users.id');
+
+        $records = $this->attendanceInferenceService
+            ->attendanceForStudentsOnDate($studentIds, $parsedDate)
+            ->map(fn($record) => [
+                'student_id' => $record['student_id'],
+                'student_name' => $studentNames[$record['student_id']] ?? null,
+                'attendance_date' => $record['attendance_date'],
+                'status' => $record['status'],
+                'notes' => $record['notes'],
+            ])
+            ->values();
+
+        return response()->json([
+            'date' => $parsedDate,
+            'attendance' => $records,
+            'present_count' => $records->where('status', 'present')->count(),
+            'tracked_count' => $records->count(),
+        ]);
+    }
+
+    public function documentsOverview(): JsonResponse
+    {
+        $teacher = auth('api')->user();
+        $studentIds = $teacher->assignedStudents()->where('role', 'student')->pluck('users.id');
+
+        $documents = StudentDocument::with('student:id,name')
+            ->whereIn('student_id', $studentIds)
+            ->orderByDesc('created_at')
+            ->get(['id', 'student_id', 'title', 'file_type', 'file_path', 'status', 'teacher_note', 'created_at'])
+            ->map(fn($document) => [
+                'id' => $document->id,
+                'student_id' => $document->student_id,
+                'student_name' => $document->student?->name,
+                'title' => $document->title,
+                'file_type' => $document->file_type,
+                'file_path' => $document->file_path,
+                'status' => $document->status,
+                'teacher_note' => $document->teacher_note,
+                'created_at' => $document->created_at,
+            ])
+            ->values();
+
+        return response()->json($documents);
+    }
+
+    public function scoreOverview(): JsonResponse
+    {
+        $teacher = auth('api')->user();
+        $students = $teacher->assignedStudents()->where('role', 'student')->get(['users.id', 'users.name', 'users.email']);
+
+        $items = $students->map(function ($student) use ($teacher) {
+            $activeInternship = Internship::with('company:id,name')
+                ->where('student_id', $student->id)
+                ->where('status', 'active')
+                ->first();
+
+            $assessment = null;
+            if ($activeInternship) {
+                $assessment = StudentAssessment::where('student_id', $student->id)
+                    ->where('internship_id', $activeInternship->id)
+                    ->where('teacher_id', $teacher->id)
+                    ->first(['id', 'status', 'updated_at']);
+            }
+
+            return [
+                'student_id' => $student->id,
+                'student_name' => $student->name,
+                'student_email' => $student->email,
+                'company_name' => $activeInternship?->company?->name,
+                'assessment' => $assessment,
+                'detail_url' => "/teacher/students/{$student->id}",
+            ];
+        })->values();
+
+        return response()->json($items);
+    }
+
+    public function permissionsOverview(): JsonResponse
+    {
+        $teacher = auth('api')->user();
+        $studentIds = $teacher->assignedStudents()->where('role', 'student')->pluck('users.id');
+
+        $permissions = PermissionRequest::with('student:id,name')
+            ->whereIn('student_id', $studentIds)
+            ->orderByDesc('request_date')
+            ->get(['id', 'student_id', 'type', 'request_date', 'end_date', 'reason', 'status', 'handler_note'])
+            ->map(fn($permission) => [
+                'id' => $permission->id,
+                'student_id' => $permission->student_id,
+                'student_name' => $permission->student?->name,
+                'type' => $permission->type,
+                'request_date' => $permission->request_date?->toDateString(),
+                'end_date' => $permission->end_date?->toDateString(),
+                'reason' => $permission->reason,
+                'status' => $permission->status,
+                'handler_note' => $permission->handler_note,
+            ])
+            ->values();
+
+        return response()->json($permissions);
+    }
+
     public function studentStats(int $studentId): JsonResponse
     {
         $teacher = auth('api')->user();
@@ -228,8 +429,10 @@ class TeacherPanelController extends Controller
             ->where('status', 'active')
             ->first();
 
-        $totalPresent = Attendance::where('student_id', $studentId)
-            ->where('status', 'present')->count();
+        $totalPresent = $this->attendanceInferenceService->totalPresentDays(
+            $studentId,
+            $activeInternship?->id,
+        );
 
         $totalLogs = DailyLog::where('student_id', $studentId)->count();
 
@@ -242,7 +445,6 @@ class TeacherPanelController extends Controller
         if ($activeInternship) {
             $evaluation = Evaluation::where('student_id', $studentId)
                 ->where('internship_id', $activeInternship->id)
-                ->where('evaluator_id', $teacher->id)
                 ->first(['score', 'comments', 'updated_at']);
         }
 
@@ -283,9 +485,10 @@ class TeacherPanelController extends Controller
             [
                 'student_id' => $studentId,
                 'internship_id' => $activeInternship->id,
-                'evaluator_id' => $teacher->id,
             ],
             [
+                'evaluator_id' => $teacher->id,
+                'last_updated_by_id' => $teacher->id,
                 'score' => $data['score'],
                 'comments' => $data['comments'] ?? null,
                 'type' => 'teacher',

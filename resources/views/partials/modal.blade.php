@@ -1,5 +1,5 @@
 {{-- Reusable Modal --}}
-<div id="{{ $id ?? 'crud-modal' }}" class="fixed inset-0 z-[60] hidden">
+<div id="{{ $id ?? 'crud-modal' }}" data-help-target="modal" class="fixed inset-0 z-[60] hidden">
     <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="AdminUtils.hideModal('{{ $id ?? 'crud-modal' }}')"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
         <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative">

@@ -8,47 +8,14 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Penilaian & Dokumen</h1>
             <x-help-button title="Panduan Penilaian & Dokumen">
-                <p>Di halaman ini kamu bisa melihat kalender absensi dan mengelola dokumen evaluasi.</p>
+                <p>Di halaman ini kamu bisa mengelola dokumen evaluasi selama magang.</p>
                 <ul class="list-disc pl-4 mt-2 space-y-1">
-                    <li>Lihat kalender kehadiran bulanan</li>
                     <li>Upload dokumen evaluasi (laporan, dll)</li>
                     <li>Cek status persetujuan dokumen dari guru</li>
                     <li>Revisi dokumen yang ditolak</li>
                 </ul>
             </x-help-button>
         <a href="/dashboard" class="text-blue-600 hover:text-blue-700">← Kembali ke Dashboard</a>
-    </div>
-
-    {{-- Kalender Absensi --}}
-    <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="font-semibold text-gray-900 text-lg">Kalender Absensi</h2>
-            <div class="flex items-center gap-2">
-                <button onclick="changeMonth(-1)" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <span class="material-symbols-outlined text-gray-600">chevron_left</span>
-                </button>
-                <span id="calendar-label" class="font-medium text-gray-700 w-36 text-center"></span>
-                <button onclick="changeMonth(1)" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <span class="material-symbols-outlined text-gray-600">chevron_right</span>
-                </button>
-            </div>
-        </div>
-
-        {{-- Keterangan Warna --}}
-        <div class="flex flex-wrap gap-4 mb-4 text-xs text-gray-600">
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Hadir</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span> Tidak Hadir</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> Sakit</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-400 inline-block"></span> Izin</span>
-        </div>
-
-        {{-- Grid Kalender --}}
-        <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500 mb-2">
-            <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
-        </div>
-        <div id="calendar-grid" class="grid grid-cols-7 gap-1">
-            <div class="col-span-7 py-8 text-center text-gray-400">Memuat...</div>
-        </div>
     </div>
 
     {{-- Bagian Upload Dokumen --}}
@@ -101,7 +68,8 @@
 
 @push('scripts')
 <script type="module">
-    let currentMonth, currentYear, attendanceData = [], documentsData = [], activeInternshipId = null;
+    let documentsData = [];
+    let activeInternshipId = null;
 
     function waitForAuth(cb) {
         const check = () => window.Auth ? cb() : setTimeout(check, 50);
@@ -123,59 +91,19 @@
             console.error('Gagal memuat info user:', e);
         }
 
-        const now = new Date();
-        currentMonth = now.getMonth() + 1;
-        currentYear = now.getFullYear();
-
         await loadData();
     });
 
     async function loadData() {
         try {
-            const res = await Auth.apiFetch(`/student/evaluations?month=${currentMonth}&year=${currentYear}`);
+            const now = new Date();
+            const res = await Auth.apiFetch(`/student/evaluations?month=${now.getMonth() + 1}&year=${now.getFullYear()}`);
             const data = await res.json();
-            attendanceData = data.attendance || [];
             documentsData = data.documents || [];
-            renderCalendar();
             renderDocuments();
         } catch (e) {
             console.error('Gagal memuat evaluasi:', e);
         }
-    }
-
-    function renderCalendar() {
-        const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-        document.getElementById('calendar-label').textContent = `${months[currentMonth - 1]} ${currentYear}`;
-
-        const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
-        const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-
-        // Bangun map kehadiran
-        const statusMap = {};
-        for (const a of attendanceData) {
-            // attendance_date is "YYYY-MM-DD" — parse directly to avoid timezone offset
-            const day = parseInt(a.attendance_date.substring(8, 10));
-            statusMap[day] = a.status;
-        }
-
-        const colorMap = {
-            present: 'bg-green-500 text-white',
-            absent: 'bg-red-400 text-white',
-            sick: 'bg-yellow-400 text-white',
-            permission: 'bg-blue-400 text-white',
-        };
-
-        let html = '';
-        for (let i = 0; i < firstDay; i++) {
-            html += '<div></div>';
-        }
-        for (let d = 1; d <= daysInMonth; d++) {
-            const status = statusMap[d];
-            const color = status ? colorMap[status] : 'bg-gray-100 text-gray-400';
-            html += `<div class="aspect-square flex items-center justify-center rounded-lg text-xs font-medium ${color}" title="${status || ''}">${d}</div>`;
-        }
-
-        document.getElementById('calendar-grid').innerHTML = html;
     }
 
     function renderDocuments() {
@@ -222,13 +150,6 @@
             </div>`;
         }).join('');
     }
-
-    window.changeMonth = async (delta) => {
-        currentMonth += delta;
-        if (currentMonth > 12) { currentMonth = 1; currentYear++; }
-        if (currentMonth < 1) { currentMonth = 12; currentYear--; }
-        await loadData();
-    };
 
     window.showUploadModal = () => {
         document.getElementById('doc-title').value = '';

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class StudentAssessment extends Model
 {
     protected $fillable = [
-        'student_id', 'internship_id', 'teacher_id',
+        'student_id', 'internship_id', 'teacher_id', 'last_updated_by_id',
         'template_snapshot', 'teacher_notes', 'teacher_checklist', 'status',
     ];
 
@@ -31,6 +31,11 @@ class StudentAssessment extends Model
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function lastUpdatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'last_updated_by_id');
     }
 
     public function scores(): HasMany
