@@ -6,12 +6,12 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Perusahaan</h1>
+        <h1 data-help-target="page-title" class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Perusahaan</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Kelola data perusahaan mitra dan informasi kontak mereka.
         </p>
     </div>
-    <div class="flex items-center gap-2">
+    <div data-help-target="header-actions" class="flex items-center gap-2">
         <x-help-button title="Panduan Manajemen Perusahaan">
             <p>Di halaman ini kamu bisa mengelola data perusahaan mitra magang.</p>
             <ul class="list-disc pl-4 mt-2 space-y-1">
@@ -21,22 +21,29 @@
                 <li>Atur batas jarak untuk validasi kehadiran siswa</li>
             </ul>
         </x-help-button>
-        <button onclick="openCreateModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+        <button onclick="openCreateModal()" data-help-target="add-button" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">add</span> Tambah Perusahaan
         </button>
     </div>
 </header>
 
 <!-- Search & Table -->
-<div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
-    <div class="p-6 flex justify-between items-center border-b border-surface-container gap-4">
+<div data-help-target="data-table" class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
+    <div data-help-target="filter-bar" class="p-6 flex justify-between items-center border-b border-surface-container gap-4">
         <h2 class="text-xl font-bold tracking-tight font-headline">Perusahaan</h2>
-        <div class="flex gap-3 items-end">
-            <div class="relative">
+        <div class="flex gap-3 items-end flex-wrap">
+            <div data-help-target="search-field" class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
                 <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Cari perusahaan..." type="text">
             </div>
-            <div>
+            <div id="filter-school-group" class="w-64">
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Sekolah</label>
+                <select id="filter-school" class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all" onchange="loadData(1)">
+                    <option value="">Semua Sekolah</option>
+                </select>
+                <p id="filter-school-locked" class="hidden w-full px-4 py-2 bg-surface-container-low rounded-lg text-sm text-on-surface"></p>
+            </div>
+            <div data-help-target="per-page-field">
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Per Halaman</label>
                 <select id="per-page-select" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
                     <option value="15">15</option>
@@ -52,6 +59,7 @@
         <thead>
             <tr class="bg-surface-container-low">
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Nama</th>
+                <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Sekolah</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Industri</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Alamat</th>
                 <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant">Telepon</th>
@@ -60,7 +68,7 @@
             </tr>
         </thead>
         <tbody id="data-table" class="divide-y divide-surface-container">
-            <tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td></tr>
+            <tr><td colspan="7" class="px-6 py-12 text-center text-on-surface-variant">Memuat...</td></tr>
         </tbody>
     </table>
     </div>
@@ -79,6 +87,13 @@
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-industry">Industri</label>
                 <input id="field-industry" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="text">
+            </div>
+            <div>
+                <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-school">Sekolah</label>
+                <select id="field-school" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="">Pilih sekolah...</option>
+                </select>
+                <p id="field-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
             </div>
 
             <div class="border-t border-outline-variant/20 pt-4">
@@ -199,6 +214,105 @@
     let provinces = [];
     let companyMap = null;
     let marker = null;
+    let currentUser = null;
+
+    function setLockedSchoolField(selectId, textId, schoolId, schoolName) {
+        const select = document.getElementById(selectId);
+        const locked = document.getElementById(textId);
+        if (!select || !locked) return;
+
+        if (currentUser?.role === 'superadmin') {
+            select.classList.remove('hidden');
+            locked.classList.add('hidden');
+            locked.textContent = '';
+            return;
+        }
+
+        select.classList.add('hidden');
+        locked.classList.remove('hidden');
+        locked.textContent = schoolName || 'Sekolah tidak ditemukan';
+        if (schoolId) {
+            select.value = schoolId;
+        }
+    }
+
+    async function resolveSchoolName(schoolId) {
+        if (!schoolId) return '';
+        const existing = document.querySelector(`#field-school option[value="${schoolId}"]`) || document.querySelector(`#filter-school option[value="${schoolId}"]`);
+        if (existing?.textContent) {
+            return existing.textContent;
+        }
+
+        try {
+            const res = await Auth.apiFetch(`/schools/${schoolId}`);
+            const json = await res.json();
+            const school = json.data || json;
+            return school.name || '';
+        } catch {
+            return '';
+        }
+    }
+
+    async function applySchoolScopeUi() {
+        if (currentUser?.role === 'superadmin') {
+            setLockedSchoolField('filter-school', 'filter-school-locked', '', '');
+            setLockedSchoolField('field-school', 'field-school-locked', '', '');
+            return;
+        }
+
+        const schoolId = currentUser?.school_id || '';
+        const schoolName = await resolveSchoolName(schoolId);
+        document.getElementById('filter-school').value = schoolId;
+        document.getElementById('field-school').value = schoolId;
+        setLockedSchoolField('filter-school', 'filter-school-locked', schoolId, schoolName);
+        setLockedSchoolField('field-school', 'field-school-locked', schoolId, schoolName);
+    }
+
+    function getEffectiveSchoolId(selectId) {
+        if (currentUser?.role === 'superadmin') {
+            return document.getElementById(selectId).value;
+        }
+
+        return currentUser?.school_id || document.getElementById(selectId).value;
+    }
+
+    async function initSchoolSelects() {
+        await AdminUtils.populateSelect('filter-school', '/schools');
+        await AdminUtils.populateSelect('field-school', '/schools');
+        await applySchoolScopeUi();
+    }
+
+    async function initializePageContext() {
+        const res = await Auth.apiFetch('/auth/me');
+        const json = await res.json();
+        currentUser = json.data || json;
+        await initSchoolSelects();
+    }
+
+    function getCurrentModalSchoolId() {
+        return currentUser?.role === 'superadmin'
+            ? document.getElementById('field-school').value
+            : (currentUser?.school_id || document.getElementById('field-school').value);
+    }
+
+    function syncModalSchoolValue(schoolId = '') {
+        const effectiveSchoolId = currentUser?.role === 'superadmin' ? schoolId : (currentUser?.school_id || schoolId);
+        document.getElementById('field-school').value = effectiveSchoolId || '';
+    }
+
+    function updateModalSchoolRequirement() {
+        document.getElementById('field-school').required = true;
+    }
+
+    function getFilterSchoolId() {
+        return getEffectiveSchoolId('filter-school');
+    }
+
+    function getRequestSchoolId() {
+        return getEffectiveSchoolId('field-school');
+    }
+
+    window.loadData = loadData;
 
     function waitForAuth(cb) {
         const check = () => window.Auth ? cb() : setTimeout(check, 50);
@@ -399,7 +513,9 @@
         currentPage = page;
         try {
             const perPage = document.getElementById('per-page-select').value || 15;
+            const schoolId = getFilterSchoolId();
             const params = new URLSearchParams({ page, per_page: perPage });
+            if (schoolId) params.set('school_id', schoolId);
             if (searchQuery) params.set('search', searchQuery);
 
             const res = await Auth.apiFetch(`${ENDPOINT}?${params}`);
@@ -409,6 +525,7 @@
 
             renderTable('data-table', items, [
                 { key: 'name' },
+                { key: 'school', render: (row) => row.school?.name || '—' },
                 { key: 'industry' },
                 { key: 'address' },
                 { key: 'phone' },
@@ -429,7 +546,7 @@
 
     // ── Create Modal ──────────────────────────────────────────────────
 
-    window.openCreateModal = () => {
+    window.openCreateModal = async () => {
         document.getElementById('item-id').value = '';
         document.getElementById('crud-form').reset();
         document.getElementById('field-distance-threshold').value = '100';
@@ -439,7 +556,11 @@
         document.getElementById('map-search-input').value = '';
         document.getElementById('crud-modal-title').textContent = 'Tambah Perusahaan';
         resetAddressSelects();
-        loadProvinces();
+        await AdminUtils.populateSelect('field-school', '/schools');
+        syncModalSchoolValue();
+        await applySchoolScopeUi();
+        updateModalSchoolRequirement();
+        await loadProvinces();
         clearMap();
         showModal('crud-modal');
         setTimeout(() => companyMap?.invalidateSize(), 150);
@@ -468,6 +589,10 @@
             document.getElementById('crud-modal-title').textContent = 'Edit Perusahaan';
 
             resetAddressSelects();
+            await AdminUtils.populateSelect('field-school', '/schools');
+            syncModalSchoolValue(item.school_id || item.school?.id || '');
+            await applySchoolScopeUi();
+            updateModalSchoolRequirement();
             await loadProvinces();
 
             if (item.province_name) {
@@ -542,6 +667,8 @@
             city_name: cityName.startsWith('Pilih') ? '' : cityName,
             distance_threshold: parseInt(document.getElementById('field-distance-threshold').value) || 100,
         };
+        const schoolId = getRequestSchoolId();
+        if (schoolId) payload.school_id = parseInt(schoolId);
         const lat = document.getElementById('field-latitude').value;
         const lng = document.getElementById('field-longitude').value;
         if (lat) payload.latitude = parseFloat(lat);
@@ -646,8 +773,9 @@
 
     // ── Init ──────────────────────────────────────────────────────────
 
-    waitForAuth(() => {
+    waitForAuth(async () => {
         if (!Auth.requireAuth()) return;
+        await initializePageContext();
         loadData();
     });
 </script>

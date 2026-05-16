@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\AttendancePoint;
 use App\Models\Internship;
+use App\Models\User;
 use App\Services\DistanceService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,16 +21,53 @@ class AttendanceController extends Controller
         $this->distanceService = $distanceService;
     }
 
-    public function index(Request $request): JsonResponse
+    private function scopeQuery(Request $request): Builder
     {
         $query = Attendance::with(['student', 'internship']);
 
+        if (!$request->user()->isSuperAdmin()) {
+            $query->whereHas('student', function (Builder $builder) use ($request) {
+                $builder->where('school_id', $request->user()->school_id);
+            });
+        }
+
+        return $query;
+    }
+
+    private function ensureUserCanAccessStudent(Request $request, int $studentId): User
+    {
+        $student = User::findOrFail($studentId);
+
+        if ($student->role !== 'student' || !$student->belongsToAdminSchool($request->user())) {
+            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+        }
+
+        return $student;
+    }
+
+    private function resolveAccessibleInternship(Request $request, int $internshipId): Internship
+    {
+        $internship = Internship::with(['student', 'company'])->findOrFail($internshipId);
+
+        if (!$internship->student || !$internship->student->belongsToAdminSchool($request->user())) {
+            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+        }
+
+        return $internship;
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        $query = $this->scopeQuery($request);
+
         if ($request->has('student_id')) {
-            $query->where('student_id', $request->student_id);
+            $student = $this->ensureUserCanAccessStudent($request, (int) $request->student_id);
+            $query->where('student_id', $student->id);
         }
 
         if ($request->has('internship_id')) {
-            $query->where('internship_id', $request->internship_id);
+            $internship = $this->resolveAccessibleInternship($request, (int) $request->internship_id);
+            $query->where('internship_id', $internship->id);
         }
 
         if ($request->has('start_date')) {
@@ -56,6 +95,16 @@ class AttendanceController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
+        $student = $this->ensureUserCanAccessStudent($request, (int) $data['student_id']);
+        $internship = $this->resolveAccessibleInternship($request, (int) $data['internship_id']);
+
+        if ($internship->student_id !== $student->id) {
+            return response()->json(['error' => 'Internship does not belong to the selected student'], 422);
+        }
+
+        $data['student_id'] = $student->id;
+        $data['internship_id'] = $internship->id;
+
         $existing = Attendance::where('student_id', $data['student_id'])
             ->where('attendance_date', $data['attendance_date'])
             ->first();
@@ -65,8 +114,6 @@ class AttendanceController extends Controller
         }
 
         $data['recorded_by'] = auth('api')->id();
-
-        $internship = Internship::with('company')->findOrFail($data['internship_id']);
         $company = $internship->company;
 
         $locationValidation = null;
@@ -114,16 +161,18 @@ class AttendanceController extends Controller
         return response()->json($response, 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $attendance = Attendance::with(['student', 'internship', 'recordedBy'])->findOrFail($id);
+        $attendance = $this->scopeQuery($request)
+            ->with('recordedBy')
+            ->findOrFail($id);
 
         return response()->json($attendance);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $attendance = Attendance::findOrFail($id);
+        $attendance = $this->scopeQuery($request)->findOrFail($id);
 
         $data = $request->validate([
             'status' => 'sometimes|required|in:present,absent,sick,permission',
@@ -135,9 +184,9 @@ class AttendanceController extends Controller
         return response()->json($attendance);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
-        $attendance = Attendance::findOrFail($id);
+        $attendance = $this->scopeQuery($request)->findOrFail($id);
         $attendance->delete();
 
         return response()->json(['message' => 'Attendance deleted successfully']);
@@ -160,7 +209,18 @@ class AttendanceController extends Controller
         $failed = 0;
         $locationWarnings = [];
 
-        foreach ($data['attendance'] as $index => $item) {
+        foreach ($data['attendance'] as $item) {
+            $student = $this->ensureUserCanAccessStudent($request, (int) $item['student_id']);
+            $internship = $this->resolveAccessibleInternship($request, (int) $item['internship_id']);
+
+            if ($internship->student_id !== $student->id) {
+                $failed++;
+                continue;
+            }
+
+            $item['student_id'] = $student->id;
+            $item['internship_id'] = $internship->id;
+
             $existing = Attendance::where('student_id', $item['student_id'])
                 ->where('attendance_date', $item['attendance_date'])
                 ->first();
@@ -171,9 +231,7 @@ class AttendanceController extends Controller
             }
 
             $item['recorded_by'] = auth('api')->id();
-
-            $internship = Internship::with('company')->find($item['internship_id']);
-            $company = $internship?->company;
+            $company = $internship->company;
 
             if ($company && isset($item['latitude']) && isset($item['longitude'])) {
                 $approvedPoints = AttendancePoint::approved()->forCompany($company->id)->get();

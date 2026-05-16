@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * @OA\Info(
- *      title="Internship API",
+ *      title="Simaskansa API",
  *      version="1.0",
  *      description="API for School Internship Management System"
  * )

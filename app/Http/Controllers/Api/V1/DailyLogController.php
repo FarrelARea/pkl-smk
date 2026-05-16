@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttendancePoint;
 use App\Models\DailyLog;
 use App\Models\Internship;
+use App\Models\User;
 use App\Services\DistanceService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,16 +21,53 @@ class DailyLogController extends Controller
         $this->distanceService = $distanceService;
     }
 
-    public function index(Request $request): JsonResponse
+    private function scopeQuery(Request $request): Builder
     {
         $query = DailyLog::with(['student', 'internship']);
 
+        if (!$request->user()->isSuperAdmin()) {
+            $query->whereHas('student', function (Builder $builder) use ($request) {
+                $builder->where('school_id', $request->user()->school_id);
+            });
+        }
+
+        return $query;
+    }
+
+    private function ensureUserCanAccessStudent(Request $request, int $studentId): User
+    {
+        $student = User::findOrFail($studentId);
+
+        if ($student->role !== 'student' || !$student->belongsToAdminSchool($request->user())) {
+            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+        }
+
+        return $student;
+    }
+
+    private function resolveAccessibleInternship(Request $request, int $internshipId): Internship
+    {
+        $internship = Internship::with(['student', 'company'])->findOrFail($internshipId);
+
+        if (!$internship->student || !$internship->student->belongsToAdminSchool($request->user())) {
+            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+        }
+
+        return $internship;
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        $query = $this->scopeQuery($request);
+
         if ($request->has('student_id')) {
-            $query->where('student_id', $request->student_id);
+            $student = $this->ensureUserCanAccessStudent($request, (int) $request->student_id);
+            $query->where('student_id', $student->id);
         }
 
         if ($request->has('internship_id')) {
-            $query->where('internship_id', $request->internship_id);
+            $internship = $this->resolveAccessibleInternship($request, (int) $request->internship_id);
+            $query->where('internship_id', $internship->id);
         }
 
         if ($request->has('start_date')) {
@@ -72,30 +112,48 @@ class DailyLogController extends Controller
             return response()->json(['error' => 'Cannot create log for date more than 7 days in the past'], 422);
         }
 
-        $studentId = $isStudentCreatingOwnLog ? $user->id : $data['student_id'];
+        $student = $isStudentCreatingOwnLog
+            ? $user
+            : $this->ensureUserCanAccessStudent($request, (int) $data['student_id']);
+        $studentId = $student->id;
 
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('daily-log-photos', 'public');
         }
-        
-        $internship = Internship::with('company')->findOrFail($data['internship_id']);
+
+        $internship = $this->resolveAccessibleInternship($request, (int) $data['internship_id']);
+
+        if ($internship->student_id !== $studentId) {
+            return response()->json(['error' => 'Internship does not belong to the selected student'], 422);
+        }
+
         $company = $internship->company;
-        
+
         $locationValidation = null;
-        if ($company && $company->hasLocation() && isset($data['latitude']) && isset($data['longitude'])) {
-            $locationValidation = $this->distanceService->validateLocation(
-                $data['latitude'],
-                $data['longitude'],
-                $company->latitude,
-                $company->longitude,
-                $company->distance_threshold ?? 100
-            );
+        if ($company && isset($data['latitude']) && isset($data['longitude'])) {
+            $approvedPoints = AttendancePoint::approved()->forCompany($company->id)->get();
+
+            if ($approvedPoints->isNotEmpty()) {
+                $locationValidation = $this->distanceService->findNearestPoint(
+                    $data['latitude'],
+                    $data['longitude'],
+                    $approvedPoints
+                );
+            } elseif ($company->hasLocation()) {
+                $locationValidation = $this->distanceService->validateLocation(
+                    $data['latitude'],
+                    $data['longitude'],
+                    $company->latitude,
+                    $company->longitude,
+                    $company->distance_threshold ?? 100
+                );
+            }
         }
 
         $logData = [
             'student_id' => $studentId,
-            'internship_id' => $data['internship_id'],
+            'internship_id' => $internship->id,
             'log_date' => $data['log_date'],
             'activities' => $data['activities'],
             'reflection' => $data['reflection'] ?? null,
@@ -108,6 +166,7 @@ class DailyLogController extends Controller
         if (isset($data['latitude'])) {
             $logData['latitude'] = $data['latitude'];
         }
+
         if (isset($data['longitude'])) {
             $logData['longitude'] = $data['longitude'];
         }
@@ -126,16 +185,18 @@ class DailyLogController extends Controller
         return response()->json($response, 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $log = DailyLog::with(['student', 'internship', 'teacher', 'comments.author'])->findOrFail($id);
+        $log = $this->scopeQuery($request)
+            ->with(['teacher', 'comments.author'])
+            ->findOrFail($id);
 
         return response()->json($log);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $log = DailyLog::findOrFail($id);
+        $log = $this->scopeQuery($request)->findOrFail($id);
 
         if (!$log->canEdit()) {
             return response()->json(['error' => 'Update window has expired (24 hours)'], 403);
@@ -157,9 +218,9 @@ class DailyLogController extends Controller
         return response()->json($log);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
-        $log = DailyLog::findOrFail($id);
+        $log = $this->scopeQuery($request)->findOrFail($id);
 
         if (!$log->canEdit()) {
             return response()->json(['error' => 'Delete window has expired (24 hours)'], 403);
@@ -172,15 +233,17 @@ class DailyLogController extends Controller
 
     public function addComment(Request $request, int $id): JsonResponse
     {
-        $log = DailyLog::findOrFail($id);
+        $log = $this->scopeQuery($request)->findOrFail($id);
 
         $data = $request->validate([
-            'teacher_comment' => 'required|string',
+            'teacher_comment' => 'required_without:comment|string',
+            'comment' => 'required_without:teacher_comment|string',
         ]);
 
-        $data['teacher_id'] = auth('api')->id();
-
-        $log->update($data);
+        $log->update([
+            'teacher_comment' => $data['teacher_comment'] ?? $data['comment'],
+            'teacher_id' => auth('api')->id(),
+        ]);
 
         return response()->json($log);
     }

@@ -19,15 +19,23 @@ class AdminController extends Controller
 
         $targetUser = User::findOrFail($data['user_id']);
 
-        // Check that target user role is one of: teacher, student, company_supervisor
-        if (!in_array($targetUser->role, ['teacher', 'student', 'company_supervisor'])) {
+        $requestingUser = $request->user();
+        $allowedRoles = ['teacher', 'student', 'company_supervisor'];
+
+        if ($requestingUser->isSuperAdmin()) {
+            $allowedRoles[] = 'school_admin';
+        }
+
+        if (!in_array($targetUser->role, $allowedRoles, true)) {
             return response()->json(['error' => 'Cannot reset password for users with this role'], 403);
         }
 
-        // Superadmin can reset any user; school_admin can only reset within their school
-        $requestingUser = $request->user();
-        if ($requestingUser->role !== 'superadmin' && $targetUser->school_id !== $requestingUser->school_id) {
+        if (!$requestingUser->isSuperAdmin() && $targetUser->school_id !== $requestingUser->school_id) {
             return response()->json(['error' => 'Can only reset passwords for users in the same school'], 403);
+        }
+
+        if (!$requestingUser->isSuperAdmin() && $targetUser->role === 'school_admin') {
+            return response()->json(['error' => 'Cannot reset password for school admin accounts'], 403);
         }
 
         // Reset the password

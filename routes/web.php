@@ -10,25 +10,7 @@ Route::get('/login', function () {
     return view('auth.login');
 });
 
-Route::get('/login/{role}', function (string $role) {
-    $roles = [
-        'student' => ['value' => 'student', 'label' => 'Siswa', 'icon' => 'school'],
-        'teacher' => ['value' => 'teacher', 'label' => 'Guru', 'icon' => 'history_edu'],
-        'supervisor' => ['value' => 'company_supervisor', 'label' => 'Pembimbing', 'icon' => 'business'],
-        'admin' => ['value' => 'school_admin', 'label' => 'Admin', 'icon' => 'admin_panel_settings'],
-    ];
-
-    if (!isset($roles[$role])) {
-        return redirect('/login');
-    }
-
-    return view('auth.login-role', [
-        'role' => $roles[$role]['value'],
-        'roleLabel' => $roles[$role]['label'],
-        'roleIcon' => $roles[$role]['icon'],
-        'roleSlug' => $role,
-    ]);
-});
+Route::redirect('/login/{role}', '/login');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -41,6 +23,7 @@ Route::get('/student/evaluations', fn() => view('student.evaluations'));
 Route::get('/student/permission-requests', fn() => view('student.permission-requests'));
 
 // Admin CRUD pages
+Route::get('/admin/school-admins', fn() => view('admin.school-admins'));
 Route::get('/admin/schools', fn() => view('admin.schools'));
 Route::get('/admin/classes', fn() => view('admin.classes'));
 Route::get('/admin/teachers', fn() => view('admin.teachers'));
@@ -57,6 +40,7 @@ Route::get('/admin/attendance-points', fn() => view('admin.attendance-points'));
 Route::get('/admin/assessment-templates', fn() => view('admin.assessment-templates'));
 
 // Supervisor pages
+Route::get('/supervisor/students/{id}', fn() => view('supervisor.student-detail'));
 Route::get('/supervisor/attendance-points', fn() => view('supervisor.attendance-points'));
 
 // Teacher pages

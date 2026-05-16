@@ -4,18 +4,35 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentTemplate;
+use App\Models\SchoolClass;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AssessmentTemplateController extends Controller
 {
+    private function resolveAccessibleClass(Request $request, int $classId): SchoolClass
+    {
+        $class = SchoolClass::findOrFail($classId);
+
+        if (!$class->belongsToAdminSchool($request->user())) {
+            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+        }
+
+        return $class;
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = AssessmentTemplate::with(['schoolClass', 'creator', 'sections']);
 
+        if (!$request->user()->isSuperAdmin()) {
+            $query->where('school_id', $request->user()->school_id);
+        }
+
         if ($request->has('class_id')) {
-            $query->where('class_id', $request->class_id);
+            $class = $this->resolveAccessibleClass($request, (int) $request->class_id);
+            $query->where('class_id', $class->id);
         }
 
         if ($request->has('academic_year')) {
@@ -49,8 +66,9 @@ class AssessmentTemplateController extends Controller
             'sections.*.indicators.*.children.*.order' => 'sometimes|integer',
         ]);
 
-        $template = DB::transaction(function () use ($data, $request) {
-            // Deactivate existing active template for this class
+        $class = $this->resolveAccessibleClass($request, $data['class_id']);
+
+        $template = DB::transaction(function () use ($data, $class) {
             AssessmentTemplate::where('class_id', $data['class_id'])
                 ->where('is_active', true)
                 ->update(['is_active' => false]);
@@ -58,6 +76,7 @@ class AssessmentTemplateController extends Controller
             $template = AssessmentTemplate::create([
                 'name' => $data['name'],
                 'class_id' => $data['class_id'],
+                'school_id' => $class->school_id,
                 'created_by' => auth('api')->id(),
                 'is_active' => true,
             ]);
@@ -73,20 +92,32 @@ class AssessmentTemplateController extends Controller
         );
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $template = AssessmentTemplate::with([
+        $query = AssessmentTemplate::with([
             'schoolClass',
             'creator',
             'sections.indicators.children',
-        ])->findOrFail($id);
+        ]);
+
+        if (!$request->user()->isSuperAdmin()) {
+            $query->where('school_id', $request->user()->school_id);
+        }
+
+        $template = $query->findOrFail($id);
 
         return response()->json($template);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $template = AssessmentTemplate::findOrFail($id);
+        $query = AssessmentTemplate::query();
+
+        if (!$request->user()->isSuperAdmin()) {
+            $query->where('school_id', $request->user()->school_id);
+        }
+
+        $template = $query->findOrFail($id);
 
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -126,9 +157,15 @@ class AssessmentTemplateController extends Controller
         );
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
-        $template = AssessmentTemplate::findOrFail($id);
+        $query = AssessmentTemplate::query();
+
+        if (!$request->user()->isSuperAdmin()) {
+            $query->where('school_id', $request->user()->school_id);
+        }
+
+        $template = $query->findOrFail($id);
         $template->delete();
 
         return response()->json(['message' => 'Assessment template deleted successfully']);

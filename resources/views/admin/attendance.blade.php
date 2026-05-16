@@ -146,7 +146,8 @@
     let students = [];
 
     async function loadStudents() {
-        const json = await apiFetch('/students');
+        const res = await apiFetch('/students');
+        const json = await res.json();
         students = Array.isArray(json.data) ? json.data : (json.data?.data || []);
 
         const filterSelect = document.getElementById('filter-student');
@@ -167,7 +168,8 @@
         if (startDate) params.append('start_date', startDate);
         if (endDate) params.append('end_date', endDate);
 
-        const json = await apiFetch(`/attendance?${params.toString()}`);
+        const res = await apiFetch(`/attendance?${params.toString()}`);
+        const json = await res.json();
         const items = Array.isArray(json.data) ? json.data : (json.data?.data || []);
 
         const tbody = document.getElementById('attendance-table-body');
@@ -204,7 +206,8 @@
     };
 
     window.openEditModal = async function (id) {
-        const json = await apiFetch(`/attendance/${id}`);
+        const res = await apiFetch(`/attendance/${id}`);
+        const json = await res.json();
         const item = json.data || json;
 
         document.getElementById('crud-id').value = item.id;

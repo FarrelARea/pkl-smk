@@ -121,6 +121,20 @@ class User extends Authenticatable implements JWTSubject
         return $this->role === 'superadmin';
     }
 
+    public function scopeAccessibleByAdmin($query, self $admin, string $column = 'school_id')
+    {
+        if ($admin->isSuperAdmin()) {
+            return $query;
+        }
+
+        return $query->where($column, $admin->school_id);
+    }
+
+    public function belongsToAdminSchool(self $admin): bool
+    {
+        return $admin->isSuperAdmin() || $this->school_id === $admin->school_id;
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'company_id');
@@ -179,9 +193,14 @@ class User extends Authenticatable implements JWTSubject
         }
 
         if ($this->isCompanySupervisor()) {
+            if (!$this->company_id) {
+                return collect();
+            }
+
             return User::where('role', 'student')
-                ->whereHas('supervisedInternships', function ($query) {
-                    $query->where('supervisor_id', $this->id);
+                ->whereHas('internships', function ($query) {
+                    $query->where('company_id', $this->company_id)
+                        ->where('status', 'active');
                 })
                 ->get();
         }

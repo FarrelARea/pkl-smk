@@ -16,7 +16,7 @@
             </ul>
         </x-help-button>
     </div>
-    <div class="flex gap-3">
+    <div id="dashboard-school-actions" class="flex gap-3">
         <a href="/admin/schools" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">add</span> Tambah Sekolah Baru
         </a>
@@ -25,7 +25,7 @@
 
 <!-- Stats Grid (Bento Style) -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-    <a href="/admin/schools" class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] col-span-1 border border-outline-variant/10 hover:shadow-lg transition-shadow block">
+    <a id="dashboard-schools-card" href="/admin/schools" class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] col-span-1 border border-outline-variant/10 hover:shadow-lg transition-shadow block">
         <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Total Sekolah</p>
         <div class="flex items-baseline gap-2">
             <span id="stat-schools" class="text-4xl font-extrabold text-primary">—</span>
@@ -66,7 +66,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Schools Table Section -->
-    <div class="lg:col-span-2 space-y-6">
+    <div id="dashboard-schools-section" class="lg:col-span-2 space-y-6">
         <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
             <div class="p-6 flex justify-between items-center bg-white border-b border-surface-container">
                 <h2 class="text-xl font-bold tracking-tight font-headline">Mitra Institusi</h2>
@@ -151,6 +151,35 @@
     let schoolsPage = 1;
     let schoolsSearch = '';
     let searchTimeout = null;
+    let currentAdminUser = null;
+
+    function toggleSchoolManagementUi() {
+        const schoolActions = document.getElementById('dashboard-school-actions');
+        const schoolsCard = document.getElementById('dashboard-schools-card');
+        const schoolsSection = document.getElementById('dashboard-schools-section');
+
+        if (currentAdminUser?.role === 'superadmin') {
+            schoolActions?.classList.remove('hidden');
+            schoolsCard?.classList.remove('hidden');
+            schoolsSection?.classList.remove('hidden');
+            return;
+        }
+
+        schoolActions?.classList.add('hidden');
+        schoolsCard?.classList.add('hidden');
+        schoolsSection?.classList.add('hidden');
+    }
+
+    async function initAdminDashboard() {
+        try {
+            const res = await Auth.apiFetch('/auth/me');
+            const data = await res.json();
+            currentAdminUser = data.data || data;
+            toggleSchoolManagementUi();
+        } catch (e) {
+            console.error('Failed to initialize admin dashboard', e);
+        }
+    }
 
     // ── Fetch a single count from paginated endpoint ──────
     async function fetchTotal(endpoint) {
@@ -337,9 +366,12 @@
     });
 
     // ── Init ──────────────────────────────────────────────
+    await initAdminDashboard();
     loadStats();
     loadTodayStats();
-    loadSchools();
+    if (currentAdminUser?.role === 'superadmin') {
+        loadSchools();
+    }
     loadRecentInternships();
 </script>
 @endpush

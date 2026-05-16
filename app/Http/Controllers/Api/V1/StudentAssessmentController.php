@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentTemplate;
+use App\Models\Internship;
 use App\Models\StudentAssessment;
+use App\Models\TeacherStudentAssignment;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,10 +16,15 @@ class StudentAssessmentController extends Controller
 {
     public function getOrInit(int $studentId): JsonResponse
     {
+        $user = auth('api')->user();
+
+        if (!$this->canAccessStudent($user, $studentId)) {
+            return response()->json(['error' => 'Murid tidak ada dalam tanggung jawab Anda.'], 403);
+        }
+
         $student = User::findOrFail($studentId);
 
-        // Find active internship for the student
-        $internship = $student->internships()->where('status', 'active')->first();
+        $internship = $this->resolveAccessibleInternship($user, $student);
 
         if (!$internship) {
             return response()->json(['message' => 'Student has no active internship'], 404);
@@ -59,6 +66,12 @@ class StudentAssessmentController extends Controller
 
     public function store(Request $request, int $studentId): JsonResponse
     {
+        $user = auth('api')->user();
+
+        if (!$this->canAccessStudent($user, $studentId)) {
+            return response()->json(['error' => 'Murid tidak ada dalam tanggung jawab Anda.'], 403);
+        }
+
         $data = $request->validate([
             'internship_id' => 'required|exists:internships,id',
             'scores' => 'required|array|min:1',
@@ -73,6 +86,13 @@ class StudentAssessmentController extends Controller
             'status' => 'required|in:draft,submitted',
         ]);
 
+        $student = User::findOrFail($studentId);
+        $internship = $this->resolveAccessibleInternship($user, $student);
+
+        if (!$internship || $internship->id !== (int) $data['internship_id']) {
+            return response()->json(['error' => 'Internship tidak valid untuk akses Anda.'], 403);
+        }
+
         // Check for existing assessment
         $existing = StudentAssessment::where('student_id', $studentId)
             ->where('internship_id', $data['internship_id'])
@@ -83,7 +103,6 @@ class StudentAssessmentController extends Controller
         }
 
         // Get and snapshot template
-        $student = User::findOrFail($studentId);
         $classId = $student->studentClasses()->first()?->id;
         $template = AssessmentTemplate::with('sections.indicators.children')
             ->where('class_id', $classId)
@@ -100,7 +119,8 @@ class StudentAssessmentController extends Controller
             $assessment = StudentAssessment::create([
                 'student_id' => $studentId,
                 'internship_id' => $data['internship_id'],
-                'teacher_id' => auth('api')->id(),
+                'teacher_id' => $user->isTeacher() ? $user->id : null,
+                'last_updated_by_id' => $user->id,
                 'template_snapshot' => $snapshot,
                 'teacher_notes' => $data['teacher_notes'] ?? null,
                 'teacher_checklist' => $data['teacher_checklist'] ?? null,
@@ -129,7 +149,12 @@ class StudentAssessmentController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
+        $user = auth('api')->user();
         $assessment = StudentAssessment::findOrFail($id);
+
+        if (!$this->canAccessStudent($user, $assessment->student_id)) {
+            return response()->json(['error' => 'Murid tidak ada dalam tanggung jawab Anda.'], 403);
+        }
 
         $data = $request->validate([
             'scores' => 'sometimes|array',
@@ -145,7 +170,11 @@ class StudentAssessmentController extends Controller
         ]);
 
         DB::transaction(function () use ($assessment, $data) {
-            $assessment->update(collect($data)->only(['teacher_notes', 'teacher_checklist', 'status'])->toArray());
+            $assessment->update([
+                ...collect($data)->only(['teacher_notes', 'teacher_checklist', 'status'])->toArray(),
+                'last_updated_by_id' => $user->id,
+                'teacher_id' => $assessment->teacher_id ?? ($user->isTeacher() ? $user->id : null),
+            ]);
 
             if (isset($data['scores'])) {
                 // Delete existing and re-create (upsert)
@@ -210,7 +239,7 @@ class StudentAssessmentController extends Controller
 
         return [
             'assessment' => $assessment->only([
-                'id', 'student_id', 'internship_id', 'teacher_id',
+                'id', 'student_id', 'internship_id', 'teacher_id', 'last_updated_by_id',
                 'template_snapshot', 'teacher_notes', 'teacher_checklist',
                 'status', 'created_at', 'updated_at',
             ]),
@@ -219,5 +248,38 @@ class StudentAssessmentController extends Controller
                 ? round($assessment->scores->avg('score'), 2)
                 : null,
         ];
+    }
+
+    private function canAccessStudent(User $user, int $studentId): bool
+    {
+        if ($user->isTeacher()) {
+            return TeacherStudentAssignment::where('teacher_id', $user->id)
+                ->where('student_id', $studentId)
+                ->exists();
+        }
+
+        if ($user->isCompanySupervisor()) {
+            return Internship::where('student_id', $studentId)
+                ->where('company_id', $user->company_id)
+                ->where('status', 'active')
+                ->exists();
+        }
+
+        return false;
+    }
+
+    private function resolveAccessibleInternship(User $user, User $student): ?Internship
+    {
+        $query = $student->internships()->where('status', 'active');
+
+        if ($user->isTeacher()) {
+            return $query->first();
+        }
+
+        if ($user->isCompanySupervisor()) {
+            return $query->where('company_id', $user->company_id)->first();
+        }
+
+        return null;
     }
 }

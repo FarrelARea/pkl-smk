@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -34,5 +35,19 @@ class SchoolClass extends Model
     public function students(): BelongsToMany
     {
         return $this->users()->wherePivot('role', 'student');
+    }
+
+    public function scopeAccessibleByAdmin($query, User $admin)
+    {
+        if ($admin->isSuperAdmin()) {
+            return $query;
+        }
+
+        return $query->where('school_id', $admin->school_id);
+    }
+
+    public function belongsToAdminSchool(User $admin): bool
+    {
+        return $admin->isSuperAdmin() || $this->school_id === $admin->school_id;
     }
 }

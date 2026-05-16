@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -13,6 +14,7 @@ class Company extends Model
 
     protected $fillable = [
         'name',
+        'school_id',
         'address',
         'industry',
         'phone',
@@ -50,6 +52,11 @@ class Company extends Model
         return implode(', ', $parts);
     }
 
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
     public function internships(): HasMany
     {
         return $this->hasMany(Internship::class);
@@ -69,5 +76,19 @@ class Company extends Model
     {
         return $this->belongsToMany(User::class, 'teacher_company_assignments', 'company_id', 'teacher_id')
             ->withTimestamps();
+    }
+
+    public function scopeAccessibleByAdmin($query, User $admin)
+    {
+        if ($admin->isSuperAdmin()) {
+            return $query;
+        }
+
+        return $query->where('school_id', $admin->school_id);
+    }
+
+    public function belongsToAdminSchool(User $admin): bool
+    {
+        return $admin->isSuperAdmin() || $this->school_id === $admin->school_id;
     }
 }

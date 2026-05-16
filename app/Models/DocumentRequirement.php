@@ -10,6 +10,7 @@ class DocumentRequirement extends Model
     protected $fillable = [
         'class_id',
         'teacher_id',
+        'school_id',
         'min_documents',
         'max_documents',
     ];
@@ -22,5 +23,10 @@ class DocumentRequirement extends Model
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
     }
 }

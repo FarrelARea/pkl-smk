@@ -124,7 +124,8 @@
         tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-on-surface-variant text-sm">Memuat...</td></tr>';
 
         try {
-            const json = await Auth.apiFetch(`/daily-logs?${params.toString()}`);
+            const res = await Auth.apiFetch(`/daily-logs?${params.toString()}`);
+            const json = await res.json();
             const items = Array.isArray(json.data) ? json.data : (json.data?.data || []);
 
             if (items.length === 0) {
@@ -135,7 +136,7 @@
             tbody.innerHTML = items.map(row => {
                 const id = row.id;
                 const studentName = row.student?.name || row.user?.name || 'Unknown';
-                const date = row.date || '-';
+                const date = row.log_date || row.date || '-';
                 const activities = row.activities || '';
                 const truncated = activities.length > 50 ? activities.substring(0, 50) + '...' : activities;
 
@@ -157,7 +158,8 @@
     async function viewDetail(id) {
         currentLogId = id;
         try {
-            const json = await Auth.apiFetch(`/daily-logs/${id}`);
+            const res = await Auth.apiFetch(`/daily-logs/${id}`);
+            const json = await res.json();
             const log = json.data || json;
 
             document.getElementById('detail-activities').textContent = log.activities || '-';

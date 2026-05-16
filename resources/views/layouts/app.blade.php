@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') — Academia Curator</title>
+    <title>@yield('title', 'Dashboard') — Simaskansa</title>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -13,7 +13,7 @@
 <body class="bg-surface text-on-surface">
     <!-- Simplified Top Navigation Bar -->
     <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0px_12px_32px_rgba(25,28,30,0.06)] flex items-center px-6 h-16">
-        <span class="text-xl font-bold text-slate-900 font-headline">Academia Curator</span>
+        <span class="text-xl font-bold text-slate-900 font-headline">Simaskansa</span>
         <!-- Mobile hamburger -->
         <button id="sidebar-toggle" class="ml-auto md:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-full">
             <span class="material-symbols-outlined">menu</span>
@@ -28,7 +28,7 @@
                     <span class="material-symbols-outlined">school</span>
                 </div>
                 <div>
-                    <h3 class="text-lg font-black text-blue-800 leading-tight">Curator Portal</h3>
+                    <h3 class="text-lg font-black text-blue-800 leading-tight">Simaskansa</h3>
                     <p class="text-xs text-slate-500">Manajemen Akademik</p>
                 </div>
             </div>
@@ -105,7 +105,11 @@
                     <span class="material-symbols-outlined text-sm chevron transition-transform duration-200">expand_more</span>
                 </button>
                 <div class="sidebar-group-content hidden">
-                    <a class="flex items-center gap-3 px-4 py-2 pl-8 {{ request()->is('admin/schools*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/schools">
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 superadmin-only hidden {{ request()->is('admin/school-admins*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/school-admins">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span>Admin Sekolah</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 pl-8 school-management-link {{ request()->is('admin/schools*') ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-200/50' }} cursor-pointer transition-all duration-200 hover:translate-x-1" href="/admin/schools">
                         <span class="material-symbols-outlined">account_balance</span>
                         <span>Sekolah</span>
                     </a>
@@ -249,20 +253,28 @@
         // Role-based menu filtering
         function updateMenuBasedOnRole(userRole) {
             const adminMenus = document.querySelectorAll('.admin-only');
+            const superadminMenus = document.querySelectorAll('.superadmin-only');
             const studentMenus = document.querySelectorAll('.student-only');
             const teacherMenus = document.querySelectorAll('.teacher-only');
             const supervisorMenus = document.querySelectorAll('.supervisor-only');
+            const schoolManagementLinks = document.querySelectorAll('.school-management-link');
 
-            // Hide all role-specific menus first
             adminMenus.forEach(menu => menu.classList.add('hidden'));
+            superadminMenus.forEach(menu => menu.classList.add('hidden'));
             studentMenus.forEach(menu => menu.classList.add('hidden'));
             teacherMenus.forEach(menu => menu.classList.add('hidden'));
             supervisorMenus.forEach(menu => menu.classList.add('hidden'));
+            schoolManagementLinks.forEach(link => link.classList.remove('hidden'));
 
             if (userRole === 'student') {
                 studentMenus.forEach(menu => menu.classList.remove('hidden'));
             } else if (userRole === 'school_admin' || userRole === 'superadmin') {
                 adminMenus.forEach(menu => menu.classList.remove('hidden'));
+                if (userRole === 'superadmin') {
+                    superadminMenus.forEach(menu => menu.classList.remove('hidden'));
+                } else {
+                    schoolManagementLinks.forEach(link => link.classList.add('hidden'));
+                }
             } else if (userRole === 'teacher') {
                 teacherMenus.forEach(menu => menu.classList.remove('hidden'));
             } else if (userRole === 'company_supervisor') {

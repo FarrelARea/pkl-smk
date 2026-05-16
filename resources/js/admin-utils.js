@@ -11,6 +11,9 @@ export function hideModal(id = 'crud-modal') {
     document.getElementById(id)?.classList.add('hidden');
 }
 
+export const openModal = showModal;
+export const closeModal = hideModal;
+
 // ── Toast ──────────────────────────────────────────────
 export function showToast(message, type = 'success') {
     const toast = document.createElement('div');
@@ -26,6 +29,15 @@ export function showToast(message, type = 'success') {
 // ── Confirm Delete ─────────────────────────────────────
 export function confirmDelete(name) {
     return confirm(`Yakin mau hapus "${name}"? Tindakan ini tidak bisa dibatalkan.`);
+}
+
+export function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // ── Render Table ───────────────────────────────────────
@@ -62,7 +74,7 @@ export function renderPagination(containerId, meta, onPageChange) {
     }
     buttons.push(`<button class="px-3 py-1.5 rounded-md text-xs font-bold ${current >= last ? 'text-outline cursor-not-allowed' : 'text-primary hover:bg-primary-fixed'}" data-page="${current + 1}" ${current >= last ? 'disabled' : ''}>Selanjutnya</button>`);
 
-    el.innerHTML = `<div class="flex items-center gap-1 justify-center py-4">${buttons.join('')}</div>`;
+    el.innerHTML = `<div data-help-target="pagination" class="flex items-center gap-1 justify-center py-4">${buttons.join('')}</div>`;
     el.querySelectorAll('button:not([disabled])').forEach(btn => {
         btn.addEventListener('click', () => onPageChange(parseInt(btn.dataset.page)));
     });
@@ -109,11 +121,13 @@ export function statusBadge(status) {
 
 // ── Action Buttons ─────────────────────────────────────
 export function editBtn(id) {
-    return `<button onclick="editItem(${id})" class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>`;
+    return `<button onclick="editItem(${id})" data-help-target="edit-action" class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>`;
 }
 
 export function deleteBtn(id, name) {
-    return `<button onclick="deleteItem(${id}, '${name.replace(/'/g, "\\'")}')" class="p-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>`;
+    return `<button onclick="deleteItem(${id}, '${name.replace(/'/g, "\\'")}')" data-help-target="delete-action" class="p-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>`;
 }
 
-window.AdminUtils = { showModal, hideModal, showToast, confirmDelete, renderTable, renderPagination, populateSelect, statusBadge, editBtn, deleteBtn };
+window.AdminUtils = { showModal, hideModal, openModal, closeModal, showToast, confirmDelete, escapeHtml, renderTable, renderPagination, populateSelect, statusBadge, editBtn, deleteBtn };
+window.openModal = openModal;
+window.closeModal = closeModal;

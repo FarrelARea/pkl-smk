@@ -5,7 +5,7 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'Internship API',
+                'title' => 'Simaskansa API',
             ],
 
             'routes' => [
