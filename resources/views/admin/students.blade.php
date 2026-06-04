@@ -24,6 +24,9 @@
     </div>
     <div data-help-target="header-actions" class="flex items-center gap-2">
         <div data-help-target="import-export" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
+            <button onclick="downloadTemplate()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">description</span> Template
+            </button>
             <button onclick="exportData()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">download</span> Export
             </button>
@@ -925,6 +928,28 @@
         }
     };
 
+    // ── Template ───────────────────────────────────────────
+    async function downloadTemplate() {
+        try {
+            const res = await fetch('/api/v1/import/students/template', {
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+            });
+            if (!res.ok) throw new Error('Download template failed');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'template-import-siswa.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            AdminUtils.showToast('Gagal download template', 'error');
+        }
+    }
+
     // ── Export/Import ──────────────────────────────────────
     async function exportData() {
         try {
@@ -979,6 +1004,11 @@
         
         input.value = '';
     }
+
+    // ── Global exports ─────────────────────────────────────
+    window.exportData = exportData;
+    window.importData = importData;
+    window.downloadTemplate = downloadTemplate;
 
     // ── Boot ──────────────────────────────────────────────
     init();

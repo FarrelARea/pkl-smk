@@ -13,16 +13,16 @@ class StudentsExport implements FromCollection, WithHeadings
         return User::where('role', 'student')->with(['school', 'classes'])->get()->map(function ($student) {
             $classNames = $student->classes->pluck('name')->join(', ');
             return [
-                'name' => $student->name,
-                'email' => $student->email,
-                'school_name' => $student->school->name ?? '',
-                'class_names' => $classNames,
+                'Nama Sekolah' => $student->school->name ?? '',
+                'Nama' => $student->name,
+                'Email' => $student->email,
+                'Nama Kelas' => $classNames,
             ];
         });
     }
 
     public function headings(): array
     {
-        return ['name', 'email', 'school_name', 'class_names'];
+        return ['Nama Sekolah', 'Nama', 'Email', 'Nama Kelas'];
     }
 }

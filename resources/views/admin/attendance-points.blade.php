@@ -20,6 +20,18 @@
             <li>Siswa akan otomatis dicocokan ke titik terdekat yang sudah disetujui</li>
         </ul>
     </x-help-button>
+    <div data-help-target="import-export" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
+        <button onclick="downloadTemplate()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">description</span> Template
+        </button>
+        <button onclick="exportData()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">download</span> Export
+        </button>
+        <label class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">upload</span> Import
+            <input type="file" id="import-file" accept=".xlsx,.xls" class="hidden" onchange="importData(this)">
+        </label>
+    </div>
 </header>
 
 <!-- Table card -->
@@ -335,5 +347,76 @@
             showToast('Terjadi kesalahan', 'error');
         }
     };
+
+    // ── Import/Export/Template ──────────────────────────────
+    window.exportData = exportData;
+    window.importData = importData;
+    window.downloadTemplate = downloadTemplate;
+
+    async function exportData() {
+        try {
+            const res = await fetch('/api/v1/export/attendance-points', {
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+            });
+            if (!res.ok) throw new Error('Export failed');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'titik-absensi.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            showToast('Gagal export titik absensi', 'error');
+        }
+    }
+
+    async function importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await fetch('/api/v1/import/attendance-points', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+                body: formData,
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || 'Import failed');
+            }
+            showToast('Titik absensi berhasil diimport');
+            loadData();
+        } catch (e) {
+            console.error(e);
+            showToast(e.message || 'Gagal import titik absensi', 'error');
+        }
+        input.value = '';
+    }
+
+    async function downloadTemplate() {
+        try {
+            const res = await fetch('/api/v1/import/attendance-points/template', {
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+            });
+            if (!res.ok) throw new Error('Download template failed');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'template-import-titik-absensi.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            showToast('Gagal download template', 'error');
+        }
+    }
 </script>
 @endpush

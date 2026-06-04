@@ -6,8 +6,9 @@ use App\Models\School;
 use App\Models\User;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
 
-class TeachersImport implements ToModel, WithHeadingRow
+class SchoolAdminsImport implements ToModel, WithHeadingRow, WithValidation
 {
     public function model(array $row)
     {
@@ -15,16 +16,23 @@ class TeachersImport implements ToModel, WithHeadingRow
             ['name' => $row['nama_sekolah']]
         );
 
-        $teacher = User::updateOrCreate(
+        return User::updateOrCreate(
             ['email' => $row['email']],
             [
                 'name' => $row['nama'],
-                'role' => 'teacher',
+                'role' => 'school_admin',
                 'school_id' => $school->id,
                 'password' => isset($row['password']) ? bcrypt($row['password']) : bcrypt('password'),
             ]
         );
+    }
 
-        return $teacher;
+    public function rules(): array
+    {
+        return [
+            'nama_sekolah' => 'required|string',
+            'nama' => 'required|string',
+            'email' => 'required|email',
+        ];
     }
 }
