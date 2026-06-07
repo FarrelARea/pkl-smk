@@ -5,7 +5,7 @@
 @section('content')
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Titik Absensi</h1>
+        <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Titik Absensi</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Kelola titik absensi untuk perusahaan yang Anda tangani. Titik yang Anda buat perlu disetujui admin sebelum bisa digunakan siswa.
         </p>
@@ -24,7 +24,7 @@
 <!-- Company selector -->
 <div class="mb-6">
     <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Pilih Perusahaan</label>
-    <select id="company-select" onchange="onCompanyChange()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary w-full max-w-sm">
+    <select id="company-select" onchange="onCompanyChange()" class="px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary w-full max-w-sm">
         <option value="">— Pilih perusahaan —</option>
     </select>
 </div>
@@ -70,11 +70,11 @@
 <div class="space-y-4">
     <div>
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Nama Titik <span class="text-red-500">*</span></label>
-        <input id="point-name" type="text" placeholder="cth. Gerbang Utama, Gudang B..." class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+        <input id="point-name" type="text" placeholder="cth. Gerbang Utama, Gudang B..." class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
     </div>
     <div>
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Radius (meter) <span class="text-red-500">*</span></label>
-        <input id="point-radius" type="number" value="50" min="1" max="10000" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+        <input id="point-radius" type="number" value="50" min="1" max="10000" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
     </div>
     <div>
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Lokasi <span class="text-red-500">*</span></label>
@@ -83,11 +83,11 @@
         <div class="flex gap-3">
             <div class="flex-1">
                 <label class="block text-[0.65rem] text-on-surface-variant mb-1">Latitude</label>
-                <input id="point-lat" type="number" step="any" placeholder="cth. -6.200000" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/20 rounded-lg text-xs focus:ring-2 focus:ring-primary" oninput="onCoordsInput()">
+                <input id="point-lat" type="number" step="any" placeholder="cth. -6.200000" class="w-full px-3 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-xs focus:ring-2 focus:ring-primary" oninput="onCoordsInput()">
             </div>
             <div class="flex-1">
                 <label class="block text-[0.65rem] text-on-surface-variant mb-1">Longitude</label>
-                <input id="point-lng" type="number" step="any" placeholder="cth. 106.816666" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/20 rounded-lg text-xs focus:ring-2 focus:ring-primary" oninput="onCoordsInput()">
+                <input id="point-lng" type="number" step="any" placeholder="cth. 106.816666" class="w-full px-3 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-xs focus:ring-2 focus:ring-primary" oninput="onCoordsInput()">
             </div>
             <div class="flex items-end pb-0.5">
                 <button type="button" onclick="useMyLocation()" title="Gunakan lokasi saya" class="px-3 py-2 bg-surface-container-high text-on-surface rounded-lg text-xs flex items-center gap-1 hover:bg-surface-container-highest transition-colors">

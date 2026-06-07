@@ -6,7 +6,7 @@
 <div class="space-y-6">
     {{-- Page Header --}}
     <div class="flex items-center gap-3">
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Daily Log</h1>
+        <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Daily Log</h1>
         <x-help-button title="Panduan Daily Log">
             <p>Di halaman ini kamu bisa memantau daily log siswa.</p>
             <ul class="list-disc pl-4 mt-2 space-y-1">
@@ -23,17 +23,17 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Siswa</label>
-                <select id="filter-student" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="filter-student" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Semua Siswa</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tanggal Mulai</label>
-                <input type="date" id="filter-start-date" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <input type="date" id="filter-start-date" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tanggal Selesai</label>
-                <input type="date" id="filter-end-date" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <input type="date" id="filter-end-date" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
             <div>
                 <button onclick="loadData()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">
@@ -79,7 +79,7 @@
         <hr class="border-outline-variant/20">
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tambah Komentar</label>
-            <textarea id="comment-text" rows="3" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Tulis komentar..."></textarea>
+            <textarea id="comment-text" rows="3" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Tulis komentar..."></textarea>
             <div class="mt-3 flex justify-end">
                 <button onclick="addComment()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">
                     Kirim Komentar

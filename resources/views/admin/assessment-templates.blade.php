@@ -7,7 +7,7 @@
     {{-- Page Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Template Penilaian</h1>
+            <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Template Penilaian</h1>
             <p class="text-sm text-on-surface-variant">Kelola template penilaian PKL per jurusan</p>
         </div>
         <x-help-button title="Panduan Template Penilaian">
@@ -28,13 +28,13 @@
     <div class="flex items-end gap-4 flex-wrap">
         <div class="w-48">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tahun Akademik</label>
-            <select id="filter-academic-year" onchange="onAcademicYearChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="filter-academic-year" onchange="onAcademicYearChange()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Semua</option>
             </select>
         </div>
         <div class="w-64">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Class / Jurusan</label>
-            <select id="filter-class" onchange="loadData()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="filter-class" onchange="loadData()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Semua Kelas</option>
             </select>
         </div>
@@ -80,11 +80,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Nama Template</label>
-                                <input type="text" id="form-name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="e.g. Observasi Penilaian AKL">
+                                <input type="text" id="form-name" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="e.g. Observasi Penilaian AKL">
                             </div>
                             <div>
                                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Class / Jurusan</label>
-                                <select id="form-class" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <select id="form-class" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                                     <option value="">Pilih Kelas</option>
                                 </select>
                             </div>

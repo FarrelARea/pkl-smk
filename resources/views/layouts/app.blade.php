@@ -9,26 +9,57 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        /* ── Sidebar Collapse ──────────────────────── */
+        /* Desktop: sidebar visible by default */
+        @media (min-width: 768px) {
+            #sidebar {
+                transform: translateX(0);
+            }
+            body.sidebar-collapsed #sidebar {
+                transform: translateX(-100%) !important;
+            }
+            body.sidebar-collapsed #main-content {
+                margin-left: 0 !important;
+            }
+            #main-content {
+                margin-left: 16rem;
+            }
+        }
+
+        /* ── Superadmin Background ─────────────────── */
+        body.superadmin-bg {
+            background: url('{{ asset('images/bg-main.png') }}') center / cover fixed no-repeat !important;
+        }
+        body.superadmin-bg #main-content {
+            background-color: transparent !important;
+        }
+        @media (max-width: 767px) {
+            body.superadmin-bg {
+                background: url('{{ asset('images/bg-mobile.png') }}') center / cover fixed no-repeat !important;
+            }
+        }
+    </style>
 </head>
 <body class="bg-surface text-on-surface">
     <!-- Simplified Top Navigation Bar -->
     <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0px_12px_32px_rgba(25,28,30,0.06)] flex items-center px-6 h-16">
-        <span class="text-xl font-bold text-slate-900 font-headline">Simaskansa</span>
-        <!-- Mobile hamburger -->
-        <button id="sidebar-toggle" class="ml-auto md:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-full">
-            <span class="material-symbols-outlined">menu</span>
+        <img src="{{ asset('images/logo-simaskansa-removed.png') }}" alt="Simaskansa" class="h-8 w-auto">
+        <!-- Sidebar toggle (desktop & mobile) -->
+        <button id="sidebar-toggle" class="ml-auto p-2 text-slate-500 hover:bg-slate-50 rounded-full cursor-pointer">
+            <span class="material-symbols-outlined">menu_open</span>
         </button>
     </nav>
 
     <!-- Side Navigation Bar -->
-    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 bg-slate-50 flex flex-col pt-20 pb-6 font-headline text-sm font-medium z-40 transition-transform duration-300 max-md:-translate-x-full max-md:shadow-2xl">
+    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 bg-slate-50 flex flex-col pt-20 pb-6 font-headline text-sm font-medium z-40 transition-transform duration-300 -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
         <div class="px-6 mb-6">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-white">
                     <span class="material-symbols-outlined">school</span>
                 </div>
                 <div>
-                    <h3 class="text-lg font-black text-blue-800 leading-tight">Simaskansa</h3>
+                    <img src="{{ asset('images/logo-simaskansa-removed.png') }}" alt="Simaskansa" class="h-8 w-auto">
                     <p class="text-xs text-slate-500">Manajemen Akademik</p>
                 </div>
             </div>
@@ -201,30 +232,56 @@
     </aside>
 
     <!-- Sidebar overlay for mobile -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-30 hidden md:hidden"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-30 hidden"></div>
 
     <!-- Main Content -->
-    <main class="ml-0 md:ml-64 pt-20 px-8 pb-12 min-h-screen">
+    <main id="main-content" class="ml-0 pt-20 px-8 pb-12 min-h-screen transition-all duration-300">
         @yield('content')
     </main>
 
     @vite(['resources/js/auth.js', 'resources/js/admin-utils.js'])
     @stack('scripts')
     <script>
-        // Sidebar toggle for mobile
-        const toggle = document.getElementById('sidebar-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        if (toggle && sidebar && overlay) {
+        // ── Sidebar Toggle (Desktop & Mobile) ─────
+        (function() {
+            const toggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const icon = toggle?.querySelector('.material-symbols-outlined');
+            if (!toggle || !sidebar) return;
+
+            const isDesktop = () => window.innerWidth >= 768;
+
+            function updateIcon() {
+                if (!icon) return;
+                if (isDesktop()) {
+                    icon.textContent = document.body.classList.contains('sidebar-collapsed') ? 'menu' : 'menu_open';
+                } else {
+                    icon.textContent = sidebar.classList.contains('-translate-x-full') ? 'menu' : 'close';
+                }
+            }
+
             toggle.addEventListener('click', () => {
-                sidebar.classList.toggle('max-md:-translate-x-full');
-                overlay.classList.toggle('hidden');
+                if (isDesktop()) {
+                    document.body.classList.toggle('sidebar-collapsed');
+                    updateIcon();
+                } else {
+                    sidebar.classList.toggle('-translate-x-full');
+                    overlay?.classList.toggle('hidden');
+                    updateIcon();
+                }
             });
-            overlay.addEventListener('click', () => {
-                sidebar.classList.add('max-md:-translate-x-full');
+
+            overlay?.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
+                updateIcon();
             });
-        }
+
+            // Sync icon on resize
+            window.addEventListener('resize', updateIcon);
+            updateIcon();
+        })();
 
         // Collapsible sidebar groups
         document.querySelectorAll('.sidebar-group-header').forEach(header => {
@@ -265,6 +322,13 @@
             teacherMenus.forEach(menu => menu.classList.add('hidden'));
             supervisorMenus.forEach(menu => menu.classList.add('hidden'));
             schoolManagementLinks.forEach(link => link.classList.remove('hidden'));
+
+            // Superadmin background
+            if (userRole === 'superadmin') {
+                document.body.classList.add('superadmin-bg');
+            } else {
+                document.body.classList.remove('superadmin-bg');
+            }
 
             if (userRole === 'student') {
                 studentMenus.forEach(menu => menu.classList.remove('hidden'));

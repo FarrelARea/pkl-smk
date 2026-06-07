@@ -7,7 +7,7 @@
     {{-- Page Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 data-help-target="page-title" class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Kelas</h1>
+            <h1 data-help-target="page-title" class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Kelas</h1>
         </div>
     <div data-help-target="header-actions" class="flex items-center gap-2">
         <x-help-button title="Panduan Manajemen Kelas">
@@ -41,18 +41,18 @@
     <div data-help-target="filter-bar" class="flex items-end gap-4 flex-wrap">
         <div data-help-target="search-field">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari</label>
-            <input type="text" id="filter-search" placeholder="Nama kelas..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
+            <input type="text" id="filter-search" placeholder="Nama kelas..." class="px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
         </div>
         <div id="filter-school-group" class="w-64">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
-            <select id="filter-school" onchange="loadData()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="filter-school" onchange="loadData()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Semua Sekolah</option>
             </select>
-            <p id="filter-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
+            <p id="filter-school-locked" class="hidden w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
         </div>
         <div data-help-target="per-page-field">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Halaman</label>
-            <select id="filter-per-page" onchange="loadData()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="filter-per-page" onchange="loadData()" class="px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="15">15</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
@@ -90,18 +90,18 @@
         <div class="space-y-4">
             <div>
                 <label for="form-name" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Nama</label>
-                <input type="text" id="form-name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Nama kelas">
+                <input type="text" id="form-name" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Nama kelas">
             </div>
             <div>
                 <label for="form-academic-year" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tahun Akademik</label>
-                <input type="text" id="form-academic-year" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="2025/2026" maxlength="9">
+                <input type="text" id="form-academic-year" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="2025/2026" maxlength="9">
             </div>
             <div>
                 <label for="form-school" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
-                <select id="form-school" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="form-school" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Pilih Sekolah</option>
                 </select>
-                <p id="form-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
+                <p id="form-school-locked" class="hidden w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
             </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">

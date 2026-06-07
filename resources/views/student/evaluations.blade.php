@@ -6,7 +6,7 @@
 <div class="space-y-6">
     {{-- Judul --}}
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Penilaian & Dokumen</h1>
+        <h1 class="text-[26px] font-bold text-gray-900">Penilaian & Dokumen</h1>
             <x-help-button title="Panduan Penilaian & Dokumen">
                 <p>Di halaman ini kamu bisa mengelola dokumen evaluasi selama magang.</p>
                 <ul class="list-disc pl-4 mt-2 space-y-1">
@@ -49,7 +49,7 @@
         <div class="p-6 space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Judul Dokumen <span class="text-red-500">*</span></label>
-                <input type="text" id="doc-title" placeholder="Contoh: Laporan Minggu 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                <input type="text" id="doc-title" placeholder="Contoh: Laporan Minggu 1" class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">File (PDF, DOC, DOCX, maks. 10MB) <span class="text-red-500">*</span></label>

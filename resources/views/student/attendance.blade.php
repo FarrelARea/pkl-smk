@@ -6,7 +6,7 @@
 <div class="space-y-6">
     {{-- Judul --}}
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Riwayat Kehadiran</h1>
+        <h1 class="text-[26px] font-bold text-gray-900">Riwayat Kehadiran</h1>
             <x-help-button title="Panduan Riwayat Kehadiran">
                 <p>Di halaman ini kamu bisa melihat riwayat kehadiran selama magang.</p>
                 <ul class="list-disc pl-4 mt-2 space-y-1">

@@ -6,7 +6,7 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Titik Absensi</h1>
+        <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Titik Absensi</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Tinjau dan setujui titik absensi yang diajukan oleh guru atau pembimbing lapangan.
         </p>
@@ -43,12 +43,12 @@
             <!-- Search -->
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-52 transition-all" placeholder="Cari nama atau perusahaan..." type="text">
+                <input id="search-input" class="pl-11 pr-4 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-52 transition-all" placeholder="Cari nama atau perusahaan..." type="text">
             </div>
             <!-- Status filter -->
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Status</label>
-                <select id="filter-status" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
+                <select id="filter-status" class="px-3 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
                     <option value="">Semua</option>
                     <option value="pending">Menunggu</option>
                     <option value="approved">Disetujui</option>
@@ -58,19 +58,19 @@
             <!-- Company filter -->
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Perusahaan</label>
-                <select id="filter-company" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
+                <select id="filter-company" class="px-3 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
                     <option value="">Semua</option>
                 </select>
             </div>
             <!-- Date from -->
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Dari Tanggal</label>
-                <input id="filter-date-from" type="date" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
+                <input id="filter-date-from" type="date" class="px-3 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
             </div>
             <!-- Date to -->
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Sampai Tanggal</label>
-                <input id="filter-date-to" type="date" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
+                <input id="filter-date-to" type="date" class="px-3 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
             </div>
             <!-- Reset -->
             <button onclick="resetFilters()" class="px-3 py-2 bg-surface-container-high text-on-surface-variant rounded-lg text-sm hover:bg-surface-container-highest transition-colors flex items-center gap-1">

@@ -408,7 +408,7 @@
                     <div>
                         <p class="text-sm text-gray-500">Pilih tanggal untuk melihat siapa yang tercatat hadir.</p>
                     </div>
-                    <input type="date" id="teacher-attendance-date" value="${selectedDate}" onchange="changeTeacherAttendanceDate(this.value)" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                    <input type="date" id="teacher-attendance-date" value="${selectedDate}" onchange="changeTeacherAttendanceDate(this.value)" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
                     ${attendance.filter(item => item.status === 'present').length} siswa hadir dari ${attendance.length} data kehadiran yang tercatat.

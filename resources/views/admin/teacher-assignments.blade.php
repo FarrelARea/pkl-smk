@@ -6,7 +6,7 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Penugasan Guru</h1>
+        <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Penugasan Guru</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Tentukan guru yang bertanggung jawab atas murid tertentu.
         </p>
@@ -45,11 +45,11 @@
         <div class="flex flex-wrap gap-3 items-end">
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                <input id="search-input" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-56 transition-all" placeholder="Cari guru atau murid..." type="text">
+                <input id="search-input" class="pl-11 pr-4 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-56 transition-all" placeholder="Cari guru atau murid..." type="text">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Filter Guru</label>
-                <select id="filter-teacher" class="px-3 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
+                <select id="filter-teacher" class="px-3 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all">
                     <option value="">Semua Guru</option>
                 </select>
             </div>
@@ -81,7 +81,7 @@
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Guru <span class="text-red-500">*</span></label>
         <div class="relative mb-1">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-            <input id="teacher-search" type="text" placeholder="Cari guru..." class="w-full pl-9 pr-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+            <input id="teacher-search" type="text" placeholder="Cari guru..." class="w-full pl-9 pr-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
         </div>
         <div id="teacher-list" class="max-h-40 overflow-y-auto border border-outline-variant/20 rounded-lg divide-y divide-surface-container">
             <p class="px-3 py-2 text-xs text-outline">Memuat...</p>
@@ -95,7 +95,7 @@
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Murid <span class="text-red-500">*</span> <span class="text-outline font-normal normal-case">(bisa pilih lebih dari satu)</span></label>
         <div class="relative mb-1">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-            <input id="student-search" type="text" placeholder="Cari murid..." class="w-full pl-9 pr-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+            <input id="student-search" type="text" placeholder="Cari murid..." class="w-full pl-9 pr-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary">
         </div>
         <div class="flex items-center gap-3 mb-1">
             <button type="button" onclick="selectAllStudents()" class="text-xs text-primary hover:underline">Pilih Semua</button>
