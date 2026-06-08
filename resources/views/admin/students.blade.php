@@ -6,7 +6,7 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 data-help-target="page-title" class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Siswa</h1>
+        <h1 data-help-target="page-title" class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Siswa</h1>
         <x-help-button title="Panduan Manajemen Siswa">
             <p>Di halaman ini kamu bisa mengelola semua data siswa.</p>
             <ul class="list-disc pl-4 mt-2 space-y-1">
@@ -24,6 +24,9 @@
     </div>
     <div data-help-target="header-actions" class="flex items-center gap-2">
         <div data-help-target="import-export" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
+            <button onclick="downloadTemplate()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">description</span> Template
+            </button>
             <button onclick="exportData()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">download</span> Export
             </button>
@@ -42,24 +45,24 @@
 <div data-help-target="filter-bar" class="flex gap-4 mb-8 flex-wrap items-end">
     <div data-help-target="search-field">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari</label>
-        <input type="text" id="filter-search" placeholder="Nama atau Email..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
+        <input type="text" id="filter-search" placeholder="Nama atau Email..." class="px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
     </div>
     <div id="filter-school-group" class="w-64">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
-        <select id="filter-school" onchange="onSchoolFilterChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <select id="filter-school" onchange="onSchoolFilterChange()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="">Semua Sekolah</option>
         </select>
-        <p id="filter-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
+        <p id="filter-school-locked" class="hidden w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
     </div>
     <div class="w-64">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas</label>
-        <select id="filter-class" onchange="loadStudents()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <select id="filter-class" onchange="loadStudents()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="">Semua Kelas</option>
         </select>
     </div>
     <div data-help-target="per-page-field">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Halaman</label>
-        <select id="filter-per-page" onchange="loadStudents()" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <select id="filter-per-page" onchange="loadStudents()" class="px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="15">15</option>
             <option value="25">25</option>
             <option value="50">50</option>
@@ -96,28 +99,28 @@
         <input type="hidden" id="edit-id" value="">
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Nama</label>
-            <input type="text" id="field-name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <input type="text" id="field-name" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
         </div>
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Email</label>
-            <input type="email" id="field-email" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <input type="email" id="field-email" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
         </div>
         <div id="password-field">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Password</label>
-            <input type="password" id="field-password" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" minlength="6">
+            <input type="password" id="field-password" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" minlength="6">
         </div>
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Sekolah</label>
-            <select id="field-school" onchange="onModalSchoolChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="field-school" onchange="onModalSchoolChange()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Pilih sekolah...</option>
             </select>
-            <p id="field-school-locked" class="hidden w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
+            <p id="field-school-locked" class="hidden w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm text-on-surface"></p>
         </div>
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas <span class="text-error">*</span></label>
             <input type="hidden" id="field-class" value="">
             <div class="relative">
-                <input type="text" id="class-search" placeholder="Cari kelas..." class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" oninput="filterClassDropdown()">
+                <input type="text" id="class-search" placeholder="Cari kelas..." class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" oninput="filterClassDropdown()">
                 <div id="class-dropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-surface-container-low border border-outline-variant/20 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
                     <p class="text-xs text-outline p-3">Pilih kelas...</p>
                 </div>
@@ -137,11 +140,11 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Password Baru</label>
-                <input id="reset-password-field" type="password" required minlength="6" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <input id="reset-password-field" type="password" required minlength="6" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Konfirmasi Password</label>
-                <input id="reset-password-confirm-field" type="password" required minlength="6" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <input id="reset-password-confirm-field" type="password" required minlength="6" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" onclick="AdminUtils.hideModal('reset-password-modal')" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">Batal</button>
@@ -157,7 +160,7 @@
         <input type="hidden" id="assign-student-id" value="">
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari Kelas</label>
-            <input type="text" id="assign-class-search" placeholder="Cari kelas..." class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-3" oninput="filterAssignClassList()">
+            <input type="text" id="assign-class-search" placeholder="Cari kelas..." class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-3" oninput="filterAssignClassList()">
         </div>
         <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Pilih Kelas</label>
@@ -925,6 +928,28 @@
         }
     };
 
+    // ── Template ───────────────────────────────────────────
+    async function downloadTemplate() {
+        try {
+            const res = await fetch('/api/v1/import/students/template', {
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+            });
+            if (!res.ok) throw new Error('Download template failed');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'template-import-siswa.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            AdminUtils.showToast('Gagal download template', 'error');
+        }
+    }
+
     // ── Export/Import ──────────────────────────────────────
     async function exportData() {
         try {
@@ -979,6 +1004,11 @@
         
         input.value = '';
     }
+
+    // ── Global exports ─────────────────────────────────────
+    window.exportData = exportData;
+    window.importData = importData;
+    window.downloadTemplate = downloadTemplate;
 
     // ── Boot ──────────────────────────────────────────────
     init();

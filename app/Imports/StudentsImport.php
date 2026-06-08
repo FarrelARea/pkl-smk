@@ -12,24 +12,22 @@ class StudentsImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
-        $school = School::where('name', $row['school_name'])->first();
-        
-        if (!$school) {
-            $school = School::create(['name' => $row['school_name']]);
-        }
+        $school = School::firstOrCreate(
+            ['name' => $row['nama_sekolah']]
+        );
 
         $student = User::updateOrCreate(
             ['email' => $row['email']],
             [
-                'name' => $row['name'],
+                'name' => $row['nama'],
                 'role' => 'student',
                 'school_id' => $school->id,
                 'password' => isset($row['password']) ? bcrypt($row['password']) : bcrypt('password'),
             ]
         );
 
-        if (!empty($row['class_names'])) {
-            $classNames = explode(',', $row['class_names']);
+        if (!empty($row['nama_kelas'])) {
+            $classNames = explode(',', $row['nama_kelas']);
             foreach ($classNames as $className) {
                 $className = trim($className);
                 $class = SchoolClass::firstOrCreate(

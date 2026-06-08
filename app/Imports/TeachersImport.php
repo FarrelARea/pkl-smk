@@ -11,16 +11,14 @@ class TeachersImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
-        $school = School::where('name', $row['school_name'])->first();
-        
-        if (!$school) {
-            $school = School::create(['name' => $row['school_name']]);
-        }
+        $school = School::firstOrCreate(
+            ['name' => $row['nama_sekolah']]
+        );
 
         $teacher = User::updateOrCreate(
             ['email' => $row['email']],
             [
-                'name' => $row['name'],
+                'name' => $row['nama'],
                 'role' => 'teacher',
                 'school_id' => $school->id,
                 'password' => isset($row['password']) ? bcrypt($row['password']) : bcrypt('password'),

@@ -7,7 +7,7 @@
     {{-- Page Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Rekap Penilaian PKL</h1>
+            <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Rekap Penilaian PKL</h1>
             <p class="text-sm text-on-surface-variant">Lihat dan export data penilaian terstruktur per jurusan</p>
         </div>
         <x-help-button title="Panduan Rekap Penilaian">
@@ -28,13 +28,13 @@
     <div class="flex items-end gap-4 flex-wrap">
         <div class="w-64">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Kelas / Jurusan</label>
-            <select id="filter-class" onchange="loadRecap()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="filter-class" onchange="loadRecap()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Semua Kelas</option>
             </select>
         </div>
         <div class="w-48">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Status</label>
-            <select id="filter-status" onchange="loadRecap()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="filter-status" onchange="loadRecap()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Semua</option>
                 <option value="submitted">Submitted</option>
                 <option value="draft">Draft</option>
@@ -42,7 +42,7 @@
         </div>
         <div class="w-48">
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tahun Akademik</label>
-            <select id="filter-academic-year" onchange="onAcademicYearChange()" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="filter-academic-year" onchange="onAcademicYearChange()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Semua</option>
             </select>
         </div>

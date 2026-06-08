@@ -1,7 +1,12 @@
 <!-- Header Section -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Ringkasan Sistem</h1>
+        <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight font-headline">Ringkasan Sistem</h1>
+            <span class="superadmin-only hidden px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-[0.6rem] font-bold uppercase tracking-widest border border-primary-fixed-dim">
+                Superadmin
+            </span>
+        </div>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Kelola kemitraan institusi dan pantau metrik magang di seluruh jaringan.
         </p>
@@ -72,7 +77,7 @@
                 <h2 class="text-xl font-bold tracking-tight font-headline">Mitra Institusi</h2>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                    <input id="school-search" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Cari sekolah..." type="text">
+                    <input id="school-search" class="pl-11 pr-4 py-1.5 h-8 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Cari sekolah..." type="text">
                 </div>
             </div>
             <table class="w-full text-left border-collapse">

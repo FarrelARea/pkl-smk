@@ -4,21 +4,47 @@
 
 @section('content')
 <div id="dashboard-loading" class="flex items-center justify-center py-20">
-    <div class="text-center">
-        <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-[0px_12px_32px_rgba(25,28,30,0.04)] px-12 py-10 text-center max-w-sm w-full">
+        <svg class="animate-spin h-10 w-10 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
         </svg>
-        <p class="text-gray-500">Memuat dashboard...</p>
+        <p class="text-on-surface-variant text-sm font-medium">Memuat dashboard...</p>
     </div>
 </div>
 
-<div id="dashboard-error" class="hidden py-20 text-center">
-    <p class="text-red-600 mb-4" id="error-text">Gagal memuat data.</p>
-    <button onclick="loadDashboard()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">Coba Lagi</button>
+<div id="dashboard-error" class="hidden py-20">
+    <div class="mx-auto max-w-sm w-full bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-[0px_12px_32px_rgba(25,28,30,0.04)] px-12 py-10 text-center">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-error-container">
+            <span class="material-symbols-outlined text-3xl text-error">error_outline</span>
+        </div>
+        <p class="text-on-surface-variant text-sm font-medium mb-6" id="error-text">Gagal memuat data.</p>
+        <button onclick="loadDashboard()" class="primary-gradient px-5 py-2.5 text-white rounded-xl font-bold text-xs uppercase tracking-wider active:scale-95 transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30">
+            <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">refresh</span>
+                Coba Lagi
+            </span>
+        </button>
+    </div>
 </div>
 
-<div id="dashboard-content" class="hidden">
+<div id="dashboard-content" class="hidden relative">
+    {{-- Decorative background accent for admin/superadmin --}}
+    <div class="absolute -top-6 right-0 pointer-events-none select-none opacity-[0.03] dark:opacity-[0.06]">
+        <svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="160" cy="160" r="150" stroke="currentColor" stroke-width="1" stroke-dasharray="4 8"/>
+            <circle cx="160" cy="160" r="100" stroke="currentColor" stroke-width="1" stroke-dasharray="4 8"/>
+            <circle cx="160" cy="160" r="50" stroke="currentColor" stroke-width="1" stroke-dasharray="4 8"/>
+            <path d="M200 100L240 120L200 140L180 120L200 100Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+    </div>
+    <div class="absolute -bottom-4 left-0 pointer-events-none select-none opacity-[0.02] dark:opacity-[0.04] rotate-45">
+        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 80L100 60L140 80L120 120L80 120L60 80Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M100 60L100 20" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>
+        </svg>
+    </div>
+
     {{-- Admin Dashboard --}}
     <div id="dashboard-admin" class="hidden">
         @include('dashboard.admin')

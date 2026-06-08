@@ -76,7 +76,7 @@
                 <div class="mt-4 border-t border-gray-100 pt-4">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Catatan Guru Pembimbing</label>
                     <textarea id="assessment-teacher-notes" rows="2" placeholder="Catatan penilaian..."
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"></textarea>
+class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"></textarea>
                 </div>
 
                 <div id="eval-error" class="hidden mt-2 text-sm text-red-600"></div>
@@ -103,16 +103,16 @@
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nilai</label>
-                    <input id="evaluation-score" type="number" min="0" max="100" placeholder="0-100" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                    <input id="evaluation-score" type="number" min="0" max="100" placeholder="0-100" class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Perusahaan</label>
-                    <input id="evaluation-company" type="text" disabled class="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500">
+                    <input id="evaluation-company" type="text" disabled class="w-full px-3 py-1.5 h-8 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500">
                 </div>
             </div>
             <div class="mt-4">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Catatan Evaluasi</label>
-                <textarea id="evaluation-comments" rows="5" placeholder="Tulis evaluasi singkat..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"></textarea>
+                <textarea id="evaluation-comments" rows="5" placeholder="Tulis evaluasi singkat..." class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"></textarea>
             </div>
             <div id="simple-eval-error" class="hidden mt-2 text-sm text-red-600"></div>
             <div id="simple-eval-success" class="hidden mt-2 text-sm text-green-600"></div>

@@ -11,10 +11,10 @@ class SchoolsImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         return School::updateOrCreate(
-            ['name' => $row['name']],
+            ['name' => $row['nama']],
             [
-                'address' => $row['address'] ?? null,
-                'phone' => $row['phone'] ?? null,
+                'address' => $row['alamat'] ?? null,
+                'phone' => $row['telepon'] ?? null,
                 'email' => $row['email'] ?? null,
             ]
         );

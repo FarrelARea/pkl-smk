@@ -11,19 +11,17 @@ class ClassesImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
-        $school = School::where('name', $row['school_name'])->first();
-        
-        if (!$school) {
-            $school = School::create(['name' => $row['school_name']]);
-        }
+        $school = School::firstOrCreate(
+            ['name' => $row['nama_sekolah']]
+        );
 
         return SchoolClass::updateOrCreate(
             [
-                'name' => $row['name'],
+                'name' => $row['nama'],
                 'school_id' => $school->id,
             ],
             [
-                'academic_year' => $row['academic_year'] ?? null,
+                'academic_year' => $row['tahun_ajaran'] ?? null,
             ]
         );
     }

@@ -12,16 +12,16 @@ class SchoolsExport implements FromCollection, WithHeadings
     {
         return School::all()->map(function ($school) {
             return [
-                'name' => $school->name,
-                'address' => $school->address,
-                'phone' => $school->phone,
-                'email' => $school->email,
+                'Nama' => $school->name,
+                'Alamat' => $school->address,
+                'Telepon' => $school->phone,
+                'Email' => $school->email,
             ];
         });
     }
 
     public function headings(): array
     {
-        return ['name', 'address', 'phone', 'email'];
+        return ['Nama', 'Alamat', 'Telepon', 'Email'];
     }
 }

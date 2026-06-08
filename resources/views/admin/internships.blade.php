@@ -6,7 +6,7 @@
 <!-- Header -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Magang</h1>
+        <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Magang</h1>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Kelola penugasan magang antara siswa, perusahaan, dan pembimbing.
         </p>
@@ -20,8 +20,20 @@
             <li>Filter berdasarkan siswa, perusahaan, atau status</li>
         </ul>
     </x-help-button>
-    <div>
-        <button onclick="openBatchModal()" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2 mr-3">
+    <div class="flex items-center gap-2">
+        <div data-help-target="import-export" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-md">
+            <button onclick="downloadTemplate()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">description</span> Template
+            </button>
+            <button onclick="exportData()" class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">download</span> Export
+            </button>
+            <label class="px-3 py-1.5 text-on-surface font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+                <span class="material-symbols-outlined text-sm">upload</span> Import
+                <input type="file" id="import-file" accept=".xlsx,.xls" class="hidden" onchange="importData(this)">
+            </label>
+        </div>
+        <button onclick="openBatchModal()" class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">group_add</span> Tetapkan Massal
         </button>
         <button onclick="openCreateModal()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider active:scale-95 transition-all flex items-center gap-2">
@@ -34,23 +46,23 @@
 <div class="mb-6 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari</label>
-        <input type="text" id="filter-search" placeholder="Nama siswa..." class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
+        <input type="text" id="filter-search" placeholder="Nama siswa..." class="px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onkeyup="debounceSearch()">
     </div>
     <div class="w-56">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-student">Siswa</label>
-        <select id="filter-student" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <select id="filter-student" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="">Semua Siswa</option>
         </select>
     </div>
     <div class="w-56">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-company">Perusahaan</label>
-        <select id="filter-company" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <select id="filter-company" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="">Semua Perusahaan</option>
         </select>
     </div>
     <div class="w-48">
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="filter-status">Status</label>
-        <select id="filter-status" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <select id="filter-status" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="">Semua Status</option>
             <option value="active">Aktif</option>
             <option value="completed">Selesai</option>
@@ -59,7 +71,7 @@
     </div>
     <div>
         <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Per Page</label>
-        <select id="filter-per-page" onchange="loadData(1)" class="px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <select id="filter-per-page" onchange="loadData(1)" class="px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="15">15</option>
             <option value="25">25</option>
             <option value="50">50</option>
@@ -101,37 +113,37 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Cari Siswa</label>
-                <input type="text" id="field-student-search" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-2" placeholder="Ketik nama siswa..." oninput="filterStudentDropdown()">
+                <input type="text" id="field-student-search" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent mb-2" placeholder="Ketik nama siswa..." oninput="filterStudentDropdown()">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-student_id">Siswa</label>
-                <select id="field-student_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="field-student_id" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Pilih Siswa</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-company_id">Perusahaan</label>
-                <select id="field-company_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="field-company_id" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Pilih Perusahaan</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-supervisor_id">Pembimbing</label>
-                <select id="field-supervisor_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="field-supervisor_id" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Pilih Pembimbing</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-start_date">Tanggal Mulai</label>
-                <input id="field-start_date" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
+                <input id="field-start_date" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-end_date">Tanggal Selesai</label>
-                <input id="field-end_date" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
+                <input id="field-end_date" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-status">Status</label>
-                <select id="field-status" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="field-status" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="active">Aktif</option>
                     <option value="completed">Selesai</option>
                     <option value="cancelled">Dibatalkan</option>
@@ -151,27 +163,27 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-company_id">Perusahaan</label>
-                <select id="batch-company_id" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onchange="loadCompanySupervisors()">
+                <select id="batch-company_id" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onchange="loadCompanySupervisors()">
                     <option value="">Pilih Perusahaan</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-supervisor_id">Pembimbing</label>
-                <select id="batch-supervisor_id" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="batch-supervisor_id" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Pilih Pembimbing</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-start_date">Tanggal Mulai</label>
-                <input id="batch-start_date" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
+                <input id="batch-start_date" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-end_date">Tanggal Selesai</label>
-                <input id="batch-end_date" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
+                <input id="batch-end_date" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="batch-student-search">Cari Siswa</label>
-                <input type="text" id="batch-student-search" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Ketik untuk mencari siswa..." oninput="filterStudents()">
+                <input type="text" id="batch-student-search" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Ketik untuk mencari siswa..." oninput="filterStudents()">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
@@ -616,6 +628,77 @@
     window.toggleStudent = toggleStudent;
     window.submitBatch = submitBatch;
     window.endInternship = endInternship;
+
+    // ── Import/Export/Template ──────────────────────────────
+    window.exportData = exportData;
+    window.importData = importData;
+    window.downloadTemplate = downloadTemplate;
+
+    async function exportData() {
+        try {
+            const res = await fetch('/api/v1/export/internships', {
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+            });
+            if (!res.ok) throw new Error('Export failed');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'magang.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            showToast('Gagal export magang', 'error');
+        }
+    }
+
+    async function importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await fetch('/api/v1/import/internships', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+                body: formData,
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || 'Import failed');
+            }
+            showToast('Magang berhasil diimport');
+            loadData();
+        } catch (e) {
+            console.error(e);
+            showToast(e.message || 'Gagal import magang', 'error');
+        }
+        input.value = '';
+    }
+
+    async function downloadTemplate() {
+        try {
+            const res = await fetch('/api/v1/import/internships/template', {
+                headers: { 'Authorization': 'Bearer ' + Auth.getToken() },
+            });
+            if (!res.ok) throw new Error('Download template failed');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'template-import-magang.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            showToast('Gagal download template', 'error');
+        }
+    }
 
     // ── Init ─────────────────────────────────────────────
     await loadDropdowns();

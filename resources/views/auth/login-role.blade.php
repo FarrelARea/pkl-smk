@@ -48,7 +48,7 @@
                     <label class="font-label text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant ml-1" for="email">Email</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
-                        <input class="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3 bg-surface-container-highest border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-outline/60 text-sm" id="email" placeholder="nama@institusi.ac.id" type="email" inputmode="email" autocomplete="email" required>
+                        <input class="w-full pl-12 sm:pl-14 pr-4 py-1.5 h-8 bg-surface-container-highest border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-outline/60 text-sm" id="email" placeholder="nama@institusi.ac.id" type="email" inputmode="email" autocomplete="email" required>
                     </div>
                 </div>
                 <div class="space-y-1.5" data-help-target="password-field">
@@ -58,7 +58,7 @@
                     </div>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-outline text-[20px]">lock</span>
-                        <input class="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3 bg-surface-container-highest border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-outline/60 text-sm" id="password" placeholder="••••••••" type="password" autocomplete="current-password" required>
+                        <input class="w-full pl-12 sm:pl-14 pr-4 py-1.5 h-8 bg-surface-container-highest border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-outline/60 text-sm" id="password" placeholder="••••••••" type="password" autocomplete="current-password" required>
                     </div>
                 </div>
                 <div class="flex items-center gap-3 px-1" data-help-target="remember-field">
@@ -112,7 +112,7 @@
                 const data = await res.json();
 
                 if (!res.ok) {
-                    throw new Error(data.message || 'Email atau password salah');
+                    throw new Error(data.message || data.error || 'Email atau password salah');
                 }
 
                 Auth.setToken(data.access_token);

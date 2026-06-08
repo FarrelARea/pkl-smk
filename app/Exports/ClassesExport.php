@@ -12,15 +12,15 @@ class ClassesExport implements FromCollection, WithHeadings
     {
         return SchoolClass::with('school')->get()->map(function ($class) {
             return [
-                'name' => $class->name,
-                'academic_year' => $class->academic_year,
-                'school_name' => $class->school->name ?? '',
+                'Nama Sekolah' => $class->school->name ?? '',
+                'Nama' => $class->name,
+                'Tahun Ajaran' => $class->academic_year,
             ];
         });
     }
 
     public function headings(): array
     {
-        return ['name', 'academic_year', 'school_name'];
+        return ['Nama Sekolah', 'Nama', 'Tahun Ajaran'];
     }
 }

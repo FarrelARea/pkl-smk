@@ -184,17 +184,46 @@ Route::prefix('v1')->group(function () {
 
 
         Route::middleware('role:school_admin')->group(function () {
+            // ── Import Routes ──
             Route::post('import/schools', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importSchools']);
             Route::post('import/classes', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importClasses']);
             Route::post('import/teachers', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importTeachers']);
             Route::post('import/students', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importStudents']);
-            
+            Route::post('import/companies', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importCompanies']);
+            Route::post('import/supervisors', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importSupervisors']);
+            Route::post('import/internships', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importInternships']);
+            Route::post('import/school-admins', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importSchoolAdmins']);
+            Route::post('import/attendance-points', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importAttendancePoints']);
+            Route::post('import/teacher-assignments', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importTeacherAssignments']);
+            Route::post('import/teacher-company-assignments', [App\Http\Controllers\Api\V1\ImportExportController::class, 'importTeacherCompanyAssignments']);
+
+            // ── Template Routes ──
+            Route::get('import/schools/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadSchoolsTemplate']);
+            Route::get('import/classes/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadClassesTemplate']);
+            Route::get('import/teachers/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadTeachersTemplate']);
+            Route::get('import/students/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadStudentsTemplate']);
+            Route::get('import/companies/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadCompaniesTemplate']);
+            Route::get('import/supervisors/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadSupervisorsTemplate']);
+            Route::get('import/internships/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadInternshipsTemplate']);
+            Route::get('import/school-admins/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadSchoolAdminsTemplate']);
+            Route::get('import/attendance-points/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadAttendancePointsTemplate']);
+            Route::get('import/teacher-assignments/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadTeacherAssignmentsTemplate']);
+            Route::get('import/teacher-company-assignments/template', [App\Http\Controllers\Api\V1\ImportExportController::class, 'downloadTeacherCompanyAssignmentsTemplate']);
+
+            // ── Export Routes ──
             Route::get('export/schools', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportSchools']);
             Route::get('export/classes', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportClasses']);
             Route::get('export/teachers', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportTeachers']);
             Route::get('export/students', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportStudents']);
+            Route::get('export/companies', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportCompanies']);
+            Route::get('export/supervisors', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportSupervisors']);
+            Route::get('export/internships', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportInternships']);
+            Route::get('export/school-admins', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportSchoolAdmins']);
+            Route::get('export/attendance-points', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportAttendancePoints']);
+            Route::get('export/teacher-assignments', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportTeacherAssignments']);
+            Route::get('export/teacher-company-assignments', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportTeacherCompanyAssignments']);
             Route::get('export/assessments', [App\Http\Controllers\Api\V1\ImportExportController::class, 'exportAssessments']);
-            
+
             Route::post('address/geocode', [App\Http\Controllers\Api\V1\AddressController::class, 'geocode']);
         });
     });

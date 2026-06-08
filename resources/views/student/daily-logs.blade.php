@@ -6,7 +6,7 @@
 <div class="space-y-6">
     {{-- Header dengan Tombol Buat --}}
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Daily Log</h1>
+        <h1 class="text-[26px] font-bold text-gray-900">Daily Log</h1>
             <x-help-button title="Panduan Daily Log">
                 <p>Di halaman ini kamu bisa mencatat aktivitas harian selama magang.</p>
                 <ul class="list-disc pl-4 mt-2 space-y-1">
@@ -38,12 +38,12 @@
             <form id="edit-log-form" onsubmit="handleUpdateLog(event)" novalidate class="space-y-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Tanggal</label>
-                    <input type="date" id="edit-log-date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <input type="date" id="edit-log-date" required class="w-full px-4 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Aktivitas (min 20 karakter)</label>
-                    <textarea id="edit-log-activity" minlength="20" maxlength="2000" rows="6" placeholder="Deskripsikan aktivitas yang Anda lakukan hari ini..." required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                    <textarea id="edit-log-activity" minlength="20" maxlength="2000" rows="6" placeholder="Deskripsikan aktivitas yang Anda lakukan hari ini..." required class="w-full px-4 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
                     <p class="text-xs text-gray-500 mt-1"><span id="edit-char-count">0</span>/2000 karakter</p>
                 </div>
 
@@ -54,14 +54,14 @@
                 <div id="edit-manual-coords" class="space-y-3 hidden">
                     <p class="text-sm text-gray-600">Masukkan koordinat secara manual:</p>
                     <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="edit-log-lat" placeholder="Latitude" step="0.000001" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-                        <input type="number" id="edit-log-lng" placeholder="Longitude" step="0.000001" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <input type="number" id="edit-log-lat" placeholder="Latitude" step="0.000001" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <input type="number" id="edit-log-lng" placeholder="Longitude" step="0.000001" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Foto (Opsional, max 2MB)</label>
-                    <input type="file" id="edit-log-file" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <input type="file" id="edit-log-file" accept="image/*" class="w-full px-4 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
                     <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF</p>
                 </div>
 
@@ -90,12 +90,12 @@
             <form id="create-log-form" onsubmit="handleSubmitLog(event)" novalidate class="space-y-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Tanggal</label>
-                    <input type="date" id="log-date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <input type="date" id="log-date" required class="w-full px-4 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Aktivitas (min 20 karakter)</label>
-                    <textarea id="log-activity" minlength="20" maxlength="2000" rows="6" placeholder="Deskripsikan aktivitas yang Anda lakukan hari ini..." required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                    <textarea id="log-activity" minlength="20" maxlength="2000" rows="6" placeholder="Deskripsikan aktivitas yang Anda lakukan hari ini..." required class="w-full px-4 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
                     <p class="text-xs text-gray-500 mt-1"><span id="char-count">0</span>/2000 karakter</p>
                 </div>
 
@@ -106,14 +106,14 @@
                 <div id="manual-coords" class="space-y-3 hidden">
                     <p class="text-sm text-gray-600">Masukkan koordinat secara manual:</p>
                     <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="log-lat" placeholder="Latitude" step="0.000001" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-                        <input type="number" id="log-lng" placeholder="Longitude" step="0.000001" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <input type="number" id="log-lat" placeholder="Latitude" step="0.000001" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <input type="number" id="log-lng" placeholder="Longitude" step="0.000001" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Foto (Opsional, max 2MB)</label>
-                    <input type="file" id="log-file" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <input type="file" id="log-file" accept="image/*" class="w-full px-4 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
                     <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF</p>
                 </div>
 
