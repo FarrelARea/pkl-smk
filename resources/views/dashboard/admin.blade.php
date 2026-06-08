@@ -1,7 +1,12 @@
 <!-- Header Section -->
 <header class="mb-10 flex justify-between items-end">
     <div>
-        <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Ringkasan Sistem</h1>
+        <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight font-headline">Ringkasan Sistem</h1>
+            <span class="superadmin-only hidden px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-[0.6rem] font-bold uppercase tracking-widest border border-primary-fixed-dim">
+                Superadmin
+            </span>
+        </div>
         <p class="text-on-surface-variant max-w-2xl font-body">
             Kelola kemitraan institusi dan pantau metrik magang di seluruh jaringan.
         </p>
