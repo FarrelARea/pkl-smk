@@ -16,10 +16,34 @@
     <style>
         body {
             font-family: 'Fredoka', sans-serif;
-            background: url('{{ asset('images/background-simaskansa.png') }}') no-repeat center center;
+            background: url('{{ asset('images/background-simskansa-mb.png') }}') no-repeat center center;
             background-size: cover;
             padding:0;
             background-position: center;
+            /* safe area untuk notched phones */
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        /* Mobile: tambah overlay gelap tipis biar form lebih terbaca */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.15);
+            z-index: 0;
+        }
+        @media (min-width: 1024px) {
+            body::before {
+                display: none;
+            }
+        }
+
+        /* Desktop: pakai gambar background resolusi besar */
+        @media (min-width: 1024px) {
+            body {
+                background-image: url('{{ asset('images/background-simaskansa.png') }}');
+            }
         }
 
         #login-btn::after {
@@ -34,21 +58,39 @@
             background: url('/images/papperplane.png') no-repeat center center;
             background-size: contain;
         }
+
+        /* Responsive: heading lebih kecil di mobile */
+        @media (max-width: 639px) {
+            .login-heading {
+                font-size: 28px !important;
+            }
+            .login-subheading {
+                font-size: 16px !important;
+            }
+            .login-btn-text {
+                font-size: 24px !important;
+                height: 60px !important;
+            }
+            .login-logo {
+                width: 160px !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-surface font-body text-on-surface selection:bg-primary-fixed">
-    <div class="min-h-screen flex relative">
+    <div class="min-h-screen flex relative z-[1]">
         <!-- Top-left Logo -->
-        <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur rounded-xl p-2 shadow-lg">
-            <img src="{{ asset('images/logo-simaskansa-removed.png') }}"
+        <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur rounded-xl p-2 shadow-lg" style="top: calc(env(safe-area-inset-top, 0px) + 16px);">
+             <img src="{{ asset('images/logo-simaskansa-removed.png') }}"
                  alt="Simaskansa"
+                 class="login-logo"
                  style="width: 240px; height: auto; display: block;">
         </div>
 
-        <!-- Papperplane -->
+        <!-- Papperplane (hidden di mobile agar tidak overlap form) -->
         <img src="{{ asset('images/papperplane-long.png') }}"
              alt=""
-             class="absolute left-0 z-10"
+             class="hidden lg:block absolute left-0 z-10"
              style="top: 100px; width: 200px; height: auto;">
 
         <!-- Left Panel - Branding -->
@@ -98,11 +140,11 @@
                             <span class="material-symbols-outlined text-blue-600" style="font-size:48px">login</span>
                         </div>
                         <div>
-                            <h2 class="text-[36px] font-bold text-[#091e5d] leading-tight relative w-fit">
+                            <h2 class="login-heading text-[36px] font-bold text-[#091e5d] leading-tight relative w-fit">
                                 Hai! Selamat Datang
                                 <img src="/images/top-right-splatter.png" class="absolute -top-4 -right-10 w-12 h-12 object-contain pointer-events-none select-none">
                             </h2>
-                            <p class="text-[24px] text-[#091e5d] leading-snug opacity-70">Masuk ke akun SIMASKANSA kamu</p>
+                            <p class="login-subheading text-[24px] text-[#091e5d] leading-snug opacity-70">Masuk ke akun SIMASKANSA kamu</p>
                         </div>
                     </div>
                 </div>
@@ -138,8 +180,8 @@
                         <label for="remember" class="ml-2 text-base text-gray-600">Ingat saya selama 30 hari</label>
                     </div>
 
-                    <button type="submit" id="login-btn" data-help-target="login-button"
-                        class="w-full h-20 relative flex items-center justify-center gap-2 text-white font-bold italic text-[36px] uppercase tracking-wider font-['Poppins',sans-serif] rounded-2xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 hover:brightness-110 active:scale-[0.98] active:opacity-90 transition-all duration-200 ease-out"
+                     <button type="submit" id="login-btn" data-help-target="login-button"
+                        class="login-btn-text w-full h-20 relative flex items-center justify-center gap-2 text-white font-bold italic text-[36px] uppercase tracking-wider font-['Poppins',sans-serif] rounded-2xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 hover:brightness-110 active:scale-[0.98] active:opacity-90 transition-all duration-200 ease-out"
                         style="background: linear-gradient(to top left, rgba(0,133,237,0.45) 0%, rgba(0,133,237,0.1) 35%, transparent 50%), linear-gradient(105deg, #0058e6 75%, #3b82f6 90%, #0085ed 95%);">
                         Masuk
                     </button>
