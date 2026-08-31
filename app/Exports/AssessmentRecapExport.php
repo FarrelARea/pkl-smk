@@ -48,12 +48,13 @@ class AssessmentRecapExport implements FromCollection, WithHeadings
         }
 
         return $query->get()->map(function ($assessment) {
-            $sectionAvgs = $assessment->scores->groupBy('section_number')->map(function ($scores) {
+            $nonNullScores = $assessment->scores->filter(fn ($s) => $s->score !== null);
+            $sectionAvgs = $nonNullScores->groupBy('section_number')->map(function ($scores) {
                 return round($scores->avg('score'), 1);
             });
 
-            $overall = $assessment->scores->count() > 0
-                ? round($assessment->scores->avg('score'), 1)
+            $overall = $nonNullScores->isNotEmpty()
+                ? round($nonNullScores->avg('score'), 1)
                 : null;
 
             // Build dynamic section columns

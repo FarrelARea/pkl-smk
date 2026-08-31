@@ -15,11 +15,11 @@ class TeacherStudentAssignmentController extends Controller
         $teacher = User::findOrFail($teacherId);
 
         if (!$teacher->isTeacher()) {
-            abort(response()->json(['error' => 'User yang dipilih bukan guru.'], 422));
+            return response()->json(['error' => 'User yang dipilih bukan guru.'], 422);
         }
 
         if (!$teacher->belongsToAdminSchool($request->user())) {
-            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
         }
 
         return $teacher;
@@ -30,11 +30,11 @@ class TeacherStudentAssignmentController extends Controller
         $student = User::findOrFail($studentId);
 
         if (!$student->isStudent()) {
-            abort(response()->json(['error' => 'User yang dipilih bukan murid.'], 422));
+            return response()->json(['error' => 'User yang dipilih bukan murid.'], 422);
         }
 
         if (!$student->belongsToAdminSchool($request->user())) {
-            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
         }
 
         return $student;

@@ -259,11 +259,12 @@
                     ? '<span class="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">⚠ Perlu Revisi</span>'
                     : '<span class="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-500">—</span>';
                 const location = log.latitude && log.longitude ? (log.location_verified ? '✓ Di lokasi' : '⚠ Luar lokasi') : '—';
-                const canEdit = log.review_status === 'needs_revision'
-                    ? true
-                    : log.review_status === 'approved'
-                    ? false
-                    : !log.teacher_comment;
+                const logDateStr = new Date(log.log_date || log.date).toDateString();
+                const isTodayLog = logDateStr === new Date().toDateString();
+                const canEdit = isTodayLog && (
+                    log.review_status === 'needs_revision' ||
+                    (log.review_status !== 'approved' && !log.teacher_comment)
+                );
 
                 tbody.innerHTML += `<tr class="border-b border-gray-100">
                     <td class="px-6 py-4 text-sm">${date}</td>
@@ -436,11 +437,12 @@
             };
             renderComments(comments);
 
-            const canEdit = log.review_status === 'needs_revision'
-                ? true
-                : log.review_status === 'approved'
-                ? false
-                : !log.teacher_comment;
+            const logDateStr = new Date(log.log_date || log.date).toDateString();
+            const isTodayLog = logDateStr === new Date().toDateString();
+            const canEdit = isTodayLog && (
+                log.review_status === 'needs_revision' ||
+                (log.review_status !== 'approved' && !log.teacher_comment)
+            );
             document.getElementById('detail-log-edit-btn').classList.toggle('hidden', !canEdit);
             document.getElementById('detail-log-delete-btn').classList.toggle('hidden', !canEdit);
             window.currentLogId = logId;

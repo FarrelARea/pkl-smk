@@ -13,7 +13,9 @@ return new class extends Migration
             $table->foreignId('last_updated_by_id')->nullable()->after('teacher_id')->constrained('users')->nullOnDelete();
         });
 
-        DB::statement('ALTER TABLE student_assessments MODIFY teacher_id BIGINT UNSIGNED NULL');
+        Schema::table('student_assessments', function (Blueprint $table) {
+            $table->unsignedBigInteger('teacher_id')->nullable()->change();
+        });
 
         Schema::table('evaluations', function (Blueprint $table) {
             $table->foreignId('last_updated_by_id')->nullable()->after('evaluator_id')->constrained('users')->nullOnDelete();
@@ -44,7 +46,9 @@ return new class extends Migration
             $table->dropConstrainedForeignId('last_updated_by_id');
         });
 
-        DB::statement('ALTER TABLE student_assessments MODIFY teacher_id BIGINT UNSIGNED NOT NULL');
+        Schema::table('student_assessments', function (Blueprint $table) {
+            $table->unsignedBigInteger('teacher_id')->nullable(false)->change();
+        });
 
         Schema::table('student_assessments', function (Blueprint $table) {
             $table->dropConstrainedForeignId('last_updated_by_id');

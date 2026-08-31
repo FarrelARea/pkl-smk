@@ -30,25 +30,29 @@ return new class extends Migration
         });
 
         DB::table('teacher_company_assignments')
-            ->join('companies', 'teacher_company_assignments.company_id', '=', 'companies.id')
-            ->update(['teacher_company_assignments.school_id' => DB::raw('companies.school_id')]);
+            ->update([
+                'school_id' => DB::raw('(SELECT companies.school_id FROM companies WHERE companies.id = teacher_company_assignments.company_id)'),
+            ]);
 
         DB::table('teacher_student_assignments')
-            ->join('users as students', 'teacher_student_assignments.student_id', '=', 'students.id')
-            ->update(['teacher_student_assignments.school_id' => DB::raw('students.school_id')]);
+            ->update([
+                'school_id' => DB::raw('(SELECT students.school_id FROM users AS students WHERE students.id = teacher_student_assignments.student_id)'),
+            ]);
 
         DB::table('attendance_points')
-            ->join('companies', 'attendance_points.company_id', '=', 'companies.id')
-            ->update(['attendance_points.school_id' => DB::raw('companies.school_id')]);
+            ->update([
+                'school_id' => DB::raw('(SELECT companies.school_id FROM companies WHERE companies.id = attendance_points.company_id)'),
+            ]);
 
         DB::table('document_requirements')
-            ->leftJoin('classes', 'document_requirements.class_id', '=', 'classes.id')
-            ->leftJoin('users as teachers', 'document_requirements.teacher_id', '=', 'teachers.id')
-            ->update(['document_requirements.school_id' => DB::raw('COALESCE(classes.school_id, teachers.school_id)')]);
+            ->update([
+                'school_id' => DB::raw('COALESCE((SELECT classes.school_id FROM classes WHERE classes.id = document_requirements.class_id), (SELECT teachers.school_id FROM users AS teachers WHERE teachers.id = document_requirements.teacher_id))'),
+            ]);
 
         DB::table('assessment_templates')
-            ->join('classes', 'assessment_templates.class_id', '=', 'classes.id')
-            ->update(['assessment_templates.school_id' => DB::raw('classes.school_id')]);
+            ->update([
+                'school_id' => DB::raw('(SELECT classes.school_id FROM classes WHERE classes.id = assessment_templates.class_id)'),
+            ]);
     }
 
     public function down(): void

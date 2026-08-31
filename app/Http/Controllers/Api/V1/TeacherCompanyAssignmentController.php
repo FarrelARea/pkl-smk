@@ -16,11 +16,11 @@ class TeacherCompanyAssignmentController extends Controller
         $teacher = User::findOrFail($teacherId);
 
         if (!$teacher->isTeacher()) {
-            abort(response()->json(['error' => 'User yang dipilih bukan guru.'], 422));
+            return response()->json(['error' => 'User yang dipilih bukan guru.'], 422);
         }
 
         if (!$teacher->belongsToAdminSchool($request->user())) {
-            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
         }
 
         return $teacher;
@@ -31,7 +31,7 @@ class TeacherCompanyAssignmentController extends Controller
         $company = Company::findOrFail($companyId);
 
         if (!$company->belongsToAdminSchool($request->user())) {
-            abort(response()->json(['error' => 'Forbidden - insufficient permissions'], 403));
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
         }
 
         return $company;
