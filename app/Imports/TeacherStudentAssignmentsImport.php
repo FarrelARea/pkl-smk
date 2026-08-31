@@ -42,9 +42,19 @@ class TeacherStudentAssignmentsImport implements ToModel, WithHeadingRow, WithVa
             );
         }
 
+        // Guard: both must belong to a school; skip rows without one rather than creating orphans
+        if (!$teacher->school_id) {
+            return null;
+        }
+        if (!$student->school_id) {
+            $student->update(['school_id' => $teacher->school_id]);
+        }
+
         return TeacherStudentAssignment::firstOrCreate([
             'teacher_id' => $teacher->id,
             'student_id' => $student->id,
+        ], [
+            'school_id' => $teacher->school_id,
         ]);
     }
 

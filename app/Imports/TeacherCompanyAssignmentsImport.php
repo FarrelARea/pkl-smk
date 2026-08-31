@@ -28,17 +28,32 @@ class TeacherCompanyAssignmentsImport implements ToModel, WithHeadingRow, WithVa
             );
         }
 
-        $company = Company::where('name', $row['nama_perusahaan'])->first();
+        // Scope lookup to teacher's school first; only fall back to global if no school assigned yet
+        // Guard: teacher must belong to a school; skip rows without one rather than creating orphans
+        if (!$teacher->school_id) {
+            return null;
+        }
+
+        $scopeLookup = Company::where('school_id', $teacher->school_id)->where('name', $row['nama_perusahaan']);
+        $company = $scopeLookup->first();
 
         if (!$company) {
             $company = Company::create([
-                'name' => $row['nama_perusahaan'],
+                'name'     => $row['nama_perusahaan'],
+                'school_id'=> $teacher->school_id,
             ]);
+        } else {
+            // Populate school_id on orphaned company records too
+            if (!$company->school_id) {
+                $company->update(['school_id' => $teacher->school_id]);
+            }
         }
 
         return TeacherCompanyAssignment::firstOrCreate([
             'teacher_id' => $teacher->id,
             'company_id' => $company->id,
+        ], [
+            'school_id' => $teacher->school_id,
         ]);
     }
 

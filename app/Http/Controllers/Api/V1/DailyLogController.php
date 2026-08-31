@@ -199,7 +199,7 @@ class DailyLogController extends Controller
         $log = $this->scopeQuery($request)->findOrFail($id);
 
         if (!$log->canEdit()) {
-            return response()->json(['error' => 'Update window has expired (24 hours)'], 403);
+            return response()->json(['error' => 'Hanya log hari ini yang bisa diedit'], 403);
         }
 
         $data = $request->validate([
@@ -223,7 +223,7 @@ class DailyLogController extends Controller
         $log = $this->scopeQuery($request)->findOrFail($id);
 
         if (!$log->canEdit()) {
-            return response()->json(['error' => 'Delete window has expired (24 hours)'], 403);
+            return response()->json(['error' => 'Hanya log hari ini yang bisa dihapus'], 403);
         }
 
         $log->delete();

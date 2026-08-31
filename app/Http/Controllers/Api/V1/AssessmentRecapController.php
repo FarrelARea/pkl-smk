@@ -50,7 +50,8 @@ class AssessmentRecapController extends Controller
                 ];
             }
 
-            $sectionAverages = $assessment->scores->groupBy('section_number')->map(function ($scores, $section) {
+            $nonNullScores = $assessment->scores->filter(fn ($s) => $s->score !== null);
+            $sectionAverages = $nonNullScores->groupBy('section_number')->map(function ($scores, $section) {
                 return [
                     'section_number' => $section,
                     'average' => round($scores->avg('score'), 2),
@@ -63,8 +64,8 @@ class AssessmentRecapController extends Controller
                 'status' => $assessment->status,
                 'assessment_id' => $assessment->id,
                 'section_averages' => $sectionAverages,
-                'overall_average' => $assessment->scores->count() > 0
-                    ? round($assessment->scores->avg('score'), 2)
+                'overall_average' => $nonNullScores->isNotEmpty()
+                    ? round($nonNullScores->avg('score'), 2)
                     : null,
             ];
         });
@@ -80,7 +81,8 @@ class AssessmentRecapController extends Controller
         $assessment = StudentAssessment::with(['student', 'internship.company', 'teacher', 'scores'])
             ->findOrFail($id);
 
-        $sectionAverages = $assessment->scores->groupBy('section_number')->map(function ($scores, $section) {
+        $nonNullScores = $assessment->scores->filter(fn ($s) => $s->score !== null);
+        $sectionAverages = $nonNullScores->groupBy('section_number')->map(function ($scores, $section) {
             return [
                 'section_number' => $section,
                 'average' => round($scores->avg('score'), 2),
@@ -99,8 +101,8 @@ class AssessmentRecapController extends Controller
         return response()->json([
             'assessment' => $assessment,
             'sections' => $sectionAverages,
-            'overall_average' => $assessment->scores->count() > 0
-                ? round($assessment->scores->avg('score'), 2)
+            'overall_average' => $nonNullScores->isNotEmpty()
+                ? round($nonNullScores->avg('score'), 2)
                 : null,
             'documents' => $documents,
         ]);

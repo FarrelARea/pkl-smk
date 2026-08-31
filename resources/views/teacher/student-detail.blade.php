@@ -52,6 +52,7 @@
                 <button data-tab="evaluation" onclick="switchTab('evaluation')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Evaluasi</button>
                 <button data-tab="permissions" onclick="switchTab('permissions')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Pengajuan Izin</button>
                 <button data-tab="logs" onclick="switchTab('logs')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Log Aktivitas</button>
+                <button data-tab="attendance" onclick="switchTab('attendance')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Kehadiran</button>
                 <button data-tab="documents" onclick="switchTab('documents')" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Dokumen</button>
             </nav>
         </div>
@@ -159,6 +160,24 @@ class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:ou
             </div>
         </div>
 
+        {{-- Tab Kehadiran --}}
+        <div id="tab-attendance" class="tab-content hidden p-6">
+            <div class="flex items-end gap-3 mb-4 flex-wrap">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Dari</label>
+                    <input type="date" id="att-date-from" onchange="loadAttendanceHistory(studentId)" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Sampai</label>
+                    <input type="date" id="att-date-to" onchange="loadAttendanceHistory(studentId)" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <button onclick="resetAttendanceFilter()" class="text-xs text-gray-500 hover:text-gray-700 pb-1.5">Reset</button>
+            </div>
+            <div id="attendance-list">
+                <p class="text-sm text-gray-400 text-center py-4">Memuat...</p>
+            </div>
+        </div>
+
         {{-- Tab Dokumen --}}
         <div id="tab-documents" class="tab-content hidden p-6">
             <div class="flex items-end gap-3 mb-4 flex-wrap">
@@ -216,6 +235,7 @@ class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:ou
         if (tab === 'evaluation') await loadEvaluation(studentId);
         if (tab === 'permissions') await loadPermissions(studentId);
         if (tab === 'logs') await loadLogs(studentId);
+        if (tab === 'attendance') await loadAttendanceHistory(studentId);
         if (tab === 'documents') await loadDocuments(studentId);
     };
 
@@ -235,6 +255,59 @@ class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:ou
             document.getElementById('stats-score').textContent = data.evaluation?.score ?? '—';
         } catch (e) { console.error('Gagal memuat statistik:', e); }
     }
+
+    // ── Kehadiran / Clock History ──────────────────────────────────────
+
+    async function loadAttendanceHistory(sid) {
+        try {
+            const from = document.getElementById('att-date-from').value;
+            const to = document.getElementById('att-date-to').value;
+            const url = `/teacher/panel/students/${sid}/stats${from ? `?start_date=${from}&end_date=${to}` : ''}`;
+            const res = await Auth.apiFetch(url);
+            const data = await res.json();
+            renderAttendanceList(data.clock_history || []);
+        } catch (e) {
+            console.error('Gagal memuat kehadiran:', e);
+            document.getElementById('attendance-list').innerHTML = '<p class="text-sm text-red-500 text-center py-4">Gagal memuat data kehadiran</p>';
+        }
+    }
+
+    function renderAttendanceList(history) {
+        const el = document.getElementById('attendance-list');
+        if (!history.length) {
+            el.innerHTML = '<p class="text-sm text-gray-400 text-center py-10">Tidak ada riwayat kehadiran di rentang tanggal ini.</p>';
+            return;
+        }
+        el.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-left border-collapse">
+            <thead><tr class="bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-3">Tanggal</th>
+                <th class="px-4 py-3">Clock In</th>
+                <th class="px-4 py-3">Clock Out</th>
+                <th class="px-4 py-3">Durasi Kerja</th>
+                <th class="px-4 py-3 text-right">Catatan</th>
+            </tr></thead>
+            <tbody class="divide-y divide-gray-100">
+                ${history.map(entry => {
+                    const ci = entry.clock_in ? formatTime(entry.clock_in) : '—';
+                    const co = entry.clock_out ? formatTime(entry.clock_out) : '—';
+                    const dur = entry.clock_in && entry.clock_out ? calcDuration(entry.clock_in, entry.clock_out) : '—';
+                    const rangeIcon = entry.all_clocks?.[0] ? (entry.all_clocks[0].within_range ? '<span class="text-green-600" title="Di area perusahaan">✓ Di area</span>' : '<span class="text-amber-600" title="Luar area perusahaan">⚠ Luar area</span>') : '';
+                    return `<tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm">${formatDate(entry.date)}</td>
+                        <td class="px-4 py-3 text-sm">${ci} ${rangeIcon}</td>
+                        <td class="px-4 py-3 text-sm">${co}</td>
+                        <td class="px-4 py-3 text-sm font-mono text-gray-600">${dur}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-400">${entry.all_clocks?.length > 2 ? `${entry.all_clocks.length - 2}x catatan tambahan` : ''}</td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table></div>`;
+    }
+
+    window.loadAttendanceHistory = loadAttendanceHistory;
+    window.resetAttendanceFilter = () => { setDefaultDateRange('att'); loadAttendanceHistory(studentId); };
+
+    // ── Evaluasi ──────────────────────────────────────────────────────
 
     async function loadEvaluation(sid) {
         try {
@@ -767,5 +840,33 @@ class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:ou
             rejected: 'px-2 py-0.5 rounded-full bg-red-100 text-red-700',
         }[status] || 'px-2 py-0.5 rounded-full bg-gray-100 text-gray-600';
     }
+
+    function formatTime(str) {
+        if (!str) return '';
+        return new Date(str).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function calcDuration(ci, co) {
+        const diff = new Date(co) - new Date(ci);
+        const hours = Math.floor(diff / 3600000);
+        const mins = Math.round((diff % 3600000) / 60000);
+        return `${hours}j ${mins}m`;
+    }
+
+    function setDefaultDateRange(prefix) {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const first = `${y}-${m}-01`;
+        const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+        const last = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+        document.getElementById(`${prefix}-date-from`).value = first;
+        document.getElementById(`${prefix}-date-to`).value = last;
+    }
+
+    // Init attendance date range on page load (current month default)
+    waitForAuth(() => {
+        setDefaultDateRange('att');
+    });
 </script>
 @endpush

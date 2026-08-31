@@ -57,8 +57,8 @@ class DailyLog extends Model
     public function canEdit(): bool
     {
         if ($this->review_status === 'approved') return false;
-        if ($this->review_status === 'needs_revision') return true;
-        return $this->created_at->diffInHours(now()) <= 24;
+        // Only today's logs editable; past dates locked
+        return $this->log_date->isToday();
     }
 
     public function isApproved(): bool

@@ -416,13 +416,43 @@
                         <div>
                             <p class="font-medium text-gray-900">${item.student_name}</p>
                             <p class="text-sm text-gray-500 mt-1">${formatSupervisorDate(item.attendance_date)}</p>
+                            ${item.clock_in || item.all_clocks ? renderSupervisorClockTimes(item) : ''}
                             ${item.notes ? `<p class="text-sm text-gray-500 mt-2">${item.notes}</p>` : ''}
                         </div>
-                        <span class="${supervisorAttendanceBadgeClass(item.status)}">${supervisorAttendanceStatusLabel(item.status)}</span>
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="${supervisorAttendanceBadgeClass(item.status)}">${supervisorAttendanceStatusLabel(item.status)}</span>
+                            ${item.clock_out ? `<span class="text-xs text-gray-400">🕒 Total: ${calcWorkHoursSupervisor(item.clock_in, item.clock_out)}</span>` : ''}
+                        </div>
                     </div>
                 `).join('')}</div>` : '<p class="text-sm text-gray-400 text-center py-10">Belum ada data kehadiran pada tanggal ini.</p>'}
             </div>
         `;
+    }
+
+    function renderSupervisorClockTimes(item) {
+        if (item.clock_in) {
+            const ci = new Date(item.clock_in);
+            const formatted = ci.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            return `<p class="text-xs text-blue-600 mt-1">Clock In: ${formatted}${item.all_clocks ? ` (${item.all_clocks[0]?.within_range ? '✓ di area' : '⚠ luar area'})` : ''}</p>`;
+        }
+        if (item.all_clocks?.length) {
+            const clocks = item.all_clocks.map(c => {
+                const t = new Date(c.time);
+                const timeStr = t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                const range = c.within_range ? '✓' : '⚠';
+                return `${timeStr} (${range})`;
+            }).join(', ');
+            return `<p class="text-xs text-gray-500 mt-1">Catatan: ${clocks}</p>`;
+        }
+        return '';
+    }
+
+    function calcWorkHoursSupervisor(clockIn, clockOut) {
+        if (!clockIn || !clockOut) return '';
+        const diff = new Date(clockOut) - new Date(clockIn);
+        const hours = Math.floor(diff / 3600000);
+        const mins = Math.round((diff % 3600000) / 60000);
+        return `${hours}j ${mins}m`;
     }
 
     window.changeSupervisorAttendanceDate = async (value) => {

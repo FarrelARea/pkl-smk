@@ -600,7 +600,8 @@
                 };
 
                 const location = log.latitude && log.longitude ? (log.location_verified ? '✓ Di lokasi' : '⚠ Luar lokasi') : '—';
-                const canEdit = !log.teacher_comment;
+                const isTodayLog = new Date(log.log_date || log.date).toDateString() === new Date().toDateString();
+                const canEdit = isTodayLog && !log.teacher_comment;
 
                 tbody.innerHTML += `<tr class="border-b border-gray-100">
                     <td class="px-6 py-4 text-sm">${date}</td>
@@ -809,7 +810,8 @@
             // Edit/Delete buttons (allow if no teacher comment yet)
             const editBtn = document.getElementById('detail-log-edit-btn');
             const deleteBtn = document.getElementById('detail-log-delete-btn');
-            const canEdit = !log.teacher_comment;
+            const isTodayLog = new Date(log.log_date || log.date).toDateString() === new Date().toDateString();
+            const canEdit = isTodayLog && !log.teacher_comment;
 
             if (canEdit) {
                 editBtn.classList.remove('hidden');

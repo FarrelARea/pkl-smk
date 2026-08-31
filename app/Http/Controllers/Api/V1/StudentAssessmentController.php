@@ -226,7 +226,9 @@ class StudentAssessmentController extends Controller
 
     private function formatAssessmentResponse(StudentAssessment $assessment): array
     {
-        $scoresBySection = $assessment->scores->groupBy('section_number');
+        // Only average/scored items, skip null entries
+        $nonNullScores = $assessment->scores->filter(fn ($s) => $s->score !== null);
+        $scoresBySection = $nonNullScores->groupBy('section_number');
 
         $sectionAverages = $scoresBySection->map(function ($scores, $sectionNumber) {
             return [
@@ -244,8 +246,8 @@ class StudentAssessmentController extends Controller
                 'status', 'created_at', 'updated_at',
             ]),
             'sections' => $sectionAverages,
-            'overall_average' => $assessment->scores->count() > 0
-                ? round($assessment->scores->avg('score'), 2)
+            'overall_average' => $nonNullScores->isNotEmpty()
+                ? round($nonNullScores->avg('score'), 2)
                 : null,
         ];
     }

@@ -12,6 +12,7 @@ use App\Models\StudentAssessment;
 use App\Models\StudentDocument;
 use App\Models\TeacherStudentAssignment;
 use App\Models\User;
+use App\Models\ClockInOut;
 use App\Services\AttendanceInferenceService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -325,6 +326,32 @@ class TeacherPanelController extends Controller
             ])
             ->values();
 
+        // Fetch actual clock-in/out timestamps for students who have any records today
+        $clockRecords = ClockInOut::whereIn('user_id', $studentIds)
+            ->whereDate('created_at', $parsedDate)
+            ->orderBy('created_at')
+            ->get();
+        $clockByStudent = $clockRecords->groupBy('user_id');
+
+        $records = $records->map(function ($record) use ($clockByStudent) {
+            if (!$clockByStudent->has($record['student_id'])) {
+                return $record;
+            }
+            $clocks = $clockByStudent[$record['student_id']];
+            $clockIn = $clocks->firstWhere('type', 'clock_in');
+            $clockOut = $clocks->filter(fn($c) => $c->type === 'clock_out')->first();
+
+            $record['clock_in'] = $clockIn ? $clockIn->created_at : null;
+            $record['clock_out'] = $clockOut ? $clockOut->created_at : null;
+            $record['all_clocks'] = $clocks->map(fn($c) => [
+                'type' => $c->type,
+                'time' => $c->created_at,
+                'within_range' => (bool)$c->is_within_range,
+            ])->values();
+
+            return $record;
+        });
+
         return response()->json([
             'date' => $parsedDate,
             'attendance' => $records,
@@ -415,7 +442,7 @@ class TeacherPanelController extends Controller
         return response()->json($permissions);
     }
 
-    public function studentStats(int $studentId): JsonResponse
+    public function studentStats(Request $request, int $studentId): JsonResponse
     {
         $teacher = auth('api')->user();
 
@@ -448,6 +475,32 @@ class TeacherPanelController extends Controller
                 ->first(['score', 'comments', 'updated_at']);
         }
 
+        // Clock-in/out history with date range filter, default current month
+        $rangeStart = $request->query('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $rangeEnd = $request->query('end_date', Carbon::now()->endOfMonth()->toDateString());
+
+        $clockHistory = ClockInOut::where('user_id', $studentId)
+            ->whereDate('created_at', '>=', $rangeStart)
+            ->whereDate('created_at', '<=', $rangeEnd)
+            ->orderByDesc('created_at')
+            ->get()
+            ->groupBy(fn ($c) => $c->created_at->toDateString())
+            ->map(function ($clocks, $day) {
+                $clockIn = $clocks->firstWhere('type', 'clock_in');
+                $clockOut = $clocks->filter(fn($c) => $c->type === 'clock_out')->first();
+                return [
+                    'date' => $day,
+                    'clock_in' => $clockIn ? $clockIn->created_at : null,
+                    'clock_out' => $clockOut ? $clockOut->created_at : null,
+                    'all_clocks' => $clocks->sort()->map(fn($c) => [
+                        'time' => $c->created_at,
+                        'within_range' => (bool)$c->is_within_range,
+                    ])->values(),
+                ];
+            })
+            ->sortByDesc('date')
+            ->values();
+
         return response()->json([
             'student' => ['id' => $student->id, 'name' => $student->name, 'email' => $student->email],
             'student_name' => $student->name,
@@ -457,6 +510,7 @@ class TeacherPanelController extends Controller
             'total_logs' => $totalLogs,
             'permission_requests' => $permissionStats,
             'evaluation' => $evaluation,
+            'clock_history' => $clockHistory,
         ]);
     }
 
