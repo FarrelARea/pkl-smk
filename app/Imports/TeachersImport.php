@@ -27,8 +27,8 @@ class TeachersImport implements ToModel, WithHeadingRow
             ]
         );
 
-        if (!empty($row['nama_kelas'])) {
-            $classNames = explode(',', $row['nama_kelas']);
+        if (!empty($row['kelas'])) {
+            $classNames = explode(',', $row['kelas']);
             foreach ($classNames as $className) {
                 $className = trim($className);
                 $class = SchoolClass::firstOrCreate(
