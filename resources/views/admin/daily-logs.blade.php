@@ -76,15 +76,12 @@
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Refleksi</label>
             <p id="detail-reflection" class="text-sm text-on-surface"></p>
         </div>
-        <hr class="border-outline-variant/20">
         <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tambah Komentar</label>
-            <textarea id="comment-text" rows="3" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Tulis komentar..."></textarea>
-            <div class="mt-3 flex justify-end">
-                <button onclick="addComment()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">
-                    Kirim Komentar
-                </button>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Foto</label>
+            <div id="detail-photo-container" class="hidden">
+                <img id="detail-photo" class="w-full max-h-64 object-contain rounded-lg border border-outline-variant/20" alt="Foto daily log">
             </div>
+            <p id="detail-no-photo" class="text-xs text-outline">Tidak ada foto</p>
         </div>
     </div>
 @endcomponent
@@ -176,7 +173,19 @@
 
             document.getElementById('detail-activities').textContent = log.activities || '-';
             document.getElementById('detail-reflection').textContent = log.reflection || '-';
-            document.getElementById('comment-text').value = '';
+
+            const photoContainer = document.getElementById('detail-photo-container');
+            const photoImg = document.getElementById('detail-photo');
+            const noPhoto = document.getElementById('detail-no-photo');
+
+            if (log.photo) {
+                photoContainer.classList.remove('hidden');
+                photoImg.src = `/storage/${log.photo}`;
+                noPhoto.classList.add('hidden');
+            } else {
+                photoContainer.classList.add('hidden');
+                noPhoto.classList.remove('hidden');
+            }
 
             AdminUtils.openModal('detail-modal');
         } catch (e) {
@@ -184,29 +193,8 @@
         }
     }
 
-    async function addComment() {
-        if (!currentLogId) return;
-
-        const comment = document.getElementById('comment-text').value.trim();
-        if (!comment) return;
-
-        try {
-            await Auth.apiFetch(`/daily-logs/${currentLogId}/comment`, {
-                method: 'POST',
-                body: JSON.stringify({ comment }),
-            });
-
-            document.getElementById('comment-text').value = '';
-            AdminUtils.closeModal('detail-modal');
-            loadData();
-        } catch (e) {
-            console.error('Failed to add comment:', e);
-        }
-    }
-
     window.loadData = loadData;
     window.viewDetail = viewDetail;
-    window.addComment = addComment;
 
     loadStudents();
     loadData();
