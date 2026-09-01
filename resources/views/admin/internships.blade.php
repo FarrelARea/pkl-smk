@@ -123,7 +123,7 @@
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-company_id">Perusahaan</label>
-                <select id="field-company_id" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <select id="field-company_id" required onchange="loadSingleSupervisors()" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Pilih Perusahaan</option>
                 </select>
             </div>
@@ -482,6 +482,33 @@
         selectedStudentIds = new Set();
         updateSelectedCount();
         showModal('batch-modal');
+    }
+
+    async function loadSingleSupervisors() {
+        const companyId = document.getElementById('field-company_id').value;
+        const supervisorSelect = document.getElementById('field-supervisor_id');
+
+        if (!companyId) {
+            populateSelect('field-supervisor_id', supervisorsList, 'Pilih Pembimbing');
+            return;
+        }
+
+        try {
+            const res = await Auth.apiFetch(`/supervisors?company_id=${companyId}&per_page=1000`);
+            const json = await res.json();
+            const supervisors = Array.isArray(json.data) ? json.data : (json.data?.data || []);
+
+            supervisorSelect.innerHTML = '<option value="">Pilih Pembimbing</option>';
+            supervisors.forEach(sup => {
+                const option = document.createElement('option');
+                option.value = sup.id;
+                option.textContent = sup.name;
+                supervisorSelect.appendChild(option);
+            });
+        } catch (e) {
+            console.error(e);
+            showToast('Gagal memuat pembimbing', 'error');
+        }
     }
 
     async function loadCompanySupervisors() {
