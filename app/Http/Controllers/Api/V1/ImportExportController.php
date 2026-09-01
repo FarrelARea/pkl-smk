@@ -230,16 +230,11 @@ class ImportExportController extends Controller
     {
         return $this->downloadTemplate(
             ['Email Siswa', 'Nama Sekolah', 'Nama Perusahaan', 'Email Pembimbing', 'Tanggal Mulai', 'Tanggal Selesai', 'Status', 'Catatan'],
-            [[
-                'ani@student.sch.id',
-                'SMK Negeri 1 Jakarta',
-                'PT Maju Jaya',
-                'ahmad@majujaya.com',
-                '2026-01-10',
-                '2026-06-30',
-                'active',
-                'Magang bidang Teknologi Informasi',
-            ]],
+            [
+                ['ani@student.sch.id', 'SMK Negeri 1 Jakarta', 'PT Maju Jaya', 'ahmad@majujaya.com', '2026-01-10', '2026-06-30', 'active', 'Magang bidang Teknologi Informasi'],
+                ['budi@student.sch.id', 'SMK Negeri 1 Jakarta', 'PT Maju Jaya', 'ahmad@majujaya.com', '2026-01-10', '2026-06-30', 'completed', 'Magang selesai'],
+                ['celi@student.sch.id', 'SMK Negeri 1 Jakarta', 'PT Maju Jaya', 'ahmad@majujaya.com', '2026-01-10', '2026-06-30', 'cancelled', 'Magang dibatalkan'],
+            ],
             'template-import-magang.xlsx'
         );
     }
