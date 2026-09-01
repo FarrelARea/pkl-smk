@@ -338,7 +338,7 @@
             } else {
                 for (const log of recentLogs) {
                     const rawDate = log.log_date || log.date;
-                    const logDate = rawDate ? new Date(rawDate + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+                    const logDate = rawDate ? new Date(rawDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
                     const logActivity = log.activities || log.context || '—';
                     const derivedStatus = log.teacher_comment ? 'Direview' : 'Menunggu';
                     const statusClass = log.teacher_comment ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
