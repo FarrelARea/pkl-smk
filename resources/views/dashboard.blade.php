@@ -337,7 +337,8 @@
                 tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">Belum ada daily log terbaru. Mulai catat aktivitas harianmu dari menu daily log.</td></tr>';
             } else {
                 for (const log of recentLogs) {
-                    const logDate = log.log_date || log.date || '—';
+                    const rawDate = log.log_date || log.date;
+                    const logDate = rawDate ? new Date(rawDate + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
                     const logActivity = log.activities || log.context || '—';
                     const derivedStatus = log.teacher_comment ? 'Direview' : 'Menunggu';
                     const statusClass = log.teacher_comment ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
@@ -622,8 +623,10 @@
     };
 
     window.showCreateLogForm = function() {
-        // Set date to today
-        const today = new Date().toISOString().split('T')[0];
+        // Set date to today (Asia/Jakarta)
+        const now = new Date();
+        const jakartaDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+        const today = jakartaDate.getFullYear() + '-' + String(jakartaDate.getMonth() + 1).padStart(2, '0') + '-' + String(jakartaDate.getDate()).padStart(2, '0');
         document.getElementById('log-date').value = today;
         document.getElementById('log-activity').value = '';
         document.getElementById('log-file').value = '';

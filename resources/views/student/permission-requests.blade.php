@@ -95,8 +95,10 @@
     waitForAuth(async () => {
         if (!Auth.requireAuth()) return;
 
-        // Set tanggal minimum ke hari ini
-        document.getElementById('req-date').min = new Date().toISOString().split('T')[0];
+        // Set tanggal minimum ke hari ini (Asia/Jakarta)
+        const now = new Date();
+        const jakartaDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+        document.getElementById('req-date').min = jakartaDate.getFullYear() + '-' + String(jakartaDate.getMonth() + 1).padStart(2, '0') + '-' + String(jakartaDate.getDate()).padStart(2, '0');
 
         try {
             const meRes = await Auth.apiFetch('/auth/me');
