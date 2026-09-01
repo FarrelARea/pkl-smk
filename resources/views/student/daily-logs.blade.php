@@ -90,7 +90,7 @@
             <form id="create-log-form" onsubmit="handleSubmitLog(event)" novalidate class="space-y-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Tanggal</label>
-                    <input type="date" id="log-date" required class="w-full px-4 py-1.5 h-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <input type="date" id="log-date" required readonly class="w-full px-4 py-1.5 h-8 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed">
                 </div>
 
                 <div>
@@ -290,7 +290,9 @@
     };
 
     window.showCreateLogForm = function() {
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const jakartaDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+        const today = jakartaDate.getFullYear() + '-' + String(jakartaDate.getMonth() + 1).padStart(2, '0') + '-' + String(jakartaDate.getDate()).padStart(2, '0');
         document.getElementById('log-date').value = today;
         document.getElementById('log-activity').value = '';
         document.getElementById('log-file').value = '';
