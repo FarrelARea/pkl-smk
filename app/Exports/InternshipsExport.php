@@ -3,12 +3,13 @@
 namespace App\Exports;
 
 use App\Models\Internship;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class InternshipsExport implements FromCollection, WithHeadings
 {
-    public function collection()
+    public function collection(): Enumerable
     {
         return Internship::with(['student', 'company', 'company.school', 'supervisor'])->get()->map(function ($internship) {
             return [

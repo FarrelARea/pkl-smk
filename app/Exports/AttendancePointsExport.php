@@ -3,12 +3,13 @@
 namespace App\Exports;
 
 use App\Models\AttendancePoint;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class AttendancePointsExport implements FromCollection, WithHeadings
 {
-    public function collection()
+    public function collection(): Enumerable
     {
         return AttendancePoint::with(['company', 'company.school'])->get()->map(function ($point) {
             return [

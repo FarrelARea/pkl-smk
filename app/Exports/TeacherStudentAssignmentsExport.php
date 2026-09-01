@@ -3,12 +3,13 @@
 namespace App\Exports;
 
 use App\Models\TeacherStudentAssignment;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class TeacherStudentAssignmentsExport implements FromCollection, WithHeadings
 {
-    public function collection()
+    public function collection(): Enumerable
     {
         return TeacherStudentAssignment::with(['teacher', 'student'])->get()->map(function ($assignment) {
             return [

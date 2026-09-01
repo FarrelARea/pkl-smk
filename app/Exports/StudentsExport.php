@@ -3,12 +3,13 @@
 namespace App\Exports;
 
 use App\Models\User;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class StudentsExport implements FromCollection, WithHeadings
 {
-    public function collection()
+    public function collection(): Enumerable
     {
         return User::where('role', 'student')->with(['school', 'classes'])->get()->map(function ($student) {
             $classNames = $student->classes->pluck('name')->join(', ');

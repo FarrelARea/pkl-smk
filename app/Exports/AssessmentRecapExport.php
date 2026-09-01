@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\StudentAssessment;
 use App\Models\User;
+use Illuminate\Support\Enumerable;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -21,7 +22,7 @@ class AssessmentRecapExport implements FromCollection, WithHeadings
         $this->academicYear = $academicYear;
     }
 
-    public function collection()
+    public function collection(): Enumerable
     {
         $query = StudentAssessment::with(['student', 'internship.company', 'teacher', 'scores']);
 
