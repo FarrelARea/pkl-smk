@@ -5,13 +5,14 @@ namespace App\Imports;
 use App\Models\Company;
 use App\Models\User;
 use App\Models\TeacherCompanyAssignment;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
 class TeacherCompanyAssignmentsImport implements ToModel, WithHeadingRow, WithValidation
 {
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         $teacher = User::where('email', $row['email_guru'])
             ->where('role', 'teacher')

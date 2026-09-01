@@ -6,13 +6,14 @@ use App\Models\Company;
 use App\Models\Internship;
 use App\Models\School;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
 class InternshipsImport implements ToModel, WithHeadingRow, WithValidation
 {
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         $student = User::firstOrCreate(
             ['email' => $row['email_siswa']],

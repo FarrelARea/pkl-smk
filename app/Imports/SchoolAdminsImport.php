@@ -4,13 +4,14 @@ namespace App\Imports;
 
 use App\Models\School;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
 class SchoolAdminsImport implements ToModel, WithHeadingRow, WithValidation
 {
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         $school = School::firstOrCreate(
             ['name' => $row['nama_sekolah']]
