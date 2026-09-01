@@ -8,11 +8,11 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-[26px] font-extrabold text-on-surface tracking-tight mb-2 font-headline">Manajemen Kehadiran</h1>
         <x-help-button title="Panduan Manajemen Kehadiran">
-            <p>Di halaman ini kamu bisa mengelola data kehadiran siswa.</p>
+            <p>Di halaman ini kamu bisa melihat dan mengelola kehadiran siswa.</p>
             <ul class="list-disc pl-4 mt-2 space-y-1">
-                <li>Catat kehadiran siswa satu per satu atau massal</li>
-                <li>Edit dan hapus data kehadiran</li>
-                <li>Filter berdasarkan siswa dan rentang tanggal</li>
+                <li>Lihat kehadiran siswa berdasarkan tanggal (termasuk clock-in via aplikasi)</li>
+                <li>Catat kehadiran manual satu per satu atau massal</li>
+                <li>Gunakan tombol panah untuk navigasi tanggal</li>
             </ul>
         </x-help-button>
         <div class="flex items-center gap-3">
@@ -25,47 +25,44 @@
         </div>
     </div>
 
-    {{-- Filter Bar --}}
-    <div class="flex flex-wrap items-end gap-4">
-        <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Siswa</label>
-            <select id="filter-student" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                <option value="">Semua Siswa</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tanggal Mulai</label>
-            <input type="date" id="filter-start-date" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        <div>
-            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Tanggal Selesai</label>
-            <input type="date" id="filter-end-date" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        <div>
-            <button onclick="window.loadAttendance()" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">
-                Terapkan
-            </button>
-        </div>
+    {{-- Date Navigation --}}
+    <div class="flex items-center gap-4">
+        <button onclick="changeDate(-1)" class="p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+            <span class="material-symbols-outlined text-on-surface">chevron_left</span>
+        </button>
+        <input type="date" id="attendance-date" class="px-4 py-1.5 h-9 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent font-medium">
+        <button onclick="changeDate(1)" class="p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+            <span class="material-symbols-outlined text-on-surface">chevron_right</span>
+        </button>
+        <button onclick="goToToday()" class="px-4 py-1.5 h-9 bg-primary-container text-on-primary-container rounded-lg text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity">
+            Hari Ini
+        </button>
     </div>
 
-    {{-- Table --}}
+    {{-- Summary Badge --}}
+    <div id="summary-badge" class="rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-3 text-sm text-emerald-800 hidden">
+        <span id="summary-text"></span>
+    </div>
+
+    {{-- Attendance List --}}
     <div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden border border-outline-variant/10">
         <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-surface-container-low">
-                <tr>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Siswa</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Tanggal</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Status</th>
-                    <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Aksi</th>
-                </tr>
-            </thead>
-            <tbody id="attendance-table-body">
-                <tr>
-                    <td colspan="4" class="px-6 py-8 text-center text-on-surface-variant text-sm">Memuat...</td>
-                </tr>
-            </tbody>
-        </table>
+            <table class="w-full">
+                <thead class="bg-surface-container-low">
+                    <tr>
+                        <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Siswa</th>
+                        <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Status</th>
+                        <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Clock In</th>
+                        <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Clock Out</th>
+                        <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody id="attendance-table-body">
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-on-surface-variant text-sm">Memuat...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -144,76 +141,117 @@
 <script type="module">
     const { apiFetch } = Auth;
     let students = [];
+    let currentDate = new Date().toISOString().slice(0, 10);
+
+    function currentDateInput() {
+        return currentDate;
+    }
 
     async function loadStudents() {
         const res = await apiFetch('/students');
         const json = await res.json();
         students = Array.isArray(json.data) ? json.data : (json.data?.data || []);
 
-        const filterSelect = document.getElementById('filter-student');
         const crudSelect = document.getElementById('crud-student-id');
-
         const options = students.map(s => `<option value="${s.id}">${s.name || s.user?.name || ''}</option>`).join('');
-        filterSelect.innerHTML = `<option value="">Semua Siswa</option>` + options;
         crudSelect.innerHTML = `<option value="">Pilih Siswa</option>` + options;
+
+        const list = document.getElementById('bulk-students-list');
+        list.innerHTML = students.map(s => `
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" value="${s.id}" class="bulk-student-checkbox rounded border-outline-variant">
+                <span class="text-sm text-on-surface">${s.name || s.user?.name || ''}</span>
+            </label>
+        `).join('');
     }
 
-    window.loadAttendance = async function () {
-        const studentId = document.getElementById('filter-student').value;
-        const startDate = document.getElementById('filter-start-date').value;
-        const endDate = document.getElementById('filter-end-date').value;
+    async function loadAttendance() {
+        const res = await apiFetch(`/admin/panel/attendance-calendar?date=${encodeURIComponent(currentDate)}`);
+        const data = await res.json();
+        const attendance = data.attendance || [];
 
-        const params = new URLSearchParams();
-        if (studentId) params.append('student_id', studentId);
-        if (startDate) params.append('start_date', startDate);
-        if (endDate) params.append('end_date', endDate);
-
-        const res = await apiFetch(`/attendance?${params.toString()}`);
-        const json = await res.json();
-        const items = Array.isArray(json.data) ? json.data : (json.data?.data || []);
+        document.getElementById('summary-badge').classList.remove('hidden');
+        document.getElementById('summary-text').textContent = `${data.present_count} siswa hadir dari ${data.tracked_count} data kehadiran yang tercatat.`;
 
         const tbody = document.getElementById('attendance-table-body');
 
-        if (items.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-on-surface-variant text-sm">Belum ada data kehadiran.</td></tr>`;
+        if (attendance.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-on-surface-variant text-sm">Belum ada data kehadiran pada tanggal ini.</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = items.map(row => {
-            const studentName = row.student?.name || row.user?.name || '-';
+        tbody.innerHTML = attendance.map(item => {
+            const clockIn = item.clock_in ? new Date(item.clock_in).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
+            const clockOut = item.clock_out ? new Date(item.clock_out).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
+            const workHours = item.clock_in && item.clock_out ? calcWorkHours(item.clock_in, item.clock_out) : '';
+
+            let clockInfo = '';
+            if (item.clock_in) {
+                const withinRange = item.all_clocks?.[0]?.within_range;
+                clockInfo = `<span class="text-xs ${withinRange ? 'text-emerald-600' : 'text-amber-600'}">${withinRange ? 'di area' : 'luar area'}</span>`;
+            }
+
             return `
-                <tr class="border-t border-outline-variant/10">
-                    <td class="px-6 py-4 text-sm text-on-surface">${studentName}</td>
-                    <td class="px-6 py-4 text-sm text-on-surface">${row.attendance_date || ''}</td>
-                    <td class="px-6 py-4 text-sm">${AdminUtils.statusBadge(row.status)}</td>
-                    <td class="px-6 py-4 text-sm">
-                        <div class="flex items-center gap-2">
-                            <button onclick="window.openEditModal(${row.id})" class="text-primary hover:underline text-xs font-bold uppercase tracking-wider">Edit</button>
-                            <button onclick="window.deleteAttendance(${row.id})" class="text-error hover:underline text-xs font-bold uppercase tracking-wider">Hapus</button>
-                        </div>
+                <tr class="border-t border-outline-variant/10 hover:bg-surface-container/30 transition-colors">
+                    <td class="px-6 py-4 text-sm text-on-surface font-medium">${item.student_name || '-'}</td>
+                    <td class="px-6 py-4">${attendanceBadge(item.status)}</td>
+                    <td class="px-6 py-4 text-sm text-on-surface-variant">
+                        ${clockIn !== '—' ? `<div>${clockIn}</div>${clockInfo}` : '—'}
                     </td>
+                    <td class="px-6 py-4 text-sm text-on-surface-variant">${clockOut}${workHours ? `<div class="text-xs text-on-surface-variant/60">${workHours}</div>` : ''}</td>
+                    <td class="px-6 py-4 text-sm text-on-surface-variant">${item.notes || '—'}</td>
                 </tr>
             `;
         }).join('');
+    }
+
+    function attendanceBadge(status) {
+        const map = {
+            present: 'bg-emerald-100 text-emerald-700',
+            sick: 'bg-red-100 text-red-700',
+            permission: 'bg-amber-100 text-amber-700',
+            absent: 'bg-gray-200 text-gray-700',
+        };
+        const label = {
+            present: 'Hadir',
+            sick: 'Sakit',
+            permission: 'Izin',
+            absent: 'Alpa',
+        };
+        return `<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${map[status] || 'bg-gray-100 text-gray-600'}">${label[status] || status}</span>`;
+    }
+
+    function calcWorkHours(clockIn, clockOut) {
+        const diff = new Date(clockOut) - new Date(clockIn);
+        const hours = Math.floor(diff / 3600000);
+        const mins = Math.round((diff % 3600000) / 60000);
+        return `${hours}j ${mins}m`;
+    }
+
+    window.changeDate = function (offset) {
+        const d = new Date(currentDate);
+        d.setDate(d.getDate() + offset);
+        currentDate = d.toISOString().slice(0, 10);
+        document.getElementById('attendance-date').value = currentDate;
+        loadAttendance();
     };
+
+    window.goToToday = function () {
+        currentDate = new Date().toISOString().slice(0, 10);
+        document.getElementById('attendance-date').value = currentDate;
+        loadAttendance();
+    };
+
+    document.getElementById('attendance-date').addEventListener('change', function () {
+        currentDate = this.value;
+        loadAttendance();
+    });
 
     window.openCreateModal = function () {
         document.getElementById('crud-id').value = '';
         document.getElementById('crud-student-id').value = '';
-        document.getElementById('crud-attendance-date').value = '';
+        document.getElementById('crud-attendance-date').value = currentDate;
         document.getElementById('crud-status').value = '';
-        window.openModal('crud-modal');
-    };
-
-    window.openEditModal = async function (id) {
-        const res = await apiFetch(`/attendance/${id}`);
-        const json = await res.json();
-        const item = json.data || json;
-
-        document.getElementById('crud-id').value = item.id;
-        document.getElementById('crud-student-id').value = item.student_id || '';
-        document.getElementById('crud-attendance-date').value = item.attendance_date || '';
-        document.getElementById('crud-status').value = item.status || '';
         window.openModal('crud-modal');
     };
 
@@ -233,25 +271,11 @@
         }
 
         window.closeModal('crud-modal');
-        window.loadAttendance();
+        loadAttendance();
     };
 
-    window.deleteAttendance = async function (id) {
-        if (!confirm('Yakin mau hapus data ini?')) return;
-        await apiFetch(`/attendance/${id}`, { method: 'DELETE' });
-        window.loadAttendance();
-    };
-
-    window.openBulkModal = async function () {
-        const list = document.getElementById('bulk-students-list');
-        list.innerHTML = students.map(s => `
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" value="${s.id}" class="bulk-student-checkbox rounded border-outline-variant">
-                <span class="text-sm text-on-surface">${s.name || s.user?.name || ''}</span>
-            </label>
-        `).join('');
-
-        document.getElementById('bulk-attendance-date').value = '';
+    window.openBulkModal = function () {
+        document.getElementById('bulk-attendance-date').value = currentDate;
         document.getElementById('bulk-status').value = '';
         window.openModal('bulk-modal');
     };
@@ -262,7 +286,7 @@
         const studentIds = Array.from(checkboxes).map(cb => cb.value);
 
         if (studentIds.length === 0) {
-            alert('Please select at least one student.');
+            alert('Pilih minimal satu siswa.');
             return;
         }
 
@@ -274,11 +298,12 @@
 
         await apiFetch('/attendance/bulk', { method: 'POST', body: JSON.stringify(payload) });
         window.closeModal('bulk-modal');
-        window.loadAttendance();
+        loadAttendance();
     };
 
     // Initialize
+    document.getElementById('attendance-date').value = currentDate;
     await loadStudents();
-    window.loadAttendance();
+    loadAttendance();
 </script>
 @endpush

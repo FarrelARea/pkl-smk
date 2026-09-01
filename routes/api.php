@@ -157,6 +157,8 @@ Route::prefix('v1')->group(function () {
             Route::get('assessment-recap', [App\Http\Controllers\Api\V1\AssessmentRecapController::class, 'recap']);
             Route::get('student-assessments', [App\Http\Controllers\Api\V1\AssessmentRecapController::class, 'index']);
             Route::get('student-assessments/{id}', [App\Http\Controllers\Api\V1\AssessmentRecapController::class, 'show']);
+            // Admin panel
+            Route::get('admin/panel/attendance-calendar', [App\Http\Controllers\Api\V1\AdminPanelController::class, 'attendanceCalendar']);
         });
 
         Route::middleware('role:company_supervisor')->group(function () {
