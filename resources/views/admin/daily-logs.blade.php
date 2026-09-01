@@ -94,6 +94,18 @@
 <script type="module">
     let currentLogId = null;
 
+    const indonesianMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+    function formatDateIndonesian(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        const day = date.getDate();
+        const month = indonesianMonths[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    }
+
     async function loadStudents() {
         try {
             const json = await Auth.apiFetch('/students');
@@ -136,7 +148,7 @@
             tbody.innerHTML = items.map(row => {
                 const id = row.id;
                 const studentName = row.student?.name || row.user?.name || 'Unknown';
-                const date = row.log_date || row.date || '-';
+                const date = formatDateIndonesian(row.log_date || row.date);
                 const activities = row.activities || '';
                 const truncated = activities.length > 50 ? activities.substring(0, 50) + '...' : activities;
 
