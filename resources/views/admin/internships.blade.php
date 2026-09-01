@@ -139,7 +139,7 @@
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-end_date">Tanggal Selesai</label>
-                <input id="field-end_date" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
+                <input id="field-end_date" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent" type="date">
             </div>
             <div>
                 <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5" for="field-status">Status</label>
@@ -434,11 +434,15 @@
         const payload = {
             student_id: document.getElementById('field-student_id').value,
             company_id: document.getElementById('field-company_id').value,
-            supervisor_id: document.getElementById('field-supervisor_id').value,
+            supervisor_id: document.getElementById('field-supervisor_id').value || null,
             start_date: document.getElementById('field-start_date').value,
-            end_date: document.getElementById('field-end_date').value || null,
-            status: document.getElementById('field-status').value,
+            end_date: document.getElementById('field-end_date').value,
+            notes: null,
         };
+
+        if (id) {
+            payload.status = document.getElementById('field-status').value;
+        }
 
         try {
             const method = id ? 'PUT' : 'POST';
