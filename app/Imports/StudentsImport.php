@@ -29,10 +29,12 @@ class StudentsImport implements ToModel, WithHeadingRow
 
         if (!empty($row['nama_kelas'])) {
             $classNames = explode(',', $row['nama_kelas']);
+            $academicYear = $row['tahun_ajaran'] ?? null;
             foreach ($classNames as $className) {
                 $className = trim($className);
                 $class = SchoolClass::firstOrCreate(
-                    ['name' => $className, 'school_id' => $school->id]
+                    ['name' => $className, 'school_id' => $school->id],
+                    ['academic_year' => $academicYear]
                 );
                 $student->classes()->syncWithoutDetaching([
                     $class->id => ['role' => 'student']

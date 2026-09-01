@@ -188,8 +188,8 @@ class ImportExportController extends Controller
     public function downloadStudentsTemplate()
     {
         return $this->downloadTemplate(
-            ['Nama Sekolah', 'Nama', 'Email', 'Password', 'Nama Kelas'],
-            [['SMK Negeri 1 Jakarta', 'Ani Rahmawati', 'ani@student.sch.id', 'password123', 'XII RPL 1']],
+            ['Nama Sekolah', 'Nama', 'Email', 'Password', 'Nama Kelas', 'Tahun Ajaran'],
+            [['SMK Negeri 1 Jakarta', 'Ani Rahmawati', 'ani@student.sch.id', 'password123', 'XII RPL 1', '2025/2026']],
             'template-import-siswa.xlsx'
         );
     }
