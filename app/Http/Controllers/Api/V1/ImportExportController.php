@@ -179,8 +179,8 @@ class ImportExportController extends Controller
     public function downloadTeachersTemplate()
     {
         return $this->downloadTemplate(
-            ['Nama Sekolah', 'Nama', 'Email', 'Password'],
-            [['SMK Negeri 1 Jakarta', 'Budi Santoso', 'budi@smkn1jkt.sch.id', 'password123']],
+            ['Nama Sekolah', 'Nama', 'Email', 'Password', 'Kelas'],
+            [['SMK Negeri 1 Jakarta', 'Budi Santoso', 'budi@smkn1jkt.sch.id', 'password123', 'XII RPL 1']],
             'template-import-guru.xlsx'
         );
     }

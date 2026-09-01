@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\School;
+use App\Models\SchoolClass;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -25,6 +26,19 @@ class TeachersImport implements ToModel, WithHeadingRow
                 'password' => isset($row['password']) ? bcrypt($row['password']) : bcrypt('password'),
             ]
         );
+
+        if (!empty($row['nama_kelas'])) {
+            $classNames = explode(',', $row['nama_kelas']);
+            foreach ($classNames as $className) {
+                $className = trim($className);
+                $class = SchoolClass::firstOrCreate(
+                    ['name' => $className, 'school_id' => $school->id]
+                );
+                $teacher->classes()->syncWithoutDetaching([
+                    $class->id => ['role' => 'teacher']
+                ]);
+            }
+        }
 
         return $teacher;
     }
