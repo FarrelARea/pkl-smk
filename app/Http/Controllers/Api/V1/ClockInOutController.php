@@ -123,6 +123,14 @@ class ClockInOutController extends Controller
                 // Last session already closed — this is a new clock_out without clock_in
                 return response()->json(['error' => 'Harus clock in terlebih dahulu sebelum clock out'], 422);
             }
+
+            // Enforce minimum 5-hour gap between clock_in and clock_out
+            $hoursDiff = $lastClockIn->created_at->diffInHours(now());
+            if ($hoursDiff < 5) {
+                return response()->json([
+                    'error' => 'Minimal 5 jam antara clock in dan clock out. Silakan coba lagi setelah ' . $lastClockIn->created_at->addHours(5)->format('H:i'),
+                ], 422);
+            }
         }
 
         $photoPath = null;
