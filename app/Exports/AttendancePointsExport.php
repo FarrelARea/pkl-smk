@@ -18,7 +18,7 @@ class AttendancePointsExport implements FromCollection, WithHeadings
                 'Nama' => $point->name,
                 'Latitude' => $point->latitude,
                 'Longitude' => $point->longitude,
-                'Batas Jarak (m)' => $point->distance_threshold,
+                'Batas Jarak' => $point->distance_threshold,
                 'Status' => $point->status,
             ];
         });
@@ -32,7 +32,7 @@ class AttendancePointsExport implements FromCollection, WithHeadings
             'Nama',
             'Latitude',
             'Longitude',
-            'Batas Jarak (m)',
+            'Batas Jarak',
             'Status',
         ];
     }

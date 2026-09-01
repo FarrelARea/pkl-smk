@@ -25,7 +25,7 @@ class CompaniesExport implements FromCollection, WithHeadings
                 'Email' => $company->email,
                 'Latitude' => $company->latitude,
                 'Longitude' => $company->longitude,
-                'Batas Jarak (m)' => $company->distance_threshold,
+                'Batas Jarak' => $company->distance_threshold,
             ];
         });
     }
@@ -45,7 +45,7 @@ class CompaniesExport implements FromCollection, WithHeadings
             'Email',
             'Latitude',
             'Longitude',
-            'Batas Jarak (m)',
+            'Batas Jarak',
         ];
     }
 }

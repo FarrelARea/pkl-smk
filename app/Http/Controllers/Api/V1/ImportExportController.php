@@ -197,7 +197,7 @@ class ImportExportController extends Controller
     public function downloadCompaniesTemplate()
     {
         return $this->downloadTemplate(
-            ['Nama Sekolah', 'Nama', 'Alamat', 'Provinsi', 'Kota', 'Kecamatan', 'Desa', 'Industri', 'Telepon', 'Email', 'Latitude', 'Longitude', 'Batas Jarak (m)'],
+            ['Nama Sekolah', 'Nama', 'Alamat', 'Provinsi', 'Kota', 'Kecamatan', 'Desa', 'Industri', 'Telepon', 'Email', 'Latitude', 'Longitude', 'Batas Jarak'],
             [[
                 'SMK Negeri 1 Jakarta',
                 'PT Maju Jaya',
@@ -256,7 +256,7 @@ class ImportExportController extends Controller
     public function downloadAttendancePointsTemplate()
     {
         return $this->downloadTemplate(
-            ['Nama Sekolah', 'Nama Perusahaan', 'Nama', 'Latitude', 'Longitude', 'Batas Jarak (m)', 'Status'],
+            ['Nama Sekolah', 'Nama Perusahaan', 'Nama', 'Latitude', 'Longitude', 'Batas Jarak', 'Status'],
             [[
                 'SMK Negeri 1 Jakarta',
                 'PT Maju Jaya',
