@@ -203,7 +203,7 @@
                     </div>
 
                     <div id="camera-container" class="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
-                        <video id="camera-preview" class="h-full w-full object-cover" autoplay playsinline muted></video>
+                        <video id="camera-preview" class="h-full w-full object-cover -scale-x-100" autoplay playsinline muted></video>
                         <canvas id="camera-canvas" class="hidden"></canvas>
 
                         <div id="camera-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/60 text-white">
