@@ -497,7 +497,10 @@
 
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
-        canvas.getContext('2d').drawImage(video, 0, 0);
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0);
 
         // Convert to blob
         canvas.toBlob((blob) => {
