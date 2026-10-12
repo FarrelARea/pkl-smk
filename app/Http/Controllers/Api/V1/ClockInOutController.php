@@ -91,13 +91,14 @@ class ClockInOutController extends Controller
             $companyLng = $result['point']->longitude;
             $maxDistance = $result['point']->distance_threshold;
         } elseif ($companyLat && $companyLng) {
+            $maxDistance = $company->distance_threshold ?? self::MAX_DISTANCE_METERS;
             $distance = ClockInOut::calculateDistance(
                 $data['latitude'],
                 $data['longitude'],
                 $companyLat,
                 $companyLng
             );
-            $isWithinRange = $distance <= self::MAX_DISTANCE_METERS;
+            $isWithinRange = $distance <= $maxDistance;
         }
 
         // For clock_out, verify there's an unpaired clock_in (may be from previous day for night shifts)
