@@ -338,6 +338,49 @@
         );
     }
 
+    async function compressImage(file) {
+        if (file.type === 'image/jpeg' && file.size <= 2 * 1024 * 1024) return file;
+
+        let image;
+        try {
+            try {
+                image = await createImageBitmap(file, { resizeWidth: 1600 });
+            } catch (error) {
+                image = await createImageBitmap(file);
+            }
+        } catch (error) {
+            try {
+                image = await new Promise((resolve, reject) => {
+                    const objectUrl = URL.createObjectURL(file);
+                    const img = new Image();
+                    img.onload = () => { URL.revokeObjectURL(objectUrl); resolve(img); };
+                    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Gagal membaca gambar')); };
+                    img.src = objectUrl;
+                });
+            } catch (fallbackError) {
+                return file;
+            }
+        }
+
+        const scale = Math.min(1, 1600 / Math.max(image.width, image.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        if (image.close) image.close();
+
+        const toBlob = quality => new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+        let blob = await toBlob(0.82);
+        for (const quality of [0.6, 0.4, 0.3]) {
+            if (!blob || blob.size <= 2 * 1024 * 1024) break;
+            blob = await toBlob(quality);
+        }
+        if (!blob) return file;
+
+        const name = file.name.replace(/\.[^.]*$/, '') + '.jpg';
+        return new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() });
+    }
+
     window.handleSubmitLog = async function(event) {
         event.preventDefault();
 
@@ -354,8 +397,6 @@
 
         if (!date) { alert('Tanggal harus diisi'); return; }
         if (activity.length < 20) { alert('Aktivitas harus minimal 20 karakter'); return; }
-        if (fileInput.files.length > 0 && fileInput.files[0].size > 2 * 1024 * 1024) { alert('File terlalu besar (max 2MB)'); return; }
-
         const submitBtn = document.getElementById('submit-btn');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Menyimpan...';
@@ -366,7 +407,11 @@
             formData.append('activities', activity);
             formData.append('internship_id', window.activeInternshipId);
             if (lat && lng) { formData.append('latitude', lat); formData.append('longitude', lng); }
-            if (fileInput.files.length > 0) formData.append('photo', fileInput.files[0]);
+            if (fileInput.files.length > 0) {
+                const photo = await compressImage(fileInput.files[0]);
+                if (photo.size > 2 * 1024 * 1024) { alert('File terlalu besar (max 2MB) setelah kompresi'); return; }
+                formData.append('photo', photo);
+            }
 
             const res = await Auth.apiFetch('/daily-logs', { method: 'POST', body: formData, headers: {} });
 
@@ -513,8 +558,6 @@
         const logId = window.currentEditLogId;
 
         if (activity.length < 20) { alert('Aktivitas harus minimal 20 karakter'); return; }
-        if (fileInput.files.length > 0 && fileInput.files[0].size > 2 * 1024 * 1024) { alert('File terlalu besar (max 2MB)'); return; }
-
         const submitBtn = document.getElementById('edit-submit-btn');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Menyimpan...';
@@ -525,7 +568,11 @@
             formData.append('activities', activity);
             formData.append('internship_id', window.activeInternshipId);
             if (lat && lng) { formData.append('latitude', lat); formData.append('longitude', lng); }
-            if (fileInput.files.length > 0) formData.append('photo', fileInput.files[0]);
+            if (fileInput.files.length > 0) {
+                const photo = await compressImage(fileInput.files[0]);
+                if (photo.size > 2 * 1024 * 1024) { alert('File terlalu besar (max 2MB) setelah kompresi'); return; }
+                formData.append('photo', photo);
+            }
             formData.append('_method', 'PUT');
 
             const res = await Auth.apiFetch(`/daily-logs/${logId}`, { method: 'POST', body: formData, headers: {} });
