@@ -185,33 +185,43 @@ class ClockInOutController extends Controller
         $record = $query->findOrFail($id);
         $data = $request->validate([
             'created_at' => 'required|date',
+            'type' => 'required|in:clock_in,clock_out',
             'is_within_range' => 'required|boolean',
         ]);
         $newTime = Carbon::parse($data['created_at']);
 
-        $pairedClock = $record->type === 'clock_in'
-            ? ClockInOut::where('user_id', $record->user_id)
-                ->where('internship_id', $record->internship_id)
-                ->where('type', 'clock_out')
-                ->where('id', '!=', $record->id)
-                ->where('created_at', '>=', $record->created_at)
-                ->orderBy('created_at')
-                ->first()
-            : ClockInOut::where('user_id', $record->user_id)
-                ->where('internship_id', $record->internship_id)
-                ->where('type', 'clock_in')
-                ->where('id', '!=', $record->id)
-                ->where('created_at', '<=', $record->created_at)
-                ->orderByDesc('created_at')
-                ->first();
+        $records = ClockInOut::where('user_id', $record->user_id)
+            ->where('internship_id', $record->internship_id)
+            ->where('id', '!=', $record->id)
+            ->get(['id', 'type', 'created_at'])
+            ->push((object) [
+                'id' => $record->id,
+                'type' => $data['type'],
+                'created_at' => $newTime,
+            ])
+            ->sortBy(fn ($clock) => [$clock->created_at->getTimestamp(), $clock->id])
+            ->values();
 
-        if ($pairedClock && (($record->type === 'clock_in' && $newTime->gt($pairedClock->created_at))
-            || ($record->type === 'clock_out' && $newTime->lt($pairedClock->created_at)))) {
-            return response()->json(['error' => 'Clock-out must be after or equal to clock-in'], 422);
+        $previous = null;
+        foreach ($records as $clock) {
+            if ($previous && $previous->type === $clock->type) {
+                return response()->json([
+                    'error' => 'Changing this record to ' . $data['type'] . ' would create consecutive duplicate clock records.',
+                ], 422);
+            }
+
+            if ($clock->type === 'clock_out' && (!$previous || $previous->type !== 'clock_in')) {
+                return response()->json([
+                    'error' => 'Clock-out must have a preceding clock-in.',
+                ], 422);
+            }
+
+            $previous = $clock;
         }
 
         $record->forceFill([
             'created_at' => $newTime,
+            'type' => $data['type'],
             'is_within_range' => $data['is_within_range'],
         ])->save();
 

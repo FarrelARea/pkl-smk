@@ -323,11 +323,12 @@
     }
 
     function clockRecordHtml(clock, index) {
-        const label = clock.type === 'clock_in' ? 'Clock In' : 'Clock Out';
+        const type = clock.type === 'clock_out' ? 'clock_out' : 'clock_in';
+        const label = type === 'clock_in' ? 'Clock In' : 'Clock Out';
         const photo = clock.photo_url || clock.photo || clock.image_url;
-        return `<div class="rounded-lg border border-outline-variant/20 p-3" data-clock-record data-clock-id="${clock.id}" data-original-time="${timeInputValue(clock.time)}" data-original-range="${clock.within_range}">
-            <div class="flex items-center justify-between gap-3 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">${label} #${index + 1}</span>${photo ? `<a href="${photo}" target="_blank" rel="noopener" class="text-xs font-semibold text-primary hover:underline">Lihat foto</a>` : ''}</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><input type="time" data-clock-time value="${timeInputValue(clock.time)}" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"><select data-clock-range class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"><option value="true" ${clock.within_range ? 'selected' : ''}>Di area</option><option value="false" ${!clock.within_range ? 'selected' : ''}>Di luar area</option></select></div>
+        return `<div class="rounded-lg border border-outline-variant/20 p-3" data-clock-record data-clock-id="${clock.id}" data-original-time="${timeInputValue(clock.time)}" data-original-range="${clock.within_range}" data-original-type="${type}">
+            <div class="flex items-center justify-between gap-3 mb-2"><span data-clock-label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">${label} #${index + 1}</span>${photo ? `<a href="${photo}" target="_blank" rel="noopener" class="text-xs font-semibold text-primary hover:underline">Lihat foto</a>` : ''}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><input type="time" data-clock-time value="${timeInputValue(clock.time)}" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"><select data-clock-type aria-label="Jenis clock" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"><option value="clock_in" ${type === 'clock_in' ? 'selected' : ''}>Clock In</option><option value="clock_out" ${type === 'clock_out' ? 'selected' : ''}>Clock Out</option></select><select data-clock-range class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"><option value="true" ${clock.within_range ? 'selected' : ''}>Di area</option><option value="false" ${!clock.within_range ? 'selected' : ''}>Di luar area</option></select></div>
         </div>`;
     }
 
@@ -351,11 +352,18 @@
         window.openModal('clock-modal');
     };
 
+    document.getElementById('clock-records').addEventListener('change', function (event) {
+        if (!event.target.matches('[data-clock-type]')) return;
+        const record = event.target.closest('[data-clock-record]');
+        record.querySelector('[data-clock-label]').textContent = `${event.target.value === 'clock_in' ? 'Clock In' : 'Clock Out'} #${Array.from(document.querySelectorAll('[data-clock-record]')).indexOf(record) + 1}`;
+    });
+
     window.saveClockAttendance = async function (e) {
         e.preventDefault();
         const updates = Array.from(document.querySelectorAll('[data-clock-record]')).filter(record => {
             return record.querySelector('[data-clock-time]').value !== record.dataset.originalTime
-                || record.querySelector('[data-clock-range]').value !== record.dataset.originalRange;
+                || record.querySelector('[data-clock-range]').value !== record.dataset.originalRange
+                || record.querySelector('[data-clock-type]').value !== record.dataset.originalType;
         });
 
         try {
@@ -366,6 +374,7 @@
                     body: JSON.stringify({
                         created_at: `${currentDate}T${time}:00`,
                         is_within_range: record.querySelector('[data-clock-range]').value === 'true',
+                        type: record.querySelector('[data-clock-type]').value,
                     }),
                 });
                 if (!response.ok) {
