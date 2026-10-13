@@ -173,6 +173,7 @@
 @push('scripts')
 <script type="module">
     const { apiFetch } = Auth;
+    const { showToast } = AdminUtils;
     let students = [];
     let currentDate = new Date().toISOString().slice(0, 10);
 
@@ -323,6 +324,8 @@
         document.getElementById('clock-attendance-id').value = JSON.stringify({
             clockInId: attendance.clockInId,
             clockOutId: attendance.clockOutId,
+            originalClockIn: timeInputValue(attendance.clockIn),
+            originalClockOut: timeInputValue(attendance.clockOut),
         });
         document.getElementById('clock-in-time').value = timeInputValue(attendance.clockIn);
         document.getElementById('clock-out-time').value = timeInputValue(attendance.clockOut);
@@ -338,26 +341,46 @@
         const clockIn = document.getElementById('clock-in-time').value;
         const clockOut = document.getElementById('clock-out-time').value;
         const isWithinRange = document.getElementById('clock-location-status').value === 'true';
-        if (ids.clockInId) {
-            await apiFetch(`/admin/clock-in-out/${encodeURIComponent(ids.clockInId)}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    created_at: clockIn ? `${currentDate}T${clockIn}:00` : null,
-                    is_within_range: isWithinRange,
-                }),
-            });
+        const originalClockIn = ids.originalClockIn || '';
+        const originalClockOut = ids.originalClockOut || '';
+
+        // Backend requires a time; blank values cannot delete clock records.
+        if ((ids.clockInId && !clockIn) || (ids.clockOutId && !clockOut)) {
+            showToast('Waktu clock in dan clock out wajib diisi', 'error');
+            return;
         }
-        if (ids.clockOutId) {
-            await apiFetch(`/admin/clock-in-out/${encodeURIComponent(ids.clockOutId)}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    created_at: clockOut ? `${currentDate}T${clockOut}:00` : null,
-                    is_within_range: isWithinRange,
-                }),
-            });
+        if (clockIn && clockOut && clockOut < clockIn) {
+            showToast('Clock-out harus setelah atau sama dengan clock-in', 'error');
+            return;
         }
-        window.closeModal('clock-modal');
-        loadAttendance();
+
+        const updates = [];
+        if (ids.clockOutId && clockOut !== originalClockOut) {
+            updates.push([ids.clockOutId, clockOut]);
+        }
+        if (ids.clockInId && clockIn !== originalClockIn) {
+            updates.push([ids.clockInId, clockIn]);
+        }
+
+        try {
+            for (const [id, time] of updates) {
+                const response = await apiFetch(`/admin/clock-in-out/${encodeURIComponent(id)}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        created_at: `${currentDate}T${time}:00`,
+                        is_within_range: isWithinRange,
+                    }),
+                });
+                if (!response.ok) {
+                    const body = await response.json().catch(() => ({}));
+                    throw new Error(body.error || body.message || 'Gagal memperbarui waktu kehadiran');
+                }
+            }
+            window.closeModal('clock-modal');
+            loadAttendance();
+        } catch (error) {
+            showToast(error.message || 'Gagal memperbarui waktu kehadiran', 'error');
+        }
     };
 
     window.saveAttendance = async function (e) {
