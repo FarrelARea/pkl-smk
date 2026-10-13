@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClockInOut;
+use App\Models\Attendance;
 use App\Models\User;
 use App\Services\AttendanceInferenceService;
 use Carbon\Carbon;
@@ -39,6 +40,13 @@ class AdminPanelController extends Controller
                 'attendance_date' => $record['attendance_date'],
                 'status' => $record['status'],
                 'notes' => $record['notes'],
+                'attendance_id' => null,
+                'clock_in_id' => null,
+                'clock_out_id' => null,
+                'clock_in' => null,
+                'clock_out' => null,
+                'location_verified' => null,
+                'all_clocks' => [],
             ])
             ->values();
 
@@ -47,8 +55,16 @@ class AdminPanelController extends Controller
             ->orderBy('created_at')
             ->get();
         $clockByStudent = $clockRecords->groupBy('user_id');
+        $attendanceByStudent = Attendance::query()
+            ->whereIn('student_id', $studentIds)
+            ->whereDate('attendance_date', $parsedDate)
+            ->get()
+            ->keyBy('student_id');
 
-        $records = $records->map(function ($record) use ($clockByStudent) {
+        $records = $records->map(function ($record) use ($clockByStudent, $attendanceByStudent) {
+            $attendance = $attendanceByStudent->get($record['student_id']);
+            $record['attendance_id'] = $attendance?->id;
+            $record['location_verified'] = $attendance?->location_verified;
             if (!$clockByStudent->has($record['student_id'])) {
                 return $record;
             }
@@ -58,7 +74,11 @@ class AdminPanelController extends Controller
 
             $record['clock_in'] = $clockIn ? $clockIn->created_at : null;
             $record['clock_out'] = $clockOut ? $clockOut->created_at : null;
+            $record['clock_in_id'] = $clockIn?->id;
+            $record['clock_out_id'] = $clockOut?->id;
+            $record['location_verified'] = $clocks->every(fn ($clock) => (bool) $clock->is_within_range);
             $record['all_clocks'] = $clocks->map(fn ($c) => [
+                'id' => $c->id,
                 'type' => $c->type,
                 'time' => $c->created_at,
                 'within_range' => (bool) $c->is_within_range,

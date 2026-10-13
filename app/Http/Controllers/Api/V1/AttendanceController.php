@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\AttendancePoint;
+use App\Models\ClockInOut;
 use App\Models\Internship;
 use App\Models\User;
 use App\Services\DistanceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
@@ -79,6 +81,7 @@ class AttendanceController extends Controller
         }
 
         $attendance = $query->orderBy('attendance_date', 'desc')->paginate($request->get('per_page', 15));
+        $attendance->getCollection()->transform(fn (Attendance $record) => $this->withClockData($record));
 
         return response()->json($attendance);
     }
@@ -167,21 +170,139 @@ class AttendanceController extends Controller
             ->with('recordedBy')
             ->findOrFail($id);
 
-        return response()->json($attendance);
+        return response()->json($this->withClockData($attendance));
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
+        if (!$request->user()->isSuperAdmin() && $request->user()->role !== 'school_admin') {
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
+        }
+
         $attendance = $this->scopeQuery($request)->findOrFail($id);
 
         $data = $request->validate([
             'status' => 'sometimes|required|in:present,absent,sick,permission',
             'notes' => 'nullable|string',
+            'clock_in' => 'sometimes|nullable|date',
+            'clock_out' => 'sometimes|nullable|date',
+            'location_verified' => 'sometimes|boolean',
         ]);
 
-        $attendance->update($data);
+        $clocks = ClockInOut::query()
+            ->where('user_id', $attendance->student_id)
+            ->where('internship_id', $attendance->internship_id)
+            ->whereIn('type', ['clock_in', 'clock_out'])
+            ->whereDate('created_at', $attendance->attendance_date)
+            ->orderBy('created_at')
+            ->get();
+        $existingIn = $clocks->firstWhere('type', 'clock_in');
+        $existingOut = $clocks->firstWhere('type', 'clock_out');
+        $clockIn = $request->has('clock_in')
+            ? ($request->input('clock_in') === null ? null : Carbon::parse($request->input('clock_in')))
+            : $existingIn?->created_at;
+        $clockOut = $request->has('clock_out')
+            ? ($request->input('clock_out') === null ? null : Carbon::parse($request->input('clock_out')))
+            : $existingOut?->created_at;
 
-        return response()->json($attendance);
+        if ($clockIn && $clockOut && $clockOut->lt($clockIn)) {
+            return response()->json(['error' => 'clock_out must not be earlier than clock_in'], 422);
+        }
+
+        $attendance->update(collect($data)->only(['status', 'notes', 'location_verified'])->all());
+
+        foreach (['clock_in' => 'clock_in', 'clock_out' => 'clock_out'] as $input => $type) {
+            if (!$request->has($input)) {
+                continue;
+            }
+
+            $clock = ClockInOut::query()
+                ->where('user_id', $attendance->student_id)
+                ->where('internship_id', $attendance->internship_id)
+                ->where('type', $type)
+                ->whereDate('created_at', $attendance->attendance_date)
+                ->orderBy('created_at')
+                ->first();
+
+            if ($request->input($input) === null) {
+                $clock?->delete();
+                continue;
+            }
+
+            $clock ??= new ClockInOut([
+                'user_id' => $attendance->student_id,
+                'internship_id' => $attendance->internship_id,
+                'type' => $type,
+                'is_within_range' => $request->has('location_verified')
+                    ? $request->boolean('location_verified') : false,
+            ]);
+            if (!$clock->exists) {
+                $coordinates = $this->clockCoordinates($attendance);
+                if (!$coordinates) {
+                    return response()->json([
+                        'error' => 'Cannot create clock record without attendance or company coordinates',
+                    ], 422);
+                }
+                $clock->latitude = $coordinates['latitude'];
+                $clock->longitude = $coordinates['longitude'];
+            }
+            $clock->created_at = Carbon::parse($request->input($input));
+            if ($request->has('location_verified')) {
+                $clock->is_within_range = $request->boolean('location_verified');
+            }
+            $clock->save();
+        }
+
+        if ($request->has('location_verified')) {
+            ClockInOut::query()
+                ->where('user_id', $attendance->student_id)
+                ->where('internship_id', $attendance->internship_id)
+                ->whereIn('type', ['clock_in', 'clock_out'])
+                ->whereDate('created_at', $attendance->attendance_date)
+                ->update(['is_within_range' => $request->boolean('location_verified')]);
+        }
+
+        return response()->json($this->withClockData($attendance->fresh()));
+    }
+
+    private function withClockData(Attendance $attendance): Attendance
+    {
+        $clocks = ClockInOut::query()
+            ->where('user_id', $attendance->student_id)
+            ->where('internship_id', $attendance->internship_id)
+            ->whereDate('created_at', $attendance->attendance_date)
+            ->orderBy('created_at')
+            ->get();
+        $clockIn = $clocks->firstWhere('type', 'clock_in');
+        $clockOut = $clocks->firstWhere('type', 'clock_out');
+
+        return $attendance->setAttribute('clock_in_id', $clockIn?->id)
+            ->setAttribute('clock_out_id', $clockOut?->id)
+            ->setAttribute('clock_in', $clockIn?->created_at)
+            ->setAttribute('clock_out', $clockOut?->created_at)
+            ->setAttribute('location_verified', $clocks->isNotEmpty()
+                ? $clocks->every(fn (ClockInOut $clock) => (bool) $clock->is_within_range)
+                : (bool) $attendance->location_verified);
+    }
+
+    private function clockCoordinates(Attendance $attendance): ?array
+    {
+        if ($attendance->latitude !== null && $attendance->longitude !== null) {
+            return [
+                'latitude' => $attendance->latitude,
+                'longitude' => $attendance->longitude,
+            ];
+        }
+
+        $company = $attendance->loadMissing('internship.company')->internship?->company;
+        if ($company?->latitude !== null && $company?->longitude !== null) {
+            return [
+                'latitude' => $company->latitude,
+                'longitude' => $company->longitude,
+            ];
+        }
+
+        return null;
     }
 
     public function destroy(Request $request, int $id): JsonResponse

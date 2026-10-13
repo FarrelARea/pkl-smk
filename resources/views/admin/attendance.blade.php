@@ -55,11 +55,12 @@
                         <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Clock In</th>
                         <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Clock Out</th>
                         <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-left">Keterangan</th>
+                        <th class="px-6 py-4 text-[0.75rem] font-bold uppercase tracking-wider text-on-surface-variant text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="attendance-table-body">
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-on-surface-variant text-sm">Memuat...</td>
+                        <td colspan="6" class="px-6 py-8 text-center text-on-surface-variant text-sm">Memuat...</td>
                     </tr>
                 </tbody>
             </table>
@@ -98,6 +99,32 @@
             <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">
                 Simpan
             </button>
+        </div>
+    </form>
+@endcomponent
+
+{{-- Edit Clock Times Modal --}}
+@component('partials.modal', ['id' => 'clock-modal', 'title' => 'Edit Waktu Kehadiran'])
+    <form id="clock-form" onsubmit="window.saveClockAttendance(event)" class="space-y-4">
+        <input type="hidden" id="clock-attendance-id">
+        <div>
+            <label for="clock-in-time" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Clock In</label>
+            <input type="time" id="clock-in-time" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+        <div>
+            <label for="clock-out-time" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Clock Out</label>
+            <input type="time" id="clock-out-time" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+        <div>
+            <label for="clock-location-status" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Status Area</label>
+            <select id="clock-location-status" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <option value="true">Di area</option>
+                <option value="false">Di luar area</option>
+            </select>
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+            <button type="button" onclick="window.closeModal('clock-modal')" class="px-5 py-2.5 bg-secondary-container text-on-secondary-container rounded-md font-bold text-xs uppercase tracking-wider">Batal</button>
+            <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">Simpan</button>
         </div>
     </form>
 @endcomponent
@@ -176,7 +203,7 @@
         const tbody = document.getElementById('attendance-table-body');
 
         if (attendance.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-on-surface-variant text-sm">Belum ada data kehadiran pada tanggal ini.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-on-surface-variant text-sm">Belum ada data kehadiran pada tanggal ini.</td></tr>`;
             return;
         }
 
@@ -184,6 +211,7 @@
             const clockIn = item.clock_in ? new Date(item.clock_in).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
             const clockOut = item.clock_out ? new Date(item.clock_out).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
             const workHours = item.clock_in && item.clock_out ? calcWorkHours(item.clock_in, item.clock_out) : '';
+            const attendanceId = item.attendance_id;
 
             let clockInfo = '';
             if (item.clock_in) {
@@ -200,6 +228,12 @@
                     </td>
                     <td class="px-6 py-4 text-sm text-on-surface-variant">${clockOut}${workHours ? `<div class="text-xs text-on-surface-variant/60">${workHours}</div>` : ''}</td>
                     <td class="px-6 py-4 text-sm text-on-surface-variant">${item.notes || '—'}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button type="button" ${attendanceId ? `onclick='window.openClockModal(${JSON.stringify({ id: attendanceId, clockIn: item.clock_in, clockOut: item.clock_out, locationVerified: item.location_verified ?? item.all_clocks?.[0]?.within_range })})'` : 'disabled'} class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold ${attendanceId ? 'text-primary hover:bg-primary-container/30' : 'text-on-surface-variant/40 cursor-not-allowed'} transition-colors" title="${attendanceId ? 'Edit waktu kehadiran' : 'ID kehadiran tidak tersedia'}">
+                            <span class="material-symbols-outlined text-[18px]">edit</span>
+                            Edit
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -253,6 +287,43 @@
         document.getElementById('crud-attendance-date').value = currentDate;
         document.getElementById('crud-status').value = '';
         window.openModal('crud-modal');
+    };
+
+    function timeInputValue(value) {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value).slice(0, 5);
+        return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    window.openClockModal = function (attendance) {
+        if (!attendance?.id) return;
+        document.getElementById('clock-attendance-id').value = attendance.id;
+        document.getElementById('clock-in-time').value = timeInputValue(attendance.clockIn);
+        document.getElementById('clock-out-time').value = timeInputValue(attendance.clockOut);
+        document.getElementById('clock-location-status').value = attendance.locationVerified === false ? 'false' : 'true';
+        window.openModal('clock-modal');
+    };
+
+    window.saveClockAttendance = async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('clock-attendance-id').value;
+        if (!id) return;
+
+        const clockIn = document.getElementById('clock-in-time').value;
+        const clockOut = document.getElementById('clock-out-time').value;
+        const payload = {
+            clock_in: clockIn ? `${currentDate}T${clockIn}:00` : null,
+            clock_out: clockOut ? `${currentDate}T${clockOut}:00` : null,
+            location_verified: document.getElementById('clock-location-status').value === 'true',
+        };
+
+        await apiFetch(`/attendance/${encodeURIComponent(id)}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+        });
+        window.closeModal('clock-modal');
+        loadAttendance();
     };
 
     window.saveAttendance = async function (e) {
