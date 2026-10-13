@@ -69,6 +69,12 @@ class AdminPanelController extends Controller
                 return $record;
             }
             $clocks = $clockByStudent[$record['student_id']];
+            if ($attendance) {
+                $internshipClocks = $clocks->where('internship_id', $attendance->internship_id);
+                if ($internshipClocks->isNotEmpty()) {
+                    $clocks = $internshipClocks;
+                }
+            }
             $clockIn = $clocks->firstWhere('type', 'clock_in');
             $clockOut = $clocks->filter(fn ($c) => $c->type === 'clock_out')->first();
 

@@ -83,6 +83,12 @@
             <input type="date" id="crud-attendance-date" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
         </div>
         <div>
+            <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Magang</label>
+            <select id="crud-internship-id" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <option value="">Pilih Magang</option>
+            </select>
+        </div>
+        <div>
             <label class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Status</label>
             <select id="crud-status" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">Pilih Status</option>
@@ -182,6 +188,20 @@
         const crudSelect = document.getElementById('crud-student-id');
         const options = students.map(s => `<option value="${s.id}">${s.name || s.user?.name || ''}</option>`).join('');
         crudSelect.innerHTML = `<option value="">Pilih Siswa</option>` + options;
+
+        crudSelect.addEventListener('change', async function () {
+            const internshipSelect = document.getElementById('crud-internship-id');
+            internshipSelect.innerHTML = '<option value="">Memuat magang...</option>';
+            if (!this.value) {
+                internshipSelect.innerHTML = '<option value="">Pilih Magang</option>';
+                return;
+            }
+            const response = await apiFetch(`/students/${this.value}/internship-history`);
+            const internships = await response.json();
+            internshipSelect.innerHTML = '<option value="">Pilih Magang</option>' + internships.map(item =>
+                `<option value="${item.id}">${item.company?.name || 'Magang'} (${item.start_date} - ${item.end_date})</option>`
+            ).join('');
+        });
 
         const list = document.getElementById('bulk-students-list');
         list.innerHTML = students.map(s => `
@@ -285,6 +305,7 @@
         document.getElementById('crud-id').value = '';
         document.getElementById('crud-student-id').value = '';
         document.getElementById('crud-attendance-date').value = currentDate;
+        document.getElementById('crud-internship-id').innerHTML = '<option value="">Pilih Magang</option>';
         document.getElementById('crud-status').value = '';
         window.openModal('crud-modal');
     };
@@ -331,6 +352,7 @@
         const id = document.getElementById('crud-id').value;
         const payload = {
             student_id: document.getElementById('crud-student-id').value,
+            internship_id: document.getElementById('crud-internship-id').value,
             attendance_date: document.getElementById('crud-attendance-date').value,
             status: document.getElementById('crud-status').value,
         };

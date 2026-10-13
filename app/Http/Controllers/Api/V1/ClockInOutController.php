@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttendancePoint;
+use App\Models\Attendance;
 use App\Models\ClockInOut;
 use App\Models\Internship;
 use App\Services\DistanceService;
@@ -153,6 +154,32 @@ class ClockInOutController extends Controller
             'notes' => $data['notes'] ?? null,
             'photo' => $photoPath,
         ]);
+
+        if ($data['type'] === 'clock_in') {
+            $attendance = Attendance::where('student_id', $userId)
+                ->whereDate('attendance_date', $clockRecord->created_at)
+                ->first();
+
+            $attendanceData = [
+                'internship_id' => $internship->id,
+                'latitude' => $clockRecord->latitude,
+                'longitude' => $clockRecord->longitude,
+                'location_verified' => $clockRecord->is_within_range,
+                'location_distance' => $clockRecord->distance_meters,
+                'attendance_point_id' => $clockRecord->attendance_point_id,
+            ];
+
+            if ($attendance) {
+                $attendance->update($attendanceData);
+            } else {
+                Attendance::create(array_merge($attendanceData, [
+                    'student_id' => $userId,
+                    'attendance_date' => $clockRecord->created_at->toDateString(),
+                    'status' => 'present',
+                    'recorded_by' => $userId,
+                ]));
+            }
+        }
 
         $message = $data['type'] === 'clock_in' ? 'Clocked in successfully' : 'Clocked out successfully';
 
