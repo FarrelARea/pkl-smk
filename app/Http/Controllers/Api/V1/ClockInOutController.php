@@ -173,9 +173,12 @@ class ClockInOutController extends Controller
     public function adminUpdate(Request $request, int $id): JsonResponse
     {
         $admin = auth('api')->user();
+        if (!$admin->isSuperAdmin() && $admin->role !== 'school_admin') {
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
+        }
         $query = ClockInOut::query();
 
-        if ($admin->role !== 'superadmin') {
+        if (!$admin->isSuperAdmin()) {
             $query->whereHas('user', fn ($userQuery) => $userQuery->where('school_id', $admin->school_id));
         }
 

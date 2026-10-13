@@ -110,27 +110,29 @@
 @endcomponent
 
 {{-- Edit Clock Times Modal --}}
-@component('partials.modal', ['id' => 'clock-modal', 'title' => 'Edit Waktu Kehadiran'])
+@component('partials.modal', ['id' => 'clock-modal', 'title' => 'Detail Kehadiran'])
     <form id="clock-form" onsubmit="window.saveClockAttendance(event)" class="space-y-4">
-        <input type="hidden" id="clock-attendance-id">
-        <div>
-            <label for="clock-in-time" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Clock In</label>
-            <input type="time" id="clock-in-time" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        <div class="flex items-center justify-between">
+            <div>
+                <p id="clock-student-name" class="font-bold text-on-surface"></p>
+                <p id="clock-attendance-date-label" class="text-xs text-on-surface-variant"></p>
+            </div>
+            <div>
+                <label for="clock-attendance-status" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Status</label>
+                <select id="clock-attendance-status" class="px-3 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="present">Hadir</option>
+                    <option value="absent">Alpa</option>
+                    <option value="sick">Sakit</option>
+                    <option value="permission">Izin</option>
+                </select>
+            </div>
         </div>
-        <div>
-            <label for="clock-out-time" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Clock Out</label>
-            <input type="time" id="clock-out-time" class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        <div>
-            <label for="clock-location-status" class="block text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Status Area</label>
-            <select id="clock-location-status" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-                <option value="true">Di area</option>
-                <option value="false">Di luar area</option>
-            </select>
-        </div>
+        <p id="clock-status-note" class="hidden rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800"></p>
+        <div id="clock-records" class="space-y-3 max-h-80 overflow-y-auto"></div>
+        <p id="clock-empty" class="hidden text-sm text-on-surface-variant">Belum ada catatan clock untuk tanggal ini.</p>
         <div class="flex justify-end gap-3 pt-2">
             <button type="button" onclick="window.closeModal('clock-modal')" class="px-5 py-2.5 bg-secondary-container text-on-secondary-container rounded-md font-bold text-xs uppercase tracking-wider">Batal</button>
-            <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">Simpan</button>
+            <button type="submit" class="px-5 py-2.5 primary-gradient text-white rounded-md font-bold text-xs uppercase tracking-wider">Simpan Perubahan</button>
         </div>
     </form>
 @endcomponent
@@ -229,6 +231,7 @@
         }
 
         tbody.innerHTML = attendance.map(item => {
+            const clocks = item.all_clocks || [];
             const clockIn = item.clock_in ? new Date(item.clock_in).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
             const clockOut = item.clock_out ? new Date(item.clock_out).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
             const workHours = item.clock_in && item.clock_out ? calcWorkHours(item.clock_in, item.clock_out) : '';
@@ -237,7 +240,7 @@
 
             let clockInfo = '';
             if (item.clock_in) {
-                const withinRange = item.all_clocks?.[0]?.within_range;
+                const withinRange = clocks.find(clock => clock.type === 'clock_in')?.within_range;
                 clockInfo = `<span class="text-xs ${withinRange ? 'text-emerald-600' : 'text-amber-600'}">${withinRange ? 'di area' : 'luar area'}</span>`;
             }
 
@@ -251,7 +254,7 @@
                     <td class="px-6 py-4 text-sm text-on-surface-variant">${clockOut}${workHours ? `<div class="text-xs text-on-surface-variant/60">${workHours}</div>` : ''}</td>
                     <td class="px-6 py-4 text-sm text-on-surface-variant">${item.notes || '—'}</td>
                     <td class="px-6 py-4 text-right">
-                        <button type="button" ${clockInId || clockOutId ? `onclick='window.openClockModal(${JSON.stringify({ clockInId, clockOutId, clockIn: item.clock_in, clockOut: item.clock_out, locationVerified: item.location_verified ?? item.all_clocks?.[0]?.within_range })})'` : 'disabled'} class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold ${clockInId || clockOutId ? 'text-primary hover:bg-primary-container/30' : 'text-on-surface-variant/40 cursor-not-allowed'} transition-colors" title="${clockInId || clockOutId ? 'Edit waktu kehadiran' : 'ID clock tidak tersedia'}">
+                        <button type="button" onclick='window.openClockModal(${JSON.stringify(item)})' class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-primary hover:bg-primary-container/30 transition-colors" title="Lihat dan edit detail kehadiran">
                             <span class="material-symbols-outlined text-[18px]">edit</span>
                             Edit
                         </button>
@@ -319,62 +322,68 @@
         return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     }
 
+    function clockRecordHtml(clock, index) {
+        const label = clock.type === 'clock_in' ? 'Clock In' : 'Clock Out';
+        const photo = clock.photo_url || clock.photo || clock.image_url;
+        return `<div class="rounded-lg border border-outline-variant/20 p-3" data-clock-record data-clock-id="${clock.id}" data-original-time="${timeInputValue(clock.time)}" data-original-range="${clock.within_range}">
+            <div class="flex items-center justify-between gap-3 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">${label} #${index + 1}</span>${photo ? `<a href="${photo}" target="_blank" rel="noopener" class="text-xs font-semibold text-primary hover:underline">Lihat foto</a>` : ''}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><input type="time" data-clock-time value="${timeInputValue(clock.time)}" required class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"><select data-clock-range class="w-full px-4 py-1.5 h-8 bg-surface-container-low border border-outline-variant/20 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"><option value="true" ${clock.within_range ? 'selected' : ''}>Di area</option><option value="false" ${!clock.within_range ? 'selected' : ''}>Di luar area</option></select></div>
+        </div>`;
+    }
+
     window.openClockModal = function (attendance) {
-        if (!attendance?.clockInId && !attendance?.clockOutId) return;
-        document.getElementById('clock-attendance-id').value = JSON.stringify({
-            clockInId: attendance.clockInId,
-            clockOutId: attendance.clockOutId,
-            originalClockIn: timeInputValue(attendance.clockIn),
-            originalClockOut: timeInputValue(attendance.clockOut),
-        });
-        document.getElementById('clock-in-time').value = timeInputValue(attendance.clockIn);
-        document.getElementById('clock-out-time').value = timeInputValue(attendance.clockOut);
-        document.getElementById('clock-location-status').value = attendance.locationVerified === false ? 'false' : 'true';
+        const clocks = attendance?.all_clocks || [];
+        document.getElementById('clock-student-name').textContent = attendance?.student_name || 'Siswa';
+        document.getElementById('clock-attendance-date-label').textContent = attendance?.attendance_date || currentDate;
+        document.getElementById('clock-attendance-status').value = attendance?.status || 'present';
+        document.getElementById('clock-records').innerHTML = clocks.map(clockRecordHtml).join('');
+        document.getElementById('clock-empty').classList.toggle('hidden', clocks.length > 0);
+        const status = document.getElementById('clock-attendance-status');
+        status.disabled = !attendance?.internship_id;
+        const note = document.getElementById('clock-status-note');
+        note.classList.toggle('hidden', Boolean(attendance?.internship_id));
+        note.textContent = 'Status tidak dapat disimpan: internship_id tidak tersedia.';
+        document.getElementById('clock-form').dataset.studentId = attendance?.student_id || '';
+        document.getElementById('clock-form').dataset.internshipId = attendance?.internship_id || '';
+        document.getElementById('clock-form').dataset.attendanceDate = attendance?.attendance_date || currentDate;
+        document.getElementById('clock-form').dataset.originalStatus = attendance?.status || 'present';
+        document.getElementById('clock-form').dataset.attendanceId = attendance?.attendance_id || '';
         window.openModal('clock-modal');
     };
 
     window.saveClockAttendance = async function (e) {
         e.preventDefault();
-        const ids = JSON.parse(document.getElementById('clock-attendance-id').value || '{}');
-        if (!ids.clockInId && !ids.clockOutId) return;
-
-        const clockIn = document.getElementById('clock-in-time').value;
-        const clockOut = document.getElementById('clock-out-time').value;
-        const isWithinRange = document.getElementById('clock-location-status').value === 'true';
-        const originalClockIn = ids.originalClockIn || '';
-        const originalClockOut = ids.originalClockOut || '';
-
-        // Backend requires a time; blank values cannot delete clock records.
-        if ((ids.clockInId && !clockIn) || (ids.clockOutId && !clockOut)) {
-            showToast('Waktu clock in dan clock out wajib diisi', 'error');
-            return;
-        }
-        if (clockIn && clockOut && clockOut < clockIn) {
-            showToast('Clock-out harus setelah atau sama dengan clock-in', 'error');
-            return;
-        }
-
-        const updates = [];
-        if (ids.clockOutId && clockOut !== originalClockOut) {
-            updates.push([ids.clockOutId, clockOut]);
-        }
-        if (ids.clockInId && clockIn !== originalClockIn) {
-            updates.push([ids.clockInId, clockIn]);
-        }
+        const updates = Array.from(document.querySelectorAll('[data-clock-record]')).filter(record => {
+            return record.querySelector('[data-clock-time]').value !== record.dataset.originalTime
+                || record.querySelector('[data-clock-range]').value !== record.dataset.originalRange;
+        });
 
         try {
-            for (const [id, time] of updates) {
-                const response = await apiFetch(`/admin/clock-in-out/${encodeURIComponent(id)}`, {
+            for (const record of updates) {
+                const time = record.querySelector('[data-clock-time]').value;
+                const response = await apiFetch(`/admin/clock-in-out/${encodeURIComponent(record.dataset.clockId)}`, {
                     method: 'PUT',
                     body: JSON.stringify({
                         created_at: `${currentDate}T${time}:00`,
-                        is_within_range: isWithinRange,
+                        is_within_range: record.querySelector('[data-clock-range]').value === 'true',
                     }),
                 });
                 if (!response.ok) {
                     const body = await response.json().catch(() => ({}));
                     throw new Error(body.error || body.message || 'Gagal memperbarui waktu kehadiran');
                 }
+            }
+            const form = document.getElementById('clock-form');
+            const status = document.getElementById('clock-attendance-status');
+            if (status.value !== form.dataset.originalStatus) {
+                if (!form.dataset.internshipId) throw new Error('Status tidak dapat disimpan: internship_id tidak tersedia');
+                const response = await apiFetch('/attendance/status', { method: 'PUT', body: JSON.stringify({
+                    student_id: form.dataset.studentId,
+                    internship_id: form.dataset.internshipId,
+                    attendance_date: form.dataset.attendanceDate,
+                    status: status.value,
+                }) });
+                if (!response.ok) throw new Error('Gagal memperbarui status kehadiran');
             }
             window.closeModal('clock-modal');
             loadAttendance();

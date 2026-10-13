@@ -41,6 +41,7 @@ class AdminPanelController extends Controller
                 'status' => $record['status'],
                 'notes' => $record['notes'],
                 'attendance_id' => null,
+                'internship_id' => null,
                 'clock_in_id' => null,
                 'clock_out_id' => null,
                 'clock_in' => null,
@@ -64,13 +65,16 @@ class AdminPanelController extends Controller
         $records = $records->map(function ($record) use ($clockByStudent, $attendanceByStudent) {
             $attendance = $attendanceByStudent->get($record['student_id']);
             $record['attendance_id'] = $attendance?->id;
+            $record['internship_id'] = $attendance?->internship_id;
             $record['location_verified'] = $attendance?->location_verified;
             if (!$clockByStudent->has($record['student_id'])) {
                 return $record;
             }
             $clocks = $clockByStudent[$record['student_id']];
-            if ($attendance) {
-                $internshipClocks = $clocks->where('internship_id', $attendance->internship_id);
+            $internshipId = $record['internship_id'] ?? $clocks->first()?->internship_id;
+            $record['internship_id'] = $internshipId;
+            if ($internshipId) {
+                $internshipClocks = $clocks->where('internship_id', $internshipId);
                 if ($internshipClocks->isNotEmpty()) {
                     $clocks = $internshipClocks;
                 }
@@ -88,6 +92,7 @@ class AdminPanelController extends Controller
                 'type' => $c->type,
                 'time' => $c->created_at,
                 'within_range' => (bool) $c->is_within_range,
+                'photo' => $c->photo,
             ])->values();
 
             return $record;

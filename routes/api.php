@@ -66,6 +66,8 @@ Route::prefix('v1')->group(function () {
         Route::post('daily-logs/{id}/comment', [App\Http\Controllers\Api\V1\DailyLogController::class, 'addComment']);
         
         Route::post('attendance/bulk', [App\Http\Controllers\Api\V1\AttendanceController::class, 'bulkStore']);
+        Route::put('attendance/status', [App\Http\Controllers\Api\V1\AttendanceController::class, 'updateStatus'])
+            ->middleware('role:school_admin');
         Route::get('students/{id}/attendance-summary', [App\Http\Controllers\Api\V1\AttendanceController::class, 'summary']);
         
         Route::get('students/{id}/evaluation-summary', [App\Http\Controllers\Api\V1\EvaluationController::class, 'summary']);

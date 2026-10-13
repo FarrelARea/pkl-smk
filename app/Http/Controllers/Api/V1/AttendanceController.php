@@ -229,22 +229,8 @@ class AttendanceController extends Controller
                 continue;
             }
 
-            $clock ??= new ClockInOut([
-                'user_id' => $attendance->student_id,
-                'internship_id' => $attendance->internship_id,
-                'type' => $type,
-                'is_within_range' => $request->has('location_verified')
-                    ? $request->boolean('location_verified') : false,
-            ]);
-            if (!$clock->exists) {
-                $coordinates = $this->clockCoordinates($attendance);
-                if (!$coordinates) {
-                    return response()->json([
-                        'error' => 'Cannot create clock record without attendance or company coordinates',
-                    ], 422);
-                }
-                $clock->latitude = $coordinates['latitude'];
-                $clock->longitude = $coordinates['longitude'];
+            if (!$clock) {
+                continue;
             }
             $clock->created_at = Carbon::parse($request->input($input));
             if ($request->has('location_verified')) {
@@ -263,6 +249,39 @@ class AttendanceController extends Controller
         }
 
         return response()->json($this->withClockData($attendance->fresh()));
+    }
+
+    public function updateStatus(Request $request): JsonResponse
+    {
+        if (!$request->user()->isSuperAdmin() && $request->user()->role !== 'school_admin') {
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
+        }
+
+        $data = $request->validate([
+            'student_id' => 'required|exists:users,id',
+            'internship_id' => 'required|exists:internships,id',
+            'attendance_date' => 'required|date',
+            'status' => 'required|in:present,absent,sick,permission',
+            'notes' => 'nullable|string',
+        ]);
+
+        $student = $this->ensureUserCanAccessStudent($request, (int) $data['student_id']);
+        $internship = $this->resolveAccessibleInternship($request, (int) $data['internship_id']);
+        if ($internship->student_id !== $student->id) {
+            return response()->json(['error' => 'Internship does not belong to the selected student'], 422);
+        }
+
+        $attendance = Attendance::updateOrCreate(
+            ['student_id' => $student->id, 'attendance_date' => $data['attendance_date']],
+            [
+                'internship_id' => $internship->id,
+                'status' => $data['status'],
+                'notes' => $data['notes'] ?? null,
+                'recorded_by' => auth('api')->id(),
+            ],
+        );
+
+        return response()->json($this->withClockData($attendance));
     }
 
     private function withClockData(Attendance $attendance): Attendance
