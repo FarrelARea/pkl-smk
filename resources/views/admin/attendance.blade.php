@@ -231,7 +231,8 @@
             const clockIn = item.clock_in ? new Date(item.clock_in).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
             const clockOut = item.clock_out ? new Date(item.clock_out).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—';
             const workHours = item.clock_in && item.clock_out ? calcWorkHours(item.clock_in, item.clock_out) : '';
-            const attendanceId = item.attendance_id;
+            const clockInId = item.clock_in_id;
+            const clockOutId = item.clock_out_id;
 
             let clockInfo = '';
             if (item.clock_in) {
@@ -249,7 +250,7 @@
                     <td class="px-6 py-4 text-sm text-on-surface-variant">${clockOut}${workHours ? `<div class="text-xs text-on-surface-variant/60">${workHours}</div>` : ''}</td>
                     <td class="px-6 py-4 text-sm text-on-surface-variant">${item.notes || '—'}</td>
                     <td class="px-6 py-4 text-right">
-                        <button type="button" ${attendanceId ? `onclick='window.openClockModal(${JSON.stringify({ id: attendanceId, clockIn: item.clock_in, clockOut: item.clock_out, locationVerified: item.location_verified ?? item.all_clocks?.[0]?.within_range })})'` : 'disabled'} class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold ${attendanceId ? 'text-primary hover:bg-primary-container/30' : 'text-on-surface-variant/40 cursor-not-allowed'} transition-colors" title="${attendanceId ? 'Edit waktu kehadiran' : 'ID kehadiran tidak tersedia'}">
+                        <button type="button" ${clockInId || clockOutId ? `onclick='window.openClockModal(${JSON.stringify({ clockInId, clockOutId, clockIn: item.clock_in, clockOut: item.clock_out, locationVerified: item.location_verified ?? item.all_clocks?.[0]?.within_range })})'` : 'disabled'} class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold ${clockInId || clockOutId ? 'text-primary hover:bg-primary-container/30' : 'text-on-surface-variant/40 cursor-not-allowed'} transition-colors" title="${clockInId || clockOutId ? 'Edit waktu kehadiran' : 'ID clock tidak tersedia'}">
                             <span class="material-symbols-outlined text-[18px]">edit</span>
                             Edit
                         </button>
@@ -318,8 +319,11 @@
     }
 
     window.openClockModal = function (attendance) {
-        if (!attendance?.id) return;
-        document.getElementById('clock-attendance-id').value = attendance.id;
+        if (!attendance?.clockInId && !attendance?.clockOutId) return;
+        document.getElementById('clock-attendance-id').value = JSON.stringify({
+            clockInId: attendance.clockInId,
+            clockOutId: attendance.clockOutId,
+        });
         document.getElementById('clock-in-time').value = timeInputValue(attendance.clockIn);
         document.getElementById('clock-out-time').value = timeInputValue(attendance.clockOut);
         document.getElementById('clock-location-status').value = attendance.locationVerified === false ? 'false' : 'true';
@@ -328,21 +332,30 @@
 
     window.saveClockAttendance = async function (e) {
         e.preventDefault();
-        const id = document.getElementById('clock-attendance-id').value;
-        if (!id) return;
+        const ids = JSON.parse(document.getElementById('clock-attendance-id').value || '{}');
+        if (!ids.clockInId && !ids.clockOutId) return;
 
         const clockIn = document.getElementById('clock-in-time').value;
         const clockOut = document.getElementById('clock-out-time').value;
-        const payload = {
-            clock_in: clockIn ? `${currentDate}T${clockIn}:00` : null,
-            clock_out: clockOut ? `${currentDate}T${clockOut}:00` : null,
-            location_verified: document.getElementById('clock-location-status').value === 'true',
-        };
-
-        await apiFetch(`/attendance/${encodeURIComponent(id)}`, {
-            method: 'PUT',
-            body: JSON.stringify(payload),
-        });
+        const isWithinRange = document.getElementById('clock-location-status').value === 'true';
+        if (ids.clockInId) {
+            await apiFetch(`/admin/clock-in-out/${encodeURIComponent(ids.clockInId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    created_at: clockIn ? `${currentDate}T${clockIn}:00` : null,
+                    is_within_range: isWithinRange,
+                }),
+            });
+        }
+        if (ids.clockOutId) {
+            await apiFetch(`/admin/clock-in-out/${encodeURIComponent(ids.clockOutId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    created_at: clockOut ? `${currentDate}T${clockOut}:00` : null,
+                    is_within_range: isWithinRange,
+                }),
+            });
+        }
         window.closeModal('clock-modal');
         loadAttendance();
     };

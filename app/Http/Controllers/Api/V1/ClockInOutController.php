@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttendancePoint;
-use App\Models\Attendance;
 use App\Models\ClockInOut;
 use App\Models\Internship;
+use Carbon\Carbon;
 use App\Services\DistanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -155,32 +155,6 @@ class ClockInOutController extends Controller
             'photo' => $photoPath,
         ]);
 
-        if ($data['type'] === 'clock_in') {
-            $attendance = Attendance::where('student_id', $userId)
-                ->whereDate('attendance_date', $clockRecord->created_at)
-                ->first();
-
-            $attendanceData = [
-                'internship_id' => $internship->id,
-                'latitude' => $clockRecord->latitude,
-                'longitude' => $clockRecord->longitude,
-                'location_verified' => $clockRecord->is_within_range,
-                'location_distance' => $clockRecord->distance_meters,
-                'attendance_point_id' => $clockRecord->attendance_point_id,
-            ];
-
-            if ($attendance) {
-                $attendance->update($attendanceData);
-            } else {
-                Attendance::create(array_merge($attendanceData, [
-                    'student_id' => $userId,
-                    'attendance_date' => $clockRecord->created_at->toDateString(),
-                    'status' => 'present',
-                    'recorded_by' => $userId,
-                ]));
-            }
-        }
-
         $message = $data['type'] === 'clock_in' ? 'Clocked in successfully' : 'Clocked out successfully';
 
         if (!$isWithinRange && ($companyLat || $approvedPoints->isNotEmpty())) {
@@ -194,6 +168,54 @@ class ClockInOutController extends Controller
             'is_within_range' => $isWithinRange,
             'max_distance_meters' => $maxDistance,
         ], 201);
+    }
+
+    public function adminUpdate(Request $request, int $id): JsonResponse
+    {
+        $admin = auth('api')->user();
+        $query = ClockInOut::query();
+
+        if ($admin->role !== 'superadmin') {
+            $query->whereHas('user', fn ($userQuery) => $userQuery->where('school_id', $admin->school_id));
+        }
+
+        $record = $query->findOrFail($id);
+        $data = $request->validate([
+            'created_at' => 'required|date',
+            'is_within_range' => 'required|boolean',
+        ]);
+        $newTime = Carbon::parse($data['created_at']);
+
+        $pairedClock = $record->type === 'clock_in'
+            ? ClockInOut::where('user_id', $record->user_id)
+                ->where('internship_id', $record->internship_id)
+                ->where('type', 'clock_out')
+                ->where('id', '!=', $record->id)
+                ->where('created_at', '>=', $record->created_at)
+                ->orderBy('created_at')
+                ->first()
+            : ClockInOut::where('user_id', $record->user_id)
+                ->where('internship_id', $record->internship_id)
+                ->where('type', 'clock_in')
+                ->where('id', '!=', $record->id)
+                ->where('created_at', '<=', $record->created_at)
+                ->orderByDesc('created_at')
+                ->first();
+
+        if ($pairedClock && (($record->type === 'clock_in' && $newTime->gt($pairedClock->created_at))
+            || ($record->type === 'clock_out' && $newTime->lt($pairedClock->created_at)))) {
+            return response()->json(['error' => 'Clock-out must be after or equal to clock-in'], 422);
+        }
+
+        $record->forceFill([
+            'created_at' => $newTime,
+            'is_within_range' => $data['is_within_range'],
+        ])->save();
+
+        return response()->json([
+            'message' => 'Clock record updated successfully',
+            'clock_record' => $record->fresh()->load(['user', 'internship.company']),
+        ]);
     }
 
     public function show(int $id): JsonResponse
