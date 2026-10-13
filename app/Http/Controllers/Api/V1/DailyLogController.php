@@ -8,6 +8,7 @@ use App\Models\DailyLog;
 use App\Models\Internship;
 use App\Models\User;
 use App\Services\DistanceService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -90,7 +91,7 @@ class DailyLogController extends Controller
 
         $rules = [
             'internship_id' => 'required|exists:internships,id',
-            'log_date' => 'required|date|before_or_equal:today',
+            'log_date' => 'required|date',
             'activities' => 'required|string',
             'reflection' => 'nullable|string',
             'context' => 'nullable|string|max:500',
@@ -105,10 +106,11 @@ class DailyLogController extends Controller
 
         $data = $request->validate($rules);
 
-        $logDate = now()->parse($data['log_date']);
-        $maxPastDate = now()->subDays(7);
+        $today = Carbon::now('Asia/Jakarta')->startOfDay();
+        $logDate = Carbon::parse($data['log_date'], 'Asia/Jakarta')->startOfDay();
+        $maxPastDate = $today->copy()->subDays(7);
 
-        if ($logDate->lt($maxPastDate)) {
+        if ($logDate->isAfter($today) || $logDate->isBefore($maxPastDate)) {
             return response()->json(['error' => 'Cannot create log for date more than 7 days in the past'], 422);
         }
 
