@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Services\DistanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ClockInOutController extends Controller
 {
@@ -228,6 +229,103 @@ class ClockInOutController extends Controller
         return response()->json([
             'message' => 'Clock record updated successfully',
             'clock_record' => $record->fresh()->load(['user', 'internship.company']),
+        ]);
+    }
+
+    public function adminBatchUpdate(Request $request): JsonResponse
+    {
+        $admin = auth('api')->user();
+        if (!$admin->isSuperAdmin() && $admin->role !== 'school_admin') {
+            return response()->json(['error' => 'Forbidden - insufficient permissions'], 403);
+        }
+
+        $data = $request->validate([
+            'records' => 'required|array|min:1',
+            'records.*.id' => 'required|integer|distinct|exists:clock_in_outs,id',
+            'records.*.created_at' => 'required|date',
+            'records.*.type' => 'required|in:clock_in,clock_out',
+            'records.*.is_within_range' => 'required|boolean',
+        ]);
+
+        $submitted = collect($data['records'])->keyBy('id');
+
+        $updated = DB::transaction(function () use ($admin, $submitted) {
+            $query = ClockInOut::whereKey($submitted->keys())->lockForUpdate();
+            if (!$admin->isSuperAdmin()) {
+                $query->whereHas('user', fn ($userQuery) => $userQuery->where('school_id', $admin->school_id));
+            }
+
+            $lockedSubmitted = $query->get();
+            if ($lockedSubmitted->count() !== $submitted->count()) {
+                abort(response()->json(['error' => 'One or more clock records are not accessible'], 404));
+            }
+
+            $first = $lockedSubmitted->first();
+            $contextDate = $first->created_at->toDateString();
+            if ($lockedSubmitted->contains(fn ($record) =>
+                $record->user_id !== $first->user_id ||
+                $record->internship_id !== $first->internship_id ||
+                $record->created_at->toDateString() !== $contextDate
+            )) {
+                abort(response()->json([
+                    'error' => 'All records must belong to the same user, internship, and date.',
+                ], 422));
+            }
+            if ($submitted->contains(fn ($change) =>
+                Carbon::parse($change['created_at'])->toDateString() !== $contextDate
+            )) {
+                abort(response()->json([
+                    'error' => 'All records must remain on the same date.',
+                ], 422));
+            }
+
+            $records = ClockInOut::where('user_id', $first->user_id)
+                ->where('internship_id', $first->internship_id)
+                ->whereDate('created_at', $contextDate)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($records as $record) {
+                if ($submitted->has($record->id)) {
+                    $change = $submitted->get($record->id);
+                    $record->created_at = Carbon::parse($change['created_at']);
+                    $record->type = $change['type'];
+                    $record->is_within_range = $change['is_within_range'];
+                }
+            }
+
+            $records = $records->sortBy(fn ($record) => [
+                $record->created_at->getTimestamp(),
+                $record->id,
+            ])->values();
+
+            $previous = null;
+            foreach ($records as $record) {
+                if ($previous && $previous->type === $record->type) {
+                    abort(response()->json([
+                        'error' => 'Changing these records would create consecutive duplicate clock records.',
+                    ], 422));
+                }
+                if ($record->type === 'clock_out' && (!$previous || $previous->type !== 'clock_in')) {
+                    abort(response()->json([
+                        'error' => 'Clock-out must have a preceding clock-in.',
+                    ], 422));
+                }
+                $previous = $record;
+            }
+
+            foreach ($records as $record) {
+                if ($submitted->has($record->id)) {
+                    $record->save();
+                }
+            }
+
+            return $records->load(['user', 'internship.company']);
+        });
+
+        return response()->json([
+            'message' => 'Clock records updated successfully',
+            'clock_records' => $updated,
         ]);
     }
 

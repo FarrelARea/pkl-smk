@@ -79,6 +79,8 @@ Route::prefix('v1')->group(function () {
         Route::post('permission-requests/{id}/reject', [App\Http\Controllers\Api\V1\PermissionRequestController::class, 'reject']);
         
         Route::post('clock-in-out', [App\Http\Controllers\Api\V1\ClockInOutController::class, 'store']);
+        Route::put('admin/clock-in-out/batch', [App\Http\Controllers\Api\V1\ClockInOutController::class, 'adminBatchUpdate'])
+            ->middleware('role:school_admin');
         Route::put('admin/clock-in-out/{id}', [App\Http\Controllers\Api\V1\ClockInOutController::class, 'adminUpdate'])
             ->middleware('role:school_admin');
         Route::get('clock-in-out', [App\Http\Controllers\Api\V1\ClockInOutController::class, 'index']);

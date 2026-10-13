@@ -367,14 +367,19 @@
         });
 
         try {
-            for (const record of updates) {
-                const time = record.querySelector('[data-clock-time]').value;
-                const response = await apiFetch(`/admin/clock-in-out/${encodeURIComponent(record.dataset.clockId)}`, {
+            if (updates.length > 0) {
+                const response = await apiFetch('/admin/clock-in-out/batch', {
                     method: 'PUT',
                     body: JSON.stringify({
-                        created_at: `${currentDate}T${time}:00`,
-                        is_within_range: record.querySelector('[data-clock-range]').value === 'true',
-                        type: record.querySelector('[data-clock-type]').value,
+                        records: updates.map(record => {
+                            const time = record.querySelector('[data-clock-time]').value;
+                            return {
+                                id: record.dataset.clockId,
+                                created_at: `${currentDate}T${time}:00`,
+                                type: record.querySelector('[data-clock-type]').value,
+                                is_within_range: record.querySelector('[data-clock-range]').value === 'true',
+                            };
+                        }),
                     }),
                 });
                 if (!response.ok) {
@@ -392,7 +397,10 @@
                     attendance_date: form.dataset.attendanceDate,
                     status: status.value,
                 }) });
-                if (!response.ok) throw new Error('Gagal memperbarui status kehadiran');
+                if (!response.ok) {
+                    const body = await response.json().catch(() => ({}));
+                    throw new Error(body.error || body.message || 'Gagal memperbarui status kehadiran');
+                }
             }
             window.closeModal('clock-modal');
             loadAttendance();
