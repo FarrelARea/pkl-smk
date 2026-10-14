@@ -162,6 +162,7 @@
         scores: [],
         documents: [],
         attendance: [],
+        permissionDate: currentSupervisorDateInput(),
         activeModal: null,
     };
 
@@ -237,10 +238,11 @@
         `).join('');
     }
 
-    async function loadSupervisorPermissionsOverview() {
-        const res = await Auth.apiFetch('/supervisor/panel/permissions');
+    async function loadSupervisorPermissionsOverview(date = supervisorDashboardState.permissionDate) {
+        supervisorDashboardState.permissionDate = date;
+        const res = await Auth.apiFetch(`/supervisor/panel/permissions?date=${encodeURIComponent(date)}`);
         supervisorDashboardState.permissions = await res.json();
-        rerenderActiveSupervisorModal('permissions');
+        rerenderActiveSupervisorModal('permissions', date);
     }
 
     async function loadSupervisorScoresOverview() {
@@ -290,7 +292,7 @@
         if (type === 'permissions') {
             kicker.textContent = 'Company related';
             title.textContent = 'Izin / sakit siswa';
-            renderSupervisorPermissionsModal(body);
+            renderSupervisorPermissionsModal(body, date);
             return;
         }
 
@@ -315,14 +317,14 @@
         }
     }
 
-    function renderSupervisorPermissionsModal(body) {
+    function renderSupervisorPermissionsModal(body, selectedDate) {
         const permissions = supervisorDashboardState.permissions || [];
-        if (!permissions.length) {
-            body.innerHTML = '<p class="text-sm text-gray-400 text-center py-10">Belum ada pengajuan izin atau sakit.</p>';
-            return;
-        }
-
-        body.innerHTML = `<div class="space-y-3">${permissions.map(item => `
+        body.innerHTML = `<div class="space-y-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+                <p class="text-sm text-gray-500">Pilih tanggal untuk melihat pengajuan yang berlaku.</p>
+                <input type="date" id="supervisor-permission-date" value="${selectedDate}" onchange="changeSupervisorPermissionDate(this.value)" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            ${permissions.length ? `<div class="space-y-3">${permissions.map(item => `
             <div class="rounded-2xl border border-gray-200 p-4 flex items-start justify-between gap-4">
                 <div>
                     <p class="font-medium text-gray-900">${item.student_name}</p>
@@ -340,7 +342,8 @@
                     ` : ''}
                 </div>
             </div>
-        `).join('')}</div>`;
+        `).join('')}</div>` : '<p class="text-sm text-gray-400 text-center py-10">Belum ada pengajuan izin atau sakit pada tanggal ini.</p>'}
+        </div>`;
     }
 
     function renderSupervisorScoresModal(body) {
@@ -448,16 +451,20 @@
         await loadSupervisorAttendanceOverview(value);
     };
 
+    window.changeSupervisorPermissionDate = async (value) => {
+        await loadSupervisorPermissionsOverview(value);
+    };
+
     window.approveSupervisorPermission = async (id) => {
         await Auth.apiFetch(`/supervisor/panel/permissions/${id}/approve`, { method: 'POST', body: JSON.stringify({}) });
-        await Promise.all([loadSupervisorPermissionsOverview(), loadSupervisorSummary()]);
+        await Promise.all([loadSupervisorPermissionsOverview(supervisorDashboardState.permissionDate), loadSupervisorSummary()]);
     };
 
     window.rejectSupervisorPermission = async (id) => {
         const note = prompt('Catatan penolakan (opsional):');
         if (note === null) return;
         await Auth.apiFetch(`/supervisor/panel/permissions/${id}/reject`, { method: 'POST', body: JSON.stringify({ note }) });
-        await Promise.all([loadSupervisorPermissionsOverview(), loadSupervisorSummary()]);
+        await Promise.all([loadSupervisorPermissionsOverview(supervisorDashboardState.permissionDate), loadSupervisorSummary()]);
     };
 
     window.approveSupervisorDocument = async (id) => {

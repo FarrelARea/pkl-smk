@@ -161,10 +161,36 @@ class AttendanceInferenceService
             ->map(fn ($id) => (int) $id)
             ->unique();
 
+        $permissionRecords = PermissionRequest::query()
+            ->whereIn('student_id', $studentIds)
+            ->where('status', 'approved')
+            ->whereIn('type', ['sick', 'permit'])
+            ->whereDate('request_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereDate('end_date', '>=', $date)
+                    ->orWhereNull('end_date');
+            })
+            ->orderByDesc('request_date')
+            ->get(['student_id', 'type', 'reason'])
+            ->keyBy('student_id');
+
         $rows = [];
 
+        foreach ($permissionRecords as $studentId => $permission) {
+            if ($attendanceRecords->has($studentId) && $attendanceRecords[$studentId]->status !== 'absent') {
+                continue;
+            }
+
+            $rows[(int) $studentId] = [
+                'student_id' => (int) $studentId,
+                'attendance_date' => $date,
+                'status' => $permission->type === 'permit' ? 'permission' : 'sick',
+                'notes' => $permission->reason,
+            ];
+        }
+
         foreach ($clockedStudentIds as $studentId) {
-            if (!$attendanceRecords->has($studentId)) {
+            if (!$attendanceRecords->has($studentId) && !isset($permissionRecords[$studentId])) {
                 $rows[$studentId] = [
                     'student_id' => $studentId,
                     'attendance_date' => $date,
@@ -175,6 +201,10 @@ class AttendanceInferenceService
         }
 
         foreach ($attendanceRecords as $studentId => $attendance) {
+            if ($attendance->status === 'absent' && isset($permissionRecords[$studentId])) {
+                continue;
+            }
+
             $rows[(int) $studentId] = [
                 'student_id' => (int) $studentId,
                 'attendance_date' => Carbon::parse($attendance->attendance_date)->format('Y-m-d'),

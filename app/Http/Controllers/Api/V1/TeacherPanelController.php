@@ -431,13 +431,18 @@ class TeacherPanelController extends Controller
         return response()->json($items);
     }
 
-    public function permissionsOverview(): JsonResponse
+    public function permissionsOverview(Request $request): JsonResponse
     {
         $teacher = auth('api')->user();
         $studentIds = $teacher->assignedStudents()->where('role', 'student')->pluck('users.id');
+        $date = $request->validate(['date' => 'nullable|date'])['date'] ?? Carbon::today()->toDateString();
 
         $permissions = PermissionRequest::with('student:id,name')
             ->whereIn('student_id', $studentIds)
+            ->whereDate('request_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereDate('end_date', '>=', $date)->orWhereNull('end_date');
+            })
             ->orderByDesc('request_date')
             ->get(['id', 'student_id', 'type', 'request_date', 'end_date', 'reason', 'status', 'handler_note'])
             ->map(fn($permission) => [

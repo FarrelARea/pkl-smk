@@ -162,6 +162,7 @@
         scores: [],
         documents: [],
         attendance: [],
+        permissionDate: currentDateInput(),
         activeModal: null,
     };
 
@@ -242,10 +243,11 @@
         `).join('');
     }
 
-    async function loadTeacherPermissionsOverview() {
-        const res = await Auth.apiFetch('/teacher/panel/permissions');
+    async function loadTeacherPermissionsOverview(date = teacherDashboardState.permissionDate) {
+        teacherDashboardState.permissionDate = date;
+        const res = await Auth.apiFetch(`/teacher/panel/permissions?date=${encodeURIComponent(date)}`);
         teacherDashboardState.permissions = await res.json();
-        rerenderActiveTeacherModal('permissions');
+        rerenderActiveTeacherModal('permissions', date);
     }
 
     async function loadTeacherScoresOverview() {
@@ -295,7 +297,7 @@
         if (type === 'permissions') {
             kicker.textContent = 'Internship related';
             title.textContent = 'Izin / sakit siswa';
-            renderPermissionsModal(body);
+            renderPermissionsModal(body, date);
             return;
         }
 
@@ -320,14 +322,14 @@
         }
     }
 
-    function renderPermissionsModal(body) {
+    function renderPermissionsModal(body, selectedDate) {
         const permissions = teacherDashboardState.permissions || [];
-        if (!permissions.length) {
-            body.innerHTML = '<p class="text-sm text-gray-400 text-center py-10">Belum ada pengajuan izin atau sakit.</p>';
-            return;
-        }
-
-        body.innerHTML = `<div class="space-y-3">${permissions.map(item => `
+        body.innerHTML = `<div class="space-y-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+                <p class="text-sm text-gray-500">Pilih tanggal untuk melihat pengajuan yang berlaku.</p>
+                <input type="date" id="teacher-permission-date" value="${selectedDate}" onchange="changeTeacherPermissionDate(this.value)" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+            </div>
+            ${permissions.length ? `<div class="space-y-3">${permissions.map(item => `
             <div class="rounded-2xl border border-gray-200 p-4 flex items-start justify-between gap-4">
                 <div>
                     <p class="font-medium text-gray-900">${item.student_name}</p>
@@ -345,7 +347,8 @@
                     ` : ''}
                 </div>
             </div>
-        `).join('')}</div>`;
+        `).join('')}</div>` : '<p class="text-sm text-gray-400 text-center py-10">Belum ada pengajuan izin atau sakit pada tanggal ini.</p>'}
+        </div>`;
     }
 
     function renderScoresModal(body) {
@@ -450,16 +453,20 @@
         await loadTeacherAttendanceOverview(value);
     };
 
+    window.changeTeacherPermissionDate = async (value) => {
+        await loadTeacherPermissionsOverview(value);
+    };
+
     window.approveTeacherPermission = async (id) => {
         await Auth.apiFetch(`/teacher/panel/permissions/${id}/approve`, { method: 'POST', body: JSON.stringify({}) });
-        await Promise.all([loadTeacherPermissionsOverview(), loadTeacherSummary()]);
+        await Promise.all([loadTeacherPermissionsOverview(teacherDashboardState.permissionDate), loadTeacherSummary()]);
     };
 
     window.rejectTeacherPermission = async (id) => {
         const note = prompt('Catatan penolakan (opsional):');
         if (note === null) return;
         await Auth.apiFetch(`/teacher/panel/permissions/${id}/reject`, { method: 'POST', body: JSON.stringify({ note }) });
-        await Promise.all([loadTeacherPermissionsOverview(), loadTeacherSummary()]);
+        await Promise.all([loadTeacherPermissionsOverview(teacherDashboardState.permissionDate), loadTeacherSummary()]);
     };
 
     window.approveTeacherDocument = async (id) => {

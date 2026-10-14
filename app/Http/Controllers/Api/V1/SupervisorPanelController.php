@@ -218,13 +218,18 @@ class SupervisorPanelController extends Controller
         return response()->json($items);
     }
 
-    public function permissionsOverview(): JsonResponse
+    public function permissionsOverview(Request $request): JsonResponse
     {
         $supervisor = auth('api')->user();
         $studentIds = $this->supervisedStudents($supervisor)->pluck('id');
+        $date = $request->validate(['date' => 'nullable|date'])['date'] ?? Carbon::today()->toDateString();
 
         $permissions = PermissionRequest::with('student:id,name')
             ->whereIn('student_id', $studentIds)
+            ->whereDate('request_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereDate('end_date', '>=', $date)->orWhereNull('end_date');
+            })
             ->orderByDesc('request_date')
             ->get(['id', 'student_id', 'type', 'request_date', 'end_date', 'reason', 'status', 'handler_note'])
             ->map(fn ($permission) => [
