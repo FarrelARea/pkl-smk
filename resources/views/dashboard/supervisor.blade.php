@@ -259,6 +259,7 @@
         const res = await Auth.apiFetch(`/supervisor/panel/attendance-calendar?date=${encodeURIComponent(date)}`);
         const data = await res.json();
         supervisorDashboardState.attendance = data.attendance || [];
+        supervisorDashboardState.attendanceRecordedCount = data.recorded_count ?? data.tracked_count ?? 0;
         rerenderActiveSupervisorModal('attendance', data.date);
     }
 
@@ -409,14 +410,14 @@
                     <input type="date" id="supervisor-attendance-date" value="${selectedDate}" onchange="changeSupervisorAttendanceDate(this.value)" class="px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-cyan-500">
                 </div>
                 <div class="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
-                    ${attendance.filter(item => item.status === 'present').length} siswa hadir dari ${attendance.length} data kehadiran yang tercatat.
+                    ${attendance.filter(item => item.status === 'present').length} siswa hadir dari ${attendance.length} siswa; ${supervisorDashboardState.attendanceRecordedCount ?? attendance.filter(item => item.status !== 'absent').length} data tercatat.
                 </div>
                 ${attendance.length ? `<div class="space-y-3">${attendance.map(item => `
                     <div class="rounded-2xl border border-gray-200 p-4 flex items-start justify-between gap-4">
                         <div>
                             <p class="font-medium text-gray-900">${item.student_name}</p>
                             <p class="text-sm text-gray-500 mt-1">${formatSupervisorDate(item.attendance_date)}</p>
-                            ${item.clock_in || item.all_clocks ? renderSupervisorClockTimes(item) : ''}
+                            ${renderSupervisorClockTimes(item)}
                             ${item.notes ? `<p class="text-sm text-gray-500 mt-2">${item.notes}</p>` : ''}
                         </div>
                         <div class="flex flex-col items-end gap-2">
@@ -430,21 +431,9 @@
     }
 
     function renderSupervisorClockTimes(item) {
-        if (item.clock_in) {
-            const ci = new Date(item.clock_in);
-            const formatted = ci.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            return `<p class="text-xs text-blue-600 mt-1">Clock In: ${formatted}${item.all_clocks ? ` (${item.all_clocks[0]?.within_range ? '✓ di area' : '⚠ luar area'})` : ''}</p>`;
-        }
-        if (item.all_clocks?.length) {
-            const clocks = item.all_clocks.map(c => {
-                const t = new Date(c.time);
-                const timeStr = t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                const range = c.within_range ? '✓' : '⚠';
-                return `${timeStr} (${range})`;
-            }).join(', ');
-            return `<p class="text-xs text-gray-500 mt-1">Catatan: ${clocks}</p>`;
-        }
-        return '';
+        const format = value => value ? new Date(value).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+        const range = item.all_clocks?.[0] ? (item.all_clocks[0].within_range ? ' (✓ di area)' : ' (⚠ luar area)') : '';
+        return `<p class="text-xs text-blue-600 mt-1">Clock In: ${format(item.clock_in)}${range}</p><p class="text-xs text-blue-600">Clock Out: ${format(item.clock_out)}</p>`;
     }
 
     function calcWorkHoursSupervisor(clockIn, clockOut) {

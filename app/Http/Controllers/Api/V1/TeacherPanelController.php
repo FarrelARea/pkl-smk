@@ -315,7 +315,7 @@ class TeacherPanelController extends Controller
             ->where('role', 'student')
             ->pluck('name', 'users.id');
 
-        $records = $this->attendanceInferenceService
+        $inferredRecords = $this->attendanceInferenceService
             ->attendanceForStudentsOnDate($studentIds, $parsedDate)
             ->map(fn($record) => [
                 'student_id' => $record['student_id'],
@@ -325,6 +325,18 @@ class TeacherPanelController extends Controller
                 'notes' => $record['notes'],
             ])
             ->values();
+
+        $recordedCount = $inferredRecords->count();
+        $recordsByStudent = $inferredRecords->keyBy('student_id');
+        $records = $studentIds->map(fn ($studentId) => $recordsByStudent->get($studentId, [
+            'student_id' => $studentId,
+            'student_name' => $studentNames[$studentId] ?? null,
+            'attendance_date' => $parsedDate,
+            'status' => 'absent',
+            'notes' => null,
+            'clock_in' => null,
+            'clock_out' => null,
+        ]))->values();
 
         // Fetch actual clock-in/out timestamps for students who have any records today
         $clockRecords = ClockInOut::whereIn('user_id', $studentIds)
@@ -356,7 +368,9 @@ class TeacherPanelController extends Controller
             'date' => $parsedDate,
             'attendance' => $records,
             'present_count' => $records->where('status', 'present')->count(),
-            'tracked_count' => $records->count(),
+            'tracked_count' => $recordedCount,
+            'recorded_count' => $recordedCount,
+            'student_count' => $records->count(),
         ]);
     }
 

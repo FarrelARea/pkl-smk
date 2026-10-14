@@ -102,7 +102,7 @@ class SupervisorPanelController extends Controller
         $date = Carbon::parse($request->query('date', Carbon::today()->toDateString()))->toDateString();
         $studentNames = $students->pluck('name', 'id');
 
-        $records = $this->attendanceInferenceService
+        $inferredRecords = $this->attendanceInferenceService
             ->attendanceForStudentsOnDate($studentIds, $date)
             ->map(fn ($record) => [
                 'student_id' => $record['student_id'],
@@ -112,6 +112,18 @@ class SupervisorPanelController extends Controller
                 'notes' => $record['notes'],
             ])
             ->values();
+
+        $recordedCount = $inferredRecords->count();
+        $recordsByStudent = $inferredRecords->keyBy('student_id');
+        $records = $studentIds->map(fn ($studentId) => $recordsByStudent->get($studentId, [
+            'student_id' => $studentId,
+            'student_name' => $studentNames[$studentId] ?? null,
+            'attendance_date' => $date,
+            'status' => 'absent',
+            'notes' => null,
+            'clock_in' => null,
+            'clock_out' => null,
+        ]))->values();
 
         // Fetch actual clock-in/out timestamps for students who have any records today
         $clockRecords = ClockInOut::whereIn('user_id', $studentIds)
@@ -143,7 +155,9 @@ class SupervisorPanelController extends Controller
             'date' => $date,
             'attendance' => $records,
             'present_count' => $records->where('status', 'present')->count(),
-            'tracked_count' => $records->count(),
+            'tracked_count' => $recordedCount,
+            'recorded_count' => $recordedCount,
+            'student_count' => $records->count(),
         ]);
     }
 
