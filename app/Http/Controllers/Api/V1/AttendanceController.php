@@ -92,7 +92,7 @@ class AttendanceController extends Controller
             'student_id' => 'required|exists:users,id',
             'internship_id' => 'required|exists:internships,id',
             'attendance_date' => 'required|date',
-            'status' => 'required|in:present,absent,sick,permission',
+            'status' => 'required|in:present,absent,sick,permission,holiday',
             'notes' => 'nullable|string',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
@@ -182,7 +182,7 @@ class AttendanceController extends Controller
         $attendance = $this->scopeQuery($request)->findOrFail($id);
 
         $data = $request->validate([
-            'status' => 'sometimes|required|in:present,absent,sick,permission',
+            'status' => 'sometimes|required|in:present,absent,sick,permission,holiday',
             'notes' => 'nullable|string',
             'clock_in' => 'sometimes|nullable|date',
             'clock_out' => 'sometimes|nullable|date',
@@ -261,7 +261,7 @@ class AttendanceController extends Controller
             'student_id' => 'required|exists:users,id',
             'internship_id' => 'required|exists:internships,id',
             'attendance_date' => 'required|date',
-            'status' => 'required|in:present,absent,sick,permission',
+            'status' => 'required|in:present,absent,sick,permission,holiday',
             'notes' => 'nullable|string',
         ]);
 
@@ -339,7 +339,7 @@ class AttendanceController extends Controller
             'attendance.*.student_id' => 'required|exists:users,id',
             'attendance.*.internship_id' => 'required|exists:internships,id',
             'attendance.*.attendance_date' => 'required|date',
-            'attendance.*.status' => 'required|in:present,absent,sick,permission',
+            'attendance.*.status' => 'required|in:present,absent,sick,permission,holiday',
             'attendance.*.notes' => 'nullable|string',
             'attendance.*.latitude' => 'nullable|numeric|between:-90,90',
             'attendance.*.longitude' => 'nullable|numeric|between:-180,180',
@@ -433,6 +433,7 @@ class AttendanceController extends Controller
         $absent = $query->where('status', 'absent')->count();
         $sick = $query->where('status', 'sick')->count();
         $permission = $query->where('status', 'permission')->count();
+        $holiday = $query->where('status', 'holiday')->count();
 
         return response()->json([
             'student_id' => $studentId,
@@ -441,6 +442,7 @@ class AttendanceController extends Controller
             'absent' => $absent,
             'sick' => $sick,
             'permission' => $permission,
+            'holiday' => $holiday,
             'attendance_percentage' => $total > 0 ? round(($present / $total) * 100, 2) : 0,
         ]);
     }

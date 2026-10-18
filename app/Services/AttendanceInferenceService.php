@@ -60,7 +60,7 @@ class AttendanceInferenceService
         $permissionQuery = PermissionRequest::query()
             ->where('student_id', $studentId)
             ->where('status', 'approved')
-            ->whereIn('type', ['sick', 'permit']);
+            ->whereIn('type', ['sick', 'permit', 'holiday']);
 
         if ($internshipId) {
             $permissionQuery->where('internship_id', $internshipId);
@@ -94,7 +94,11 @@ class AttendanceInferenceService
                 $dateKey = $date->format('Y-m-d');
                 $permissionRecords[$dateKey] = [
                     'attendance_date' => $dateKey,
-                    'status' => $permission->type === 'permit' ? 'permission' : 'sick',
+                    'status' => match ($permission->type) {
+                        'permit' => 'permission',
+                        'holiday' => 'holiday',
+                        default => 'sick',
+                    },
                     'notes' => $permission->reason,
                 ];
             }
@@ -164,7 +168,7 @@ class AttendanceInferenceService
         $permissionRecords = PermissionRequest::query()
             ->whereIn('student_id', $studentIds)
             ->where('status', 'approved')
-            ->whereIn('type', ['sick', 'permit'])
+            ->whereIn('type', ['sick', 'permit', 'holiday'])
             ->whereDate('request_date', '<=', $date)
             ->where(function ($query) use ($date) {
                 $query->whereDate('end_date', '>=', $date)
@@ -184,7 +188,11 @@ class AttendanceInferenceService
             $rows[(int) $studentId] = [
                 'student_id' => (int) $studentId,
                 'attendance_date' => $date,
-                'status' => $permission->type === 'permit' ? 'permission' : 'sick',
+                'status' => match ($permission->type) {
+                    'permit' => 'permission',
+                    'holiday' => 'holiday',
+                    default => 'sick',
+                },
                 'notes' => $permission->reason,
             ];
         }

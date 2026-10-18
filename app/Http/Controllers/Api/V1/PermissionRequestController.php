@@ -44,7 +44,7 @@ class PermissionRequestController extends Controller
             'internship_id' => 'required|exists:internships,id',
             'request_date' => 'required|date|after_or_equal:today',
             'end_date' => 'nullable|date|after_or_equal:request_date',
-            'type' => 'required|in:sick,permit,other',
+            'type' => 'required|in:sick,permit,other,holiday',
             'reason' => 'required|string|max:1000',
             'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);

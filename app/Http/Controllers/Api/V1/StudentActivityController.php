@@ -120,6 +120,7 @@ class StudentActivityController extends Controller
         $presentCount = Attendance::where('student_id', $studentId)->where('status', 'present')->count();
         $absentCount = Attendance::where('student_id', $studentId)->where('status', 'absent')->count();
         $permissionCount = Attendance::where('student_id', $studentId)->where('status', 'permission')->count();
+        $holidayCount = Attendance::where('student_id', $studentId)->where('status', 'holiday')->count();
 
         return response()->json([
             'student' => $student,
@@ -129,6 +130,7 @@ class StudentActivityController extends Controller
                 'present' => $presentCount,
                 'absent' => $absentCount,
                 'permission' => $permissionCount,
+                'holiday' => $holidayCount,
                 'attendance_percentage' => $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 2) : 0,
             ],
         ]);

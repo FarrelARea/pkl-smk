@@ -19,7 +19,7 @@
     </div>
 
     {{-- Ringkasan Statistik --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div class="bg-white rounded-xl border border-gray-200 p-6 text-center">
             <p class="text-xs text-gray-500 uppercase">Total Hari Hadir</p>
             <p class="text-3xl font-bold text-blue-600" id="stat-total">0</p>
@@ -33,16 +33,20 @@
             <p class="text-3xl font-bold text-blue-400" id="stat-permission">0</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-6 text-center">
+            <p class="text-xs text-gray-500 uppercase">Libur</p>
+            <p class="text-3xl font-bold text-emerald-500" id="stat-holiday">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-6 text-center">
             <p class="text-xs text-gray-500 uppercase">Tidak Hadir</p>
             <p class="text-3xl font-bold text-red-500" id="stat-absent">0</p>
         </div>
     </div>
 
-    {{-- Status Absensi (Sakit/Izin/Tidak Hadir) --}}
+    {{-- Status Absensi (Sakit/Izin/Libur/Tidak Hadir) --}}
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="font-semibold text-gray-900">Status Kehadiran</h3>
-            <p class="mt-1 text-sm text-gray-500">Menampilkan catatan status yang dicatat untuk hari tertentu seperti sakit, izin, tidak hadir, atau hadir.</p>
+            <p class="mt-1 text-sm text-gray-500">Menampilkan catatan status yang dicatat untuk hari tertentu seperti sakit, izin, libur, tidak hadir, atau hadir.</p>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -106,6 +110,7 @@
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span> Tidak Hadir</span>
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> Sakit</span>
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-400 inline-block"></span> Izin</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Libur</span>
         </div>
 
         <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500 mb-2">
@@ -152,6 +157,7 @@
             document.getElementById('stat-total').textContent = attendanceRecords.filter(r => r.status === 'present').length;
             document.getElementById('stat-sick').textContent = attendanceRecords.filter(r => r.status === 'sick').length;
             document.getElementById('stat-permission').textContent = attendanceRecords.filter(r => r.status === 'permission').length;
+            document.getElementById('stat-holiday').textContent = attendanceRecords.filter(r => r.status === 'holiday').length;
             document.getElementById('stat-absent').textContent = attendanceRecords.filter(r => r.status === 'absent').length;
 
             renderStatusTable(attendanceRecords);
@@ -190,6 +196,7 @@
         const badgeMap = {
             sick: '<span class="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">Sakit</span>',
             permission: '<span class="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-700">Izin</span>',
+            holiday: '<span class="px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">Libur</span>',
             absent: '<span class="px-3 py-1 rounded-full text-xs bg-red-100 text-red-700">Tidak Hadir</span>',
             present: '<span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">Hadir</span>',
         };
@@ -247,6 +254,7 @@
             absent: 'Tidak Hadir',
             sick: 'Sakit',
             permission: 'Izin',
+            holiday: 'Libur',
         };
 
         document.getElementById('calendar-label').textContent = `${months[currentMonth - 1]} ${currentYear}`;
@@ -265,6 +273,7 @@
             absent: 'bg-red-400 text-white',
             sick: 'bg-yellow-400 text-white',
             permission: 'bg-blue-400 text-white',
+            holiday: 'bg-emerald-500 text-white',
         };
 
         let html = '';

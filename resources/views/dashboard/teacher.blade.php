@@ -18,7 +18,7 @@
             <p class="mt-2 text-3xl font-bold text-blue-700" id="summary-internships">0</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
-            <p class="text-sm text-gray-500">Izin / sakit pending</p>
+            <p class="text-sm text-gray-500">Izin / sakit / libur pending</p>
             <p class="mt-2 text-3xl font-bold text-amber-600" id="summary-permissions">0</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
@@ -46,7 +46,7 @@
                 <button type="button" onclick="openTeacherModal('permissions')" class="text-left rounded-2xl border border-amber-200 bg-amber-50 p-5 hover:border-amber-300 transition-colors">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <p class="text-sm font-semibold text-amber-900">Izin / sakit</p>
+                            <p class="text-sm font-semibold text-amber-900">Izin / sakit / libur</p>
                             <p class="mt-1 text-sm text-amber-800">Setujui atau tolak pengajuan siswa tanpa pindah halaman.</p>
                         </div>
                         <span class="material-symbols-outlined text-amber-700">approval</span>
@@ -296,7 +296,7 @@
 
         if (type === 'permissions') {
             kicker.textContent = 'Internship related';
-            title.textContent = 'Izin / sakit siswa';
+            title.textContent = 'Izin / sakit / libur siswa';
             renderPermissionsModal(body, date);
             return;
         }
@@ -347,7 +347,7 @@
                     ` : ''}
                 </div>
             </div>
-        `).join('')}</div>` : '<p class="text-sm text-gray-400 text-center py-10">Belum ada pengajuan izin atau sakit pada tanggal ini.</p>'}
+        `).join('')}</div>` : '<p class="text-sm text-gray-400 text-center py-10">Belum ada pengajuan izin, sakit, atau libur pada tanggal ini.</p>'}
         </div>`;
     }
 
@@ -496,7 +496,7 @@
     }
 
     function formatPermissionType(type) {
-        return { sick: 'Sakit', permit: 'Izin', other: 'Lainnya' }[type] || type;
+        return { sick: 'Sakit', permit: 'Izin', holiday: 'Libur', other: 'Lainnya' }[type] || type;
     }
 
     function permissionBadgeClass(status) {
@@ -534,6 +534,7 @@
             present: 'inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700',
             sick: 'inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700',
             permission: 'inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700',
+            holiday: 'inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700',
             absent: 'inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700',
         }[status] || 'inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600';
     }
@@ -543,6 +544,7 @@
             present: 'Hadir',
             sick: 'Sakit',
             permission: 'Izin',
+            holiday: 'Libur',
             absent: 'Alpa',
         }[status] || status;
     }

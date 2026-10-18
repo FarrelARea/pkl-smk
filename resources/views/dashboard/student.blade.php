@@ -5,7 +5,7 @@
             <li>Absen masuk dan keluar dengan foto dan lokasi</li>
             <li>Kirim daily log harian</li>
             <li>Lihat riwayat kehadiran</li>
-            <li>Ajukan izin atau sakit</li>
+            <li>Ajukan izin, sakit, atau libur</li>
             <li>Lihat penilaian dan dokumen terkait</li>
         </ul>
     </x-help-button>
@@ -68,8 +68,8 @@
             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
                 <span class="material-symbols-outlined">assignment_late</span>
             </div>
-            <h3 class="text-sm font-semibold text-slate-900">Izin & sakit</h3>
-            <p class="mt-1 text-sm text-slate-500">Ajukan izin ketika tidak bisa hadir magang.</p>
+            <h3 class="text-sm font-semibold text-slate-900">Izin, sakit & libur</h3>
+            <p class="mt-1 text-sm text-slate-500">Ajukan ketidakhadiran yang perlu disetujui.</p>
         </a>
 
         <a href="/student/evaluations" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50/60">

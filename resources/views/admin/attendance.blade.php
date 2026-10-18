@@ -96,6 +96,7 @@
                 <option value="absent">Tidak Hadir</option>
                 <option value="sick">Sakit</option>
                 <option value="permission">Izin</option>
+                <option value="holiday">Libur</option>
             </select>
         </div>
         <div class="flex justify-end gap-3 pt-2">
@@ -124,6 +125,7 @@
                     <option value="absent">Alpa</option>
                     <option value="sick">Sakit</option>
                     <option value="permission">Izin</option>
+                    <option value="holiday">Libur</option>
                 </select>
             </div>
         </div>
@@ -158,6 +160,7 @@
                 <option value="absent">Tidak Hadir</option>
                 <option value="sick">Sakit</option>
                 <option value="permission">Izin</option>
+                <option value="holiday">Libur</option>
             </select>
         </div>
         <div class="flex justify-end gap-3 pt-2">
@@ -269,12 +272,14 @@
             present: 'bg-emerald-100 text-emerald-700',
             sick: 'bg-red-100 text-red-700',
             permission: 'bg-amber-100 text-amber-700',
+            holiday: 'bg-emerald-100 text-emerald-700',
             absent: 'bg-gray-200 text-gray-700',
         };
         const label = {
             present: 'Hadir',
             sick: 'Sakit',
             permission: 'Izin',
+            holiday: 'Libur',
             absent: 'Alpa',
         };
         return `<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${map[status] || 'bg-gray-100 text-gray-600'}">${label[status] || status}</span>`;

@@ -248,7 +248,7 @@ class SupervisorPanelController extends Controller
         return response()->json($permissions);
     }
 
-    public function studentStats(int $studentId): JsonResponse
+    public function studentStats(Request $request, int $studentId): JsonResponse
     {
         $supervisor = auth('api')->user();
 

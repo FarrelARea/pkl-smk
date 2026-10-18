@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Pengajuan Izin & Sakit')
+@section('title', 'Pengajuan Izin, Sakit & Libur')
 
 @section('content')
 <div class="space-y-6">
     {{-- Judul --}}
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-[26px] font-bold text-gray-900">Pengajuan Izin & Sakit</h1>
-            <x-help-button title="Panduan Pengajuan Izin & Sakit">
-                <p>Di halaman ini kamu bisa mengajukan izin atau sakit.</p>
+        <h1 class="text-[26px] font-bold text-gray-900">Pengajuan Izin, Sakit & Libur</h1>
+            <x-help-button title="Panduan Pengajuan Izin, Sakit & Libur">
+                <p>Di halaman ini kamu bisa mengajukan izin, sakit, atau libur.</p>
                 <ul class="list-disc pl-4 mt-2 space-y-1">
-                    <li>Pilih jenis pengajuan (sakit, izin, atau lainnya)</li>
+                    <li>Pilih jenis pengajuan (sakit, izin, libur, atau lainnya)</li>
                     <li>Isi tanggal dan alasan pengajuan</li>
                     <li>Lampirkan dokumen pendukung jika ada</li>
                     <li>Pantau status persetujuan dari guru</li>
@@ -21,13 +21,14 @@
 
     {{-- Form Pengajuan --}}
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 class="font-semibold text-gray-900 text-lg mb-4">Ajukan Izin / Sakit</h2>
+        <h2 class="font-semibold text-gray-900 text-lg mb-4">Ajukan Izin / Sakit / Libur</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Pengajuan <span class="text-red-500">*</span></label>
                 <select id="req-type" class="w-full px-3 py-1.5 h-8 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
                     <option value="sick">Sakit</option>
                     <option value="permit">Izin</option>
+                    <option value="holiday">Libur</option>
                     <option value="other">Lainnya</option>
                 </select>
             </div>
@@ -136,6 +137,7 @@
         const typeBadge = {
             sick:   '<span class="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700">Sakit</span>',
             permit: '<span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">Izin</span>',
+            holiday:'<span class="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-700">Libur</span>',
             other:  '<span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">Lainnya</span>',
         };
         const statusBadge = {
