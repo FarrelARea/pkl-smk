@@ -109,6 +109,7 @@
                     <div id="supervisor-student-quick-list" class="space-y-2">
                         <p class="text-sm text-gray-400">Memuat...</p>
                     </div>
+                    <button type="button" id="supervisor-student-toggle" class="hidden mt-3 text-sm font-medium text-cyan-700 hover:text-cyan-800" onclick="toggleSupervisorStudents()"></button>
                 </div>
             </div>
         </section>
@@ -158,6 +159,7 @@
 <script type="module">
     const supervisorDashboardState = {
         summary: null,
+        showAllStudents: false,
         permissions: [],
         scores: [],
         documents: [],
@@ -217,14 +219,17 @@
 
     function renderSupervisorStudents(students) {
         const container = document.getElementById('supervisor-student-quick-list');
+        const toggle = document.getElementById('supervisor-student-toggle');
         document.getElementById('supervisor-student-count-label').textContent = `${students.length} siswa`;
 
         if (!students.length) {
             container.innerHTML = '<p class="text-sm text-gray-400">Belum ada siswa magang.</p>';
+            toggle.classList.add('hidden');
             return;
         }
 
-        container.innerHTML = students.slice(0, 6).map(student => `
+        const visibleStudents = supervisorDashboardState.showAllStudents ? students : students.slice(0, 6);
+        container.innerHTML = visibleStudents.map(student => `
             <a href="/supervisor/students/${student.id}" class="block rounded-xl border border-gray-200 px-4 py-3 hover:bg-gray-50 transition-colors">
                 <div class="flex items-center justify-between gap-3">
                     <div>
@@ -236,7 +241,21 @@
                 <p class="text-xs text-gray-500 mt-2">${student.active_internship?.company ? `PKL di ${student.active_internship.company}` : 'Belum ada magang aktif'}</p>
             </a>
         `).join('');
+
+        if (students.length > 6) {
+            toggle.classList.remove('hidden');
+            toggle.textContent = supervisorDashboardState.showAllStudents
+                ? 'Tampilkan lebih sedikit'
+                : `Lihat semua (${students.length})`;
+        } else {
+            toggle.classList.add('hidden');
+        }
     }
+
+    window.toggleSupervisorStudents = function () {
+        supervisorDashboardState.showAllStudents = !supervisorDashboardState.showAllStudents;
+        renderSupervisorStudents(supervisorDashboardState.summary?.students || []);
+    };
 
     async function loadSupervisorPermissionsOverview(date = supervisorDashboardState.permissionDate) {
         supervisorDashboardState.permissionDate = date;
