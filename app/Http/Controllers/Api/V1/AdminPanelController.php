@@ -32,7 +32,7 @@ class AdminPanelController extends Controller
         $studentIds = $studentQuery->pluck('id');
         $studentNames = User::whereIn('id', $studentIds)->pluck('name', 'id');
 
-        $records = $this->attendanceInferenceService
+        $inferredRecords = $this->attendanceInferenceService
             ->attendanceForStudentsOnDate($studentIds, $parsedDate)
             ->map(fn ($record) => [
                 'student_id' => $record['student_id'],
@@ -50,6 +50,24 @@ class AdminPanelController extends Controller
                 'all_clocks' => [],
             ])
             ->values();
+
+        $recordedCount = $inferredRecords->count();
+        $recordsByStudent = $inferredRecords->keyBy('student_id');
+        $records = $studentIds->map(fn ($studentId) => $recordsByStudent->get($studentId, [
+            'student_id' => $studentId,
+            'student_name' => $studentNames[$studentId] ?? null,
+            'attendance_date' => $parsedDate,
+            'status' => 'absent',
+            'notes' => null,
+            'attendance_id' => null,
+            'internship_id' => null,
+            'clock_in_id' => null,
+            'clock_out_id' => null,
+            'clock_in' => null,
+            'clock_out' => null,
+            'location_verified' => null,
+            'all_clocks' => [],
+        ]))->values();
 
         $clockRecords = ClockInOut::whereIn('user_id', $studentIds)
             ->whereDate('created_at', $parsedDate)
@@ -102,7 +120,12 @@ class AdminPanelController extends Controller
             'date' => $parsedDate,
             'attendance' => $records,
             'present_count' => $records->where('status', 'present')->count(),
-            'tracked_count' => $records->count(),
+            'sick_count' => $records->where('status', 'sick')->count(),
+            'permission_count' => $records->where('status', 'permission')->count(),
+            'holiday_count' => $records->where('status', 'holiday')->count(),
+            'absent_count' => $records->where('status', 'absent')->count(),
+            'tracked_count' => $recordedCount,
+            'student_count' => $studentIds->count(),
         ]);
     }
 }

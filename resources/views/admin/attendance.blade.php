@@ -39,9 +39,32 @@
         </button>
     </div>
 
-    {{-- Summary Badge --}}
-    <div id="summary-badge" class="rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-3 text-sm text-emerald-800 hidden">
-        <span id="summary-text"></span>
+    {{-- Attendance Summary --}}
+    <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="rounded-xl bg-surface-container-lowest border border-outline-variant/10 p-4 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Siswa</p>
+            <p id="summary-total" class="mt-2 text-2xl font-extrabold text-on-surface">—</p>
+        </div>
+        <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Hadir</p>
+            <p id="summary-present" class="mt-2 text-2xl font-extrabold text-emerald-800">—</p>
+        </div>
+        <div class="rounded-xl bg-red-50 border border-red-200 p-4 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-red-700">Sakit</p>
+            <p id="summary-sick" class="mt-2 text-2xl font-extrabold text-red-800">—</p>
+        </div>
+        <div class="rounded-xl bg-amber-50 border border-amber-200 p-4 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-amber-700">Izin</p>
+            <p id="summary-permission" class="mt-2 text-2xl font-extrabold text-amber-800">—</p>
+        </div>
+        <div class="rounded-xl bg-surface-container-low border border-outline-variant/20 p-4 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Tanpa Keterangan</p>
+            <p id="summary-absent" class="mt-2 text-2xl font-extrabold text-on-surface">—</p>
+        </div>
+        <div class="rounded-xl bg-blue-50 border border-blue-200 p-4 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-blue-700">Libur</p>
+            <p id="summary-holiday" class="mt-2 text-2xl font-extrabold text-blue-800">—</p>
+        </div>
     </div>
 
     {{-- Attendance List --}}
@@ -223,8 +246,12 @@
         const data = await res.json();
         const attendance = data.attendance || [];
 
-        document.getElementById('summary-badge').classList.remove('hidden');
-        document.getElementById('summary-text').textContent = `${data.present_count} siswa hadir dari ${data.tracked_count} data kehadiran yang tercatat.`;
+        document.getElementById('summary-total').textContent = data.student_count ?? 0;
+        document.getElementById('summary-present').textContent = data.present_count ?? 0;
+        document.getElementById('summary-sick').textContent = data.sick_count ?? 0;
+        document.getElementById('summary-permission').textContent = data.permission_count ?? 0;
+        document.getElementById('summary-absent').textContent = data.absent_count ?? 0;
+        document.getElementById('summary-holiday').textContent = data.holiday_count ?? 0;
 
         const tbody = document.getElementById('attendance-table-body');
 
